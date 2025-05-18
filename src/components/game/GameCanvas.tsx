@@ -44,39 +44,94 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     pImg.src = 'https://placehold.co/32x32/388E3C/E8F5E9.png?text=P'; 
     pImg.setAttribute('data-ai-hint', 'player character');
     pImg.onload = () => setAssets(prev => ({ ...prev, playerImage: pImg }));
-    pImg.onerror = () => console.error("Failed to load player image");
+    pImg.onerror = () => {
+        console.error("Failed to load player image. Game initialization might be stuck.");
+        // Consider setting playerImage to a fallback or handling error more explicitly
+    };
 
     const tImg = new Image();
     tImg.src = 'https://placehold.co/32x30/795548/E8F5E9.png?text=T';
     tImg.setAttribute('data-ai-hint', 'ground tile');
     tImg.onload = () => setAssets(prev => ({ ...prev, tileImage: tImg }));
-    tImg.onerror = () => console.error("Failed to load tile image");
+    tImg.onerror = () => {
+        console.error("Failed to load tile image. Game initialization might be stuck.");
+        // Consider setting tileImage to a fallback or handling error
+    };
   }, []);
+
+  // Effect for handling canvas resize
+  useEffect(() => {
+    if(!isClient) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const updateSize = () => {
+      const container = canvas.parentElement;
+      let newWidth = 800; // Default/fallback width
+      let newHeight = 600; // Default/fallback height
+
+      if (container) {
+        if (container.clientWidth > 0) {
+          newWidth = container.clientWidth;
+        }
+        if (container.clientHeight > 0) {
+          newHeight = container.clientHeight;
+        }
+      }
+      
+      setCanvasSize(currentSize => {
+        if (canvas.width !== newWidth) canvas.width = newWidth;
+        if (canvas.height !== newHeight) canvas.height = newHeight;
+        if (currentSize.width !== newWidth || currentSize.height !== newHeight) {
+          return { width: newWidth, height: newHeight };
+        }
+        return currentSize;
+      });
+    };
+    
+    updateSize(); // Initial resize and state set
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (canvas.parentElement && typeof ResizeObserver !== 'undefined') {
+        resizeObserver = new ResizeObserver(updateSize);
+        resizeObserver.observe(canvas.parentElement);
+    } else {
+        window.addEventListener('resize', updateSize);
+    }
+    
+    return () => {
+        if (resizeObserver && canvas.parentElement) {
+            resizeObserver.unobserve(canvas.parentElement);
+        } else {
+            window.removeEventListener('resize', updateSize);
+        }
+    };
+  }, [isClient]); 
 
   // Effect for initializing/updating level geometry based on canvas size and assets
   useEffect(() => {
-    if (!isClient || canvasSize.width === 0 || canvasSize.height === 0) {
-      // Wait for client readiness and valid canvas dimensions
+    // Ensure all conditions are met before proceeding:
+    // 1. Component is mounted on the client.
+    // 2. Canvas has valid dimensions.
+    // 3. Player and Tile images are loaded.
+    if (!isClient || canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImage || !assets.tileImage) {
+      setIsLoading(true); // Keep isLoading true if prerequisites are not met
       return;
     }
 
-    setIsLoading(true);
-    
+    // All prerequisites met, proceed to initialize the level
+    // setIsLoading(true); // No longer needed here, as the guard above handles it.
+
     const currentCanvasWidth = canvasSize.width;
-    // const currentCanvasHeight = canvasSize.height; // Available if needed for y-positioning relative to bottom
-
     const platformWidth = 150;
-    const platformHeight = 12;
+    // platformHeight is 12, hardcoded for tiles below
 
-    // Platform 1 (p1) - UPPER, on the left side
     const p1_x = 50;
     const p1_y = 200; 
 
-    // Platform 2 (p2) - LOWER, on the right side
-    const p2_x = currentCanvasWidth - platformWidth - 50; // Positioned 50px from the right edge
+    const p2_x = currentCanvasWidth - platformWidth - 50; 
     const p2_y = 400;
 
-    // Player starts on the lower platform (p2)
     const playerInitialX = p2_x + 10; 
     const playerInitialYTop = p2_y - PLAYER_HEIGHT;
 
@@ -84,16 +139,16 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
         playerStart: { xPx: playerInitialX, yPx: playerInitialYTop },
         tiles: [
             { 
-              x: p1_x, y: p1_y, width: platformWidth, height: platformHeight, type: 1, 
+              x: p1_x, y: p1_y, width: platformWidth, height: 12, type: 1, 
               color: TILE_COLOR_GROUND, 
             },
             { 
-              x: p2_x, y: p2_y, width: platformWidth, height: platformHeight, type: 1, 
+              x: p2_x, y: p2_y, width: platformWidth, height: 12, type: 1, 
               color: TILE_COLOR_GROUND,
             }
         ],
         tileWidth: TILE_SIZE, 
-        tileHeight: TILE_SIZE,
+        tileHeight: TILE_SIZE, // Standard tile dimensions
         layout: [[]], 
     };
     
@@ -110,12 +165,12 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       isMovingLeft: false,
       isMovingRight: false,
       color: PLAYER_COLOR,
-      image: assets.playerImage || undefined, // Use loaded image if available
+      image: assets.playerImage, // Use the loaded player image
     };
     playerInstanceRef.current = newPlayer;
     if (parentPlayerRef) parentPlayerRef.current = newPlayer;
     
-    setIsLoading(false);
+    setIsLoading(false); // Initialization complete
 
   }, [isClient, canvasSize, assets.playerImage, assets.tileImage, parentPlayerRef]);
 
@@ -132,7 +187,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
     const gameLoop = () => {
       const player = playerInstanceRef.current;
-      if (!player || !level) { // Should not happen if isLoading guard is effective
+      if (!player || !level) { 
           animationFrameId = requestAnimationFrame(gameLoop);
           return;
       }
@@ -208,12 +263,11 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [isClient, isLoading, level, executeAction, resetExecuteAction, parentPlayerRef, assets.tileImage]); // assets.tileImage for re-rendering if tile image loads
+  }, [isClient, isLoading, level, executeAction, resetExecuteAction, parentPlayerRef, assets.tileImage]);
 
   // Keyboard controls effect
   useEffect(() => {
     if(!isClient) return;
-    // ... (keyboard handling unchanged) ...
     const handleKeyDown = (e: KeyboardEvent) => {
       const player = playerInstanceRef.current;
       if (!player) return;
@@ -243,51 +297,6 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     };
   }, [onPlayerAction, isClient]);
 
-  // Effect for handling canvas resize
-  useEffect(() => {
-    if(!isClient) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const updateSize = () => {
-      const container = canvas.parentElement;
-      let newWidth = 800; // Default/fallback width
-      let newHeight = 600; // Default/fallback height
-
-      if (container) {
-        if (container.clientWidth > 0) {
-          newWidth = container.clientWidth;
-        }
-        if (container.clientHeight > 0) {
-          newHeight = container.clientHeight;
-        }
-      }
-      canvas.width = newWidth;
-      canvas.height = newHeight;
-      // Update state to trigger re-calculation of level geometry
-      setCanvasSize({ width: newWidth, height: newHeight });
-    };
-    
-    updateSize(); // Initial resize and state set
-
-    let resizeObserver: ResizeObserver | null = null;
-    if (canvas.parentElement && typeof ResizeObserver !== 'undefined') {
-        resizeObserver = new ResizeObserver(() => {
-            updateSize();
-        });
-        resizeObserver.observe(canvas.parentElement);
-    } else {
-        window.addEventListener('resize', updateSize);
-    }
-    
-    return () => {
-        if (resizeObserver && canvas.parentElement) {
-            resizeObserver.unobserve(canvas.parentElement);
-        } else {
-            window.removeEventListener('resize', updateSize);
-        }
-    };
-  }, [isClient]); 
 
   const checkCollision = (rect1: PlayerState | Tile, rect2: Tile) => {
     return rect1.x < rect2.x + rect2.width &&
@@ -297,7 +306,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   };
 
   const renderPlayer = (ctx: CanvasRenderingContext2D, player: PlayerState) => {
-    if (player.image && assets.playerImage?.complete) {
+    if (player.image && assets.playerImage?.complete) { // Check if image is loaded and complete
       ctx.drawImage(player.image, player.x, player.y, player.width, player.height);
     } else {
       ctx.fillStyle = player.color;
@@ -307,7 +316,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
   const renderLevel = (ctx: CanvasRenderingContext2D, currentLevel: LevelData) => {
     currentLevel.tiles.forEach(tile => {
-       if (assets.tileImage?.complete && tile.type === 1) { 
+       if (assets.tileImage?.complete && tile.type === 1) { // Check if image is loaded and complete
          ctx.drawImage(assets.tileImage, tile.x, tile.y, tile.width, tile.height);
        } else {
          ctx.fillStyle = tile.color; 
@@ -320,8 +329,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     return <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground rounded-md">Loading Game...</div>;
   }
   
-  // Show loading indicator if canvas size is not yet determined or if explicitly loading
-  if (isLoading || canvasSize.width === 0 || canvasSize.height === 0) {
+  if (isLoading) { // Simplified check: if isLoading is true, show "Initializing"
     return <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground rounded-md">Initializing Canvas...</div>;
   }
 
@@ -333,3 +341,4 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     />
   );
 }
+
