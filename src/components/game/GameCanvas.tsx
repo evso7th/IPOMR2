@@ -332,7 +332,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     <div className="relative w-full h-full"> {/* Wrapper for positioning overlay */}
       <canvas 
         ref={canvasRef} 
-        className="border border-primary rounded-md shadow-lg w-full h-full block" // Added 'block' to ensure it behaves as expected
+        className="w-full h-full block" // Removed border, shadow, rounded-md
         tabIndex={0} 
       />
       {isLoading && (
