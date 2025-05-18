@@ -10,7 +10,6 @@ import {
   PLAYER_WIDTH,
   PLAYER_HEIGHT,
   PLAYER_COLOR,
-  NUMBER_OF_COINS,
   COIN_SIZE,
   COIN_VERTICAL_SPAWN_BOTTOM_OFFSET,
   COIN_SPAWN_TOP_MARGIN,
@@ -20,7 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { checkCollision } from '@/game/utils/collision';
 import { renderPlayer } from '@/game/entities/playerRenderer';
 import { renderLevel } from '@/game/entities/levelRenderer';
-import { renderCoins } from '@/game/entities/coinRenderer'; // Import coin renderer
+import { renderCoins } from '@/game/entities/coinRenderer';
 import { loadLevel } from '@/lib/levelLoader';
 
 interface GameCanvasProps {
@@ -49,48 +48,73 @@ function parseDimension(value: number | string, totalSize: number): number {
   return 0;
 }
 
-function generateCoins(
+function spawnNewCoinPair(
   processedTiles: ProcessedTile[],
   canvasWidth: number,
   canvasHeight: number
 ): CoinState[] {
-  const coins: CoinState[] = [];
-  if (canvasWidth <= 0 || canvasHeight <= 0) return coins;
+  if (canvasWidth <= 0 || canvasHeight <= 0) return [];
 
-  let highestPlatformTopY = canvasHeight; // Start with bottom of canvas if no platforms
+  let highestPlatformTopY = canvasHeight;
   if (processedTiles.length > 0) {
     highestPlatformTopY = Math.min(...processedTiles.map(tile => tile.y));
   } else {
-     // If no platforms, define a fallback spawn zone or return no coins
-     // For now, let's make the spawn zone relative to canvas top if no platforms
-     highestPlatformTopY = MAX_JUMP_HEIGHT + COIN_SPAWN_TOP_MARGIN + COIN_SIZE + 10; // Ensure coins are reachable from ground
+     highestPlatformTopY = MAX_JUMP_HEIGHT + COIN_SPAWN_TOP_MARGIN + COIN_SIZE + 10;
   }
 
-
-  // Top boundary for coin's top edge (lowest Y value on screen)
   const ySpawnZoneTop = highestPlatformTopY - MAX_JUMP_HEIGHT - COIN_SPAWN_TOP_MARGIN;
-
-  // Bottom boundary for coin's top edge (highest Y value on screen)
   const ySpawnZoneBottom = canvasHeight - COIN_VERTICAL_SPAWN_BOTTOM_OFFSET - COIN_SIZE;
 
   if (ySpawnZoneTop >= ySpawnZoneBottom) {
     console.warn("Coin spawn zone is invalid (top is below or at bottom). No coins will be generated.");
-    return coins;
+    return [];
   }
 
-  for (let i = 0; i < NUMBER_OF_COINS; i++) {
-    const coinX = Math.random() * (canvasWidth - COIN_SIZE);
-    const coinY = Math.random() * (ySpawnZoneBottom - ySpawnZoneTop) + ySpawnZoneTop;
-    coins.push({
-      id: `coin-${i}`,
-      x: coinX,
-      y: coinY,
+  const newPair: CoinState[] = [];
+  const midPoint = canvasWidth / 2;
+  const horizontalSpawnMargin = COIN_SIZE * 2; // Minimum distance of a coin from the center line
+
+  // Coin 1 (left half)
+  // Ensure spawn area for X is valid
+  const leftHalfWidth = midPoint - horizontalSpawnMargin - COIN_SIZE;
+  if (leftHalfWidth > 0) {
+    const coin1X = Math.max(0, Math.random() * leftHalfWidth);
+    const coin1Y = Math.random() * (ySpawnZoneBottom - ySpawnZoneTop) + ySpawnZoneTop;
+    newPair.push({
+      id: `coin-${Date.now()}-1`,
+      x: coin1X,
+      y: coin1Y,
       width: COIN_SIZE,
       height: COIN_SIZE,
       isCollected: false,
     });
+  } else {
+    console.warn("Canvas too narrow to spawn coin in left half with desired separation.");
   }
-  return coins;
+
+
+  // Coin 2 (right half)
+  const rightHalfBaseX = midPoint + horizontalSpawnMargin;
+  const rightHalfWidth = canvasWidth - rightHalfBaseX - COIN_SIZE;
+
+  if (rightHalfWidth > 0) {
+    const coin2X = rightHalfBaseX + (Math.random() * rightHalfWidth);
+    const coin2Y = Math.random() * (ySpawnZoneBottom - ySpawnZoneTop) + ySpawnZoneTop;
+    newPair.push({
+      id: `coin-${Date.now()}-2`,
+      x: coin2X,
+      y: coin2Y,
+      width: COIN_SIZE,
+      height: COIN_SIZE,
+      isCollected: false,
+    });
+  } else {
+    console.warn("Canvas too narrow to spawn coin in right half with desired separation.");
+  }
+  
+  // If only one coin could be spawned due to narrow canvas, we might want to handle this
+  // For now, it will return a pair of 0, 1 or 2 coins.
+  return newPair;
 }
 
 
@@ -98,7 +122,7 @@ function processRawLevelData(
   rawData: RawLevelData,
   canvasWidth: number,
   canvasHeight: number
-): ProcessedLevelData {
+): Omit<ProcessedLevelData, 'coins'> { // Coins are handled separately now
   const processedTiles: ProcessedTile[] = rawData.tiles.map((rawTile: RawTileData) => {
     const tileWidth = parseDimension(rawTile.width, canvasWidth);
     const tileHeight = parseDimension(rawTile.height, canvasHeight);
@@ -163,12 +187,9 @@ function processRawLevelData(
     console.warn(`Player start platform with id "${rawData.playerStart.platformId}" not found. Defaulting player position.`);
   }
   
-  const coins = generateCoins(processedTiles, canvasWidth, canvasHeight);
-
   return {
     playerStart: { xPx: playerStartX, yPx: playerStartY },
     tiles: processedTiles,
-    coins: coins,
   };
 }
 
@@ -176,6 +197,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [rawLevelData, setRawLevelData] = useState<RawLevelData | null>(null);
   const [processedLevel, setProcessedLevel] = useState<ProcessedLevelData | null>(null);
+  const [activeCoins, setActiveCoins] = useState<CoinState[]>([]);
   const playerInstanceRef = useRef<PlayerState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -185,10 +207,10 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   const [assets, setAssets] = useState<{
     playerImage: HTMLImageElement | null;
     tileImage: HTMLImageElement | null;
-    coinImage: HTMLImageElement | null; // Added coin image
+    coinImage: HTMLImageElement | null;
     playerImageLoaded: boolean;
     tileImageLoaded: boolean;
-    coinImageLoaded: boolean; // Added coin image loaded status
+    coinImageLoaded: boolean;
   }>({
     playerImage: null,
     tileImage: null,
@@ -206,18 +228,26 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     pImg.onload = () => setAssets(prev => ({ ...prev, playerImage: pImg, playerImageLoaded: true }));
     pImg.onerror = () => {
       console.error("Failed to load player image.");
-      setAssets(prev => ({ ...prev, playerImageLoaded: true }));
+      setAssets(prev => ({ ...prev, playerImageLoaded: true })); // Mark as "attempted"
     };
 
-    const cImg = new Image(); // Coin image
+    const tImg = new Image(); // Tile image placeholder
+    tImg.src = `https://placehold.co/1x1/8D6E63/FFFFFF.png?text=T`; // 1x1 placeholder is fine for tiles using color
+    tImg.setAttribute('data-ai-hint', 'platform tile');
+    tImg.onload = () => setAssets(prev => ({...prev, tileImage: tImg, tileImageLoaded: true}));
+    tImg.onerror = () => {
+        console.error("Failed to load tile image.");
+        setAssets(prev => ({...prev, tileImageLoaded: true})); // Mark as "attempted"
+    };
+
+    const cImg = new Image();
     cImg.src = `https://placehold.co/${COIN_SIZE}x${COIN_SIZE}/FFD700/000000.png?text=C`;
     cImg.setAttribute('data-ai-hint', 'coin gold');
     cImg.onload = () => setAssets(prev => ({ ...prev, coinImage: cImg, coinImageLoaded: true }));
     cImg.onerror = () => {
       console.error("Failed to load coin image.");
-      setAssets(prev => ({ ...prev, coinImageLoaded: true }));
+      setAssets(prev => ({ ...prev, coinImageLoaded: true })); // Mark as "attempted"
     };
-    // Assuming tileImageLoaded is true as we're not using specific tile images yet
   }, []);
 
   useEffect(() => {
@@ -269,6 +299,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     setIsLoading(true);
     setRawLevelData(null); 
     setProcessedLevel(null);
+    setActiveCoins([]); // Clear active coins on level change
 
     loadLevel(levelPath)
       .then(data => {
@@ -289,14 +320,18 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   useEffect(() => {
     if (!isClient || !rawLevelData || canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImageLoaded || !assets.tileImageLoaded || !assets.coinImageLoaded) {
       if (isLoading === false && (!rawLevelData || canvasSize.width === 0 || canvasSize.height === 0)) {
-         setIsLoading(true);
+         // This ensures we show loading if essential data is missing after an attempt.
+         if (!isLoading) setIsLoading(true);
       }
       return;
     }
     
     try {
-      const newProcessedLevel = processRawLevelData(rawLevelData, canvasSize.width, canvasSize.height);
+      const newProcessedLevelData = processRawLevelData(rawLevelData, canvasSize.width, canvasSize.height);
+      // Cast to ProcessedLevelData, assuming coins will be handled by activeCoins state
+      const newProcessedLevel = newProcessedLevelData as ProcessedLevelData;
       setProcessedLevel(newProcessedLevel);
+
 
       const newPlayer: PlayerState = {
         x: newProcessedLevel.playerStart.xPx,
@@ -314,13 +349,30 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       playerInstanceRef.current = newPlayer;
       if (parentPlayerRef) parentPlayerRef.current = newPlayer;
       
+      // Spawn initial coin pair
+      if (newProcessedLevel.tiles) {
+        setActiveCoins(spawnNewCoinPair(newProcessedLevel.tiles, canvasSize.width, canvasSize.height));
+      }
+
       setIsLoading(false); 
     } catch (error) {
         console.error("Error processing level data:", error);
         toast({ title: "Processing Error", description: "Failed to process level data.", variant: "destructive" });
         setIsLoading(false); 
     }
-  }, [isClient, rawLevelData, canvasSize, assets.playerImage, assets.tileImage, assets.coinImage, assets.playerImageLoaded, assets.tileImageLoaded, assets.coinImageLoaded, parentPlayerRef, toast, isLoading]);
+  }, [isClient, rawLevelData, canvasSize, assets, parentPlayerRef, toast]);
+
+
+  // Effect to respawn coins when all active ones are collected
+  useEffect(() => {
+    if (!isClient || isLoading || !processedLevel || !processedLevel.tiles || canvasSize.width === 0 || canvasSize.height === 0) return;
+
+    const allCurrentlyActiveCoinsCollected = activeCoins.length > 0 && activeCoins.every(c => c.isCollected);
+
+    if (allCurrentlyActiveCoinsCollected) {
+      setActiveCoins(spawnNewCoinPair(processedLevel.tiles, canvasSize.width, canvasSize.height));
+    }
+  }, [activeCoins, isClient, isLoading, processedLevel, canvasSize, setActiveCoins]);
 
 
   useEffect(() => {
@@ -334,9 +386,9 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
     const gameLoop = () => {
       const player = playerInstanceRef.current;
-      const currentLevel = processedLevel; // Use a local variable for processedLevel
+      const currentLevel = processedLevel; 
       
-      if (!player || !currentLevel) {
+      if (!player || !currentLevel || !currentLevel.tiles) { // ensure tiles exist
           animationFrameId = requestAnimationFrame(gameLoop);
           return;
       }
@@ -425,20 +477,26 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       }
 
       // Coin collection logic
-      currentLevel.coins.forEach(coin => {
-        if (!coin.isCollected && checkCollision(player, coin as Rect)) { // Cast coin to Rect
-          coin.isCollected = true;
-          // TODO: Add score update logic here
+      const playerRect = { x: player.x, y: player.y, width: player.width, height: player.height };
+      let coinCollectedThisFrame = false;
+      const updatedCoins = activeCoins.map(coin => {
+        if (!coin.isCollected && checkCollision(playerRect, coin as Rect)) {
+          coinCollectedThisFrame = true;
           // toast({ title: "Coin Collected!", description: `You collected ${coin.id}` });
+          return { ...coin, isCollected: true };
         }
+        return coin;
       });
 
+      if (coinCollectedThisFrame) {
+        setActiveCoins(updatedCoins); // This will trigger the respawn useEffect
+      }
 
       if (parentPlayerRef) parentPlayerRef.current = { ...player };
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       renderLevel(ctx, currentLevel, assets.tileImage); 
-      renderCoins(ctx, currentLevel.coins, assets.coinImage); // Render coins
+      renderCoins(ctx, activeCoins, assets.coinImage);
       renderPlayer(ctx, player, assets.playerImage);
 
       animationFrameId = requestAnimationFrame(gameLoop);
@@ -448,7 +506,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [isClient, isLoading, processedLevel, executeAction, resetExecuteAction, parentPlayerRef, assets.tileImage, assets.playerImage, assets.coinImage, canvasSize]); // Added assets.coinImage
+  }, [isClient, isLoading, processedLevel, executeAction, resetExecuteAction, parentPlayerRef, assets, canvasSize, activeCoins, setActiveCoins]);
 
   useEffect(() => {
     if(!isClient) return;
@@ -495,3 +553,4 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     </div>
   );
 }
+

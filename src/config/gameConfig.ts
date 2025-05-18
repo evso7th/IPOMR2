@@ -13,8 +13,9 @@ export const TILE_COLOR_GROUND = 'hsl(var(--accent))';
 export const TILE_COLOR_EMPTY = 'rgba(0,0,0,0)';
 
 // Coin Configuration
-export const NUMBER_OF_COINS = 10;
+// export const NUMBER_OF_COINS = 10; // No longer a fixed total number, coins spawn in pairs
 export const COIN_SIZE = 20; // width and height of the coin
 export const COIN_COLOR = 'gold'; // fallback color if image fails
-export const COIN_VERTICAL_SPAWN_BOTTOM_OFFSET = 100; // from bottom of canvas to coin's bottom edge
-export const COIN_SPAWN_TOP_MARGIN = 10; // margin below player's max reach for coin's top edge
+export const COIN_VERTICAL_SPAWN_BOTTOM_OFFSET = 100; // from bottom of canvas for coin's bottom edge
+export const COIN_SPAWN_TOP_MARGIN = 10; // margin below player's max reach from highest platform for coin's top edge
+

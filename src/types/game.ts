@@ -76,7 +76,7 @@ export interface RawLevelData {
 export interface ProcessedLevelData {
   playerStart: { xPx: number; yPx: number }; // Absolute pixel coordinates
   tiles: Tile[]; // Tiles with absolute coordinates and dimensions
-  coins: CoinState[]; // Added coins
+  // coins: CoinState[]; // Coins are now managed by GameCanvas state
 }
 
 export type GameAction = 'moveLeft' | 'moveRight' | 'jump' | 'stopMoveLeft' | 'stopMoveRight';
@@ -88,3 +88,4 @@ export interface Rect {
   width: number;
   height: number;
 }
+
