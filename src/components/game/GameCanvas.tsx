@@ -28,7 +28,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [level, setLevel] = useState<LevelData | null>(null);
   const playerInstanceRef = useRef<PlayerState | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true); // Initialize isLoading to true
   const { toast } = useToast(); 
   const [isClient, setIsClient] = useState(false);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
@@ -46,7 +46,6 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     pImg.onload = () => setAssets(prev => ({ ...prev, playerImage: pImg }));
     pImg.onerror = () => {
         console.error("Failed to load player image. Game initialization might be stuck.");
-        // Consider setting playerImage to a fallback or handling error more explicitly
     };
 
     const tImg = new Image();
@@ -55,7 +54,6 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     tImg.onload = () => setAssets(prev => ({ ...prev, tileImage: tImg }));
     tImg.onerror = () => {
         console.error("Failed to load tile image. Game initialization might be stuck.");
-        // Consider setting tileImage to a fallback or handling error
     };
   }, []);
 
@@ -63,12 +61,12 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   useEffect(() => {
     if(!isClient) return;
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) return; // If canvas doesn't exist yet, bail
 
     const updateSize = () => {
-      const container = canvas.parentElement;
-      let newWidth = 800; // Default/fallback width
-      let newHeight = 600; // Default/fallback height
+      const container = canvas.parentElement; // This parent is the new wrapper div
+      let newWidth = 800; 
+      let newHeight = 600;
 
       if (container) {
         if (container.clientWidth > 0) {
@@ -80,8 +78,10 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       }
       
       setCanvasSize(currentSize => {
+        // Only update canvas element size if it actually changed to avoid unnecessary redraws
         if (canvas.width !== newWidth) canvas.width = newWidth;
         if (canvas.height !== newHeight) canvas.height = newHeight;
+        // Only update state if size truly changed
         if (currentSize.width !== newWidth || currentSize.height !== newHeight) {
           return { width: newWidth, height: newHeight };
         }
@@ -89,9 +89,10 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       });
     };
     
-    updateSize(); // Initial resize and state set
+    updateSize(); 
 
     let resizeObserver: ResizeObserver | null = null;
+    // canvas.parentElement should be the new wrapper div
     if (canvas.parentElement && typeof ResizeObserver !== 'undefined') {
         resizeObserver = new ResizeObserver(updateSize);
         resizeObserver.observe(canvas.parentElement);
@@ -106,25 +107,17 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
             window.removeEventListener('resize', updateSize);
         }
     };
-  }, [isClient]); 
+  }, [isClient]); // isClient ensures canvasRef.current is available
 
   // Effect for initializing/updating level geometry based on canvas size and assets
   useEffect(() => {
-    // Ensure all conditions are met before proceeding:
-    // 1. Component is mounted on the client.
-    // 2. Canvas has valid dimensions.
-    // 3. Player and Tile images are loaded.
     if (!isClient || canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImage || !assets.tileImage) {
-      setIsLoading(true); // Keep isLoading true if prerequisites are not met
+      setIsLoading(true); 
       return;
     }
 
-    // All prerequisites met, proceed to initialize the level
-    // setIsLoading(true); // No longer needed here, as the guard above handles it.
-
     const currentCanvasWidth = canvasSize.width;
     const platformWidth = 150;
-    // platformHeight is 12, hardcoded for tiles below
 
     const p1_x = 50;
     const p1_y = 200; 
@@ -148,7 +141,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
             }
         ],
         tileWidth: TILE_SIZE, 
-        tileHeight: TILE_SIZE, // Standard tile dimensions
+        tileHeight: TILE_SIZE,
         layout: [[]], 
     };
     
@@ -165,18 +158,19 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       isMovingLeft: false,
       isMovingRight: false,
       color: PLAYER_COLOR,
-      image: assets.playerImage, // Use the loaded player image
+      image: assets.playerImage,
     };
     playerInstanceRef.current = newPlayer;
     if (parentPlayerRef) parentPlayerRef.current = newPlayer;
     
-    setIsLoading(false); // Initialization complete
+    setIsLoading(false); 
 
   }, [isClient, canvasSize, assets.playerImage, assets.tileImage, parentPlayerRef]);
 
 
   // Effect for game loop
   useEffect(() => {
+    // Game loop should only run if not loading, level and player are set, and canvas exists
     if (!isClient || isLoading || !level || !playerInstanceRef.current || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
@@ -263,7 +257,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [isClient, isLoading, level, executeAction, resetExecuteAction, parentPlayerRef, assets.tileImage]);
+  }, [isClient, isLoading, level, executeAction, resetExecuteAction, parentPlayerRef, assets.tileImage, canvasSize]); // Added canvasSize to dependencies
 
   // Keyboard controls effect
   useEffect(() => {
@@ -306,7 +300,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   };
 
   const renderPlayer = (ctx: CanvasRenderingContext2D, player: PlayerState) => {
-    if (player.image && assets.playerImage?.complete) { // Check if image is loaded and complete
+    if (player.image && assets.playerImage?.complete) { 
       ctx.drawImage(player.image, player.x, player.y, player.width, player.height);
     } else {
       ctx.fillStyle = player.color;
@@ -316,7 +310,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
   const renderLevel = (ctx: CanvasRenderingContext2D, currentLevel: LevelData) => {
     currentLevel.tiles.forEach(tile => {
-       if (assets.tileImage?.complete && tile.type === 1) { // Check if image is loaded and complete
+       if (assets.tileImage?.complete && tile.type === 1) { 
          ctx.drawImage(assets.tileImage, tile.x, tile.y, tile.width, tile.height);
        } else {
          ctx.fillStyle = tile.color; 
@@ -326,19 +320,24 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   };
 
   if (!isClient) {
+    // This message is shown before client-side hydration
     return <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground rounded-md">Loading Game...</div>;
   }
   
-  if (isLoading) { // Simplified check: if isLoading is true, show "Initializing"
-    return <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground rounded-md">Initializing Canvas...</div>;
-  }
-
+  // Canvas is always rendered. Overlay is shown if isLoading is true.
   return (
-    <canvas 
-      ref={canvasRef} 
-      className="border border-primary rounded-md shadow-lg w-full h-full"
-      tabIndex={0} 
-    />
+    <div className="relative w-full h-full"> {/* Wrapper for positioning overlay */}
+      <canvas 
+        ref={canvasRef} 
+        className="border border-primary rounded-md shadow-lg w-full h-full block" // Added 'block' to ensure it behaves as expected
+        tabIndex={0} 
+      />
+      {isLoading && (
+        <div className="absolute inset-0 bg-muted/80 backdrop-blur-sm flex items-center justify-center text-muted-foreground rounded-md z-10">
+          Initializing Canvas...
+        </div>
+      )}
+    </div>
   );
 }
 
