@@ -1,3 +1,4 @@
+
 export interface PlayerState {
   x: number;
   y: number;
@@ -25,9 +26,10 @@ export interface Tile {
 export interface LevelData {
   tileWidth: number;
   tileHeight: number;
-  layout: number[][]; // 2D array representing tile types
-  playerStart: { xTile: number; yTile: number };
-  tiles: Tile[]; // Processed tiles for rendering and collision
+  layout: number[][]; // May not be fully utilized if platforms are defined directly
+  playerStart: { xPx: number; yPx: number; xTile?: number; yTile?: number }; // Player start now in PIXELS, xTile/yTile optional
+  tiles: Tile[]; // Processed tiles for rendering and collision (includes platforms)
 }
 
 export type GameAction = 'moveLeft' | 'moveRight' | 'jump' | 'stopMoveLeft' | 'stopMoveRight';
+

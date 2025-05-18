@@ -3,7 +3,7 @@
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import type { PlayerState, LevelData, Tile, GameAction } from '@/types/game';
-import { loadLevel } from '@/lib/levelLoader';
+// import { loadLevel } from '@/lib/levelLoader'; // Temporarily unused
 import {
   TILE_SIZE,
   GRAVITY,
@@ -12,12 +12,12 @@ import {
   PLAYER_WIDTH,
   PLAYER_HEIGHT,
   PLAYER_COLOR,
-  // TILE_COLOR_GROUND, // Tile color is now part of Tile object from levelLoader
+  TILE_COLOR_GROUND,
 } from '@/config/gameConfig';
 import { useToast } from "@/hooks/use-toast";
 
 interface GameCanvasProps {
-  levelPath: string;
+  levelPath: string; // Temporarily unused but kept for prop consistency
   onPlayerAction: (action: GameAction) => void; 
   playerRef: React.MutableRefObject<PlayerState | null>;
   executeAction: GameAction | null;
@@ -29,7 +29,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   const [level, setLevel] = useState<LevelData | null>(null);
   const playerInstanceRef = useRef<PlayerState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
+  const { toast } = useToast(); // Kept in case of future error messages
   const [isClient, setIsClient] = useState(false);
 
   const [assets, setAssets] = useState<{ playerImage: HTMLImageElement | null; tileImage: HTMLImageElement | null }>({
@@ -55,33 +55,59 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   useEffect(() => {
     if (!isClient) return;
 
-    const initGame = async () => {
+    const initGame = () => {
       setIsLoading(true);
-      const loadedLevel = await loadLevel(levelPath);
-      if (loadedLevel) {
-        setLevel(loadedLevel);
-        const newPlayer: PlayerState = {
-          x: loadedLevel.playerStart.xTile * TILE_SIZE,
-          y: loadedLevel.playerStart.yTile * TILE_SIZE - PLAYER_HEIGHT,
-          width: PLAYER_WIDTH,
-          height: PLAYER_HEIGHT,
-          vx: 0,
-          vy: 0,
-          isOnGround: false,
-          isMovingLeft: false,
-          isMovingRight: false,
-          color: PLAYER_COLOR,
-          image: assets.playerImage || undefined,
-        };
-        playerInstanceRef.current = newPlayer;
-        if (parentPlayerRef) parentPlayerRef.current = newPlayer;
-      } else {
-        toast({ title: "Error", description: "Failed to load level.", variant: "destructive" });
-      }
+
+      // Define level data directly:
+      // Platform 1: x=100, y=500, width=150, height=12
+      // Platform 2: x=300, y=400, width=150, height=12
+      // Player start x=110, player's feet at y=500 (on platform 1)
+      const playerInitialYTop = 500 - PLAYER_HEIGHT; // Player's y is top-edge
+
+      const customLevelData: LevelData = {
+          playerStart: { xPx: 110, yPx: playerInitialYTop },
+          tiles: [
+              { 
+                x: 100, y: 500, width: 150, height: 12, type: 1, 
+                color: TILE_COLOR_GROUND, 
+                // image field will be implicitly handled by renderLevel if assets.tileImage is present
+              },
+              { 
+                x: 300, y: 400, width: 150, height: 12, type: 1, 
+                color: TILE_COLOR_GROUND,
+              }
+          ],
+          tileWidth: TILE_SIZE, 
+          tileHeight: TILE_SIZE,
+          layout: [[]], // Dummy layout
+      };
+      
+      setLevel(customLevelData);
+      const newPlayer: PlayerState = {
+        x: customLevelData.playerStart.xPx,
+        y: customLevelData.playerStart.yPx,
+        width: PLAYER_WIDTH,
+        height: PLAYER_HEIGHT,
+        vx: 0,
+        vy: 0,
+        isOnGround: false, 
+        isMovingLeft: false,
+        isMovingRight: false,
+        color: PLAYER_COLOR,
+        image: assets.playerImage || undefined,
+      };
+      playerInstanceRef.current = newPlayer;
+      if (parentPlayerRef) parentPlayerRef.current = newPlayer;
+      
       setIsLoading(false);
     };
+    
+    // Initialize game once client-side and assets are potentially loaded
+    // The gameLoop depends on `level` which is set by `initGame`.
+    // `assets` in dependency array ensures re-run if assets change, initGame will re-setup.
     initGame();
-  }, [levelPath, toast, parentPlayerRef, isClient, assets.playerImage]);
+
+  }, [isClient, assets.playerImage, assets.tileImage, parentPlayerRef ]); // levelPath and toast removed from deps for hardcoded level
 
   useEffect(() => {
     if (!isClient || isLoading || !level || !playerInstanceRef.current) return;
@@ -150,17 +176,18 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       });
       
       if (player.x < 0) player.x = 0;
-      if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
-      if (player.y + player.height > canvas.height) {
+      if (canvas.width > 0 && player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+      if (canvas.height > 0 && player.y + player.height > canvas.height) {
          player.y = canvas.height - player.height;
          player.vy = 0;
          player.isOnGround = true;
       }
 
+
       if (parentPlayerRef) parentPlayerRef.current = { ...player };
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      renderLevel(ctx, level); // Восстанавливаем отрисовку тайлов
+      renderLevel(ctx, level);
       renderPlayer(ctx, player);
 
       animationFrameId = requestAnimationFrame(gameLoop);
@@ -170,7 +197,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [isLoading, level, executeAction, resetExecuteAction, parentPlayerRef, isClient, assets.tileImage]);
+  }, [isLoading, level, executeAction, resetExecuteAction, parentPlayerRef, isClient, assets.tileImage]); // assets.tileImage is used in renderLevel
 
   useEffect(() => {
     if(!isClient) return;
@@ -212,15 +239,12 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     const resizeCanvas = () => {
       const container = canvas.parentElement;
       if (container) {
-        // Ensure container has positive dimensions before setting canvas size
         if (container.clientWidth > 0 && container.clientHeight > 0) {
             canvas.width = container.clientWidth;
             canvas.height = container.clientHeight;
         } else {
-            // Fallback or initial sizing if container dimensions aren't ready
-            // This might happen briefly on initial load or if parent CSS is complex
-            const fallbackWidth = 800;
-            const fallbackHeight = 600;
+            const fallbackWidth = 800; // Default or minimum width
+            const fallbackHeight = 600; // Default or minimum height
             canvas.width = fallbackWidth;
             canvas.height = fallbackHeight;
         }
@@ -228,7 +252,6 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     };
     
     resizeCanvas();
-    // Use ResizeObserver for more robust dynamic resizing if available
     let resizeObserver: ResizeObserver | null = null;
     if (canvas.parentElement && typeof ResizeObserver !== 'undefined') {
         resizeObserver = new ResizeObserver(resizeCanvas);
@@ -264,10 +287,10 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
   const renderLevel = (ctx: CanvasRenderingContext2D, currentLevel: LevelData) => {
     currentLevel.tiles.forEach(tile => {
-       if (assets.tileImage?.complete && tile.type === 1) { // Assuming type 1 uses the tileImage
+       if (assets.tileImage?.complete && tile.type === 1) {
          ctx.drawImage(assets.tileImage, tile.x, tile.y, tile.width, tile.height);
        } else {
-         ctx.fillStyle = tile.color; // Uses color from levelData (can be TILE_COLOR_GROUND or TILE_COLOR_EMPTY)
+         ctx.fillStyle = tile.color; 
          ctx.fillRect(tile.x, tile.y, tile.width, tile.height);
        }
     });
@@ -284,10 +307,8 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   return (
     <canvas 
       ref={canvasRef} 
-      className="border border-primary rounded-md shadow-lg w-full h-full" // Added w-full h-full
-      // Width and height attributes are set by JS
+      className="border border-primary rounded-md shadow-lg w-full h-full"
       tabIndex={0}
     />
   );
 }
-
