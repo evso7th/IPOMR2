@@ -8,7 +8,7 @@ export const renderCoins = (
   coinImage: HTMLImageElement | null
 ): void => {
   coins.forEach(coin => {
-    ctx.save(); // Save context state before applying alpha or transformations
+    ctx.save(); // Save context state for this coin (handles opacity, clipping, etc.)
 
     // Render particles if they exist
     if (coin.particles.length > 0) {
@@ -25,23 +25,41 @@ export const renderCoins = (
       
       if (coinImage?.complete && coinImage.src) {
         try {
+          // Apply circular clipping mask
+          ctx.save(); // Save context specifically for clipping the image
+          ctx.beginPath();
+          ctx.arc(
+            coin.x + coin.width / 2, 
+            coin.y + coin.height / 2, 
+            coin.width / 2, // Radius
+            0, 
+            Math.PI * 2
+          );
+          ctx.closePath();
+          ctx.clip();
+          
+          // Draw the image, which will be clipped to the circle
           ctx.drawImage(coinImage, coin.x, coin.y, coin.width, coin.height);
+          
+          ctx.restore(); // Restore context to remove the clipping mask for subsequent draws
+
         } catch (e) {
           console.warn("Failed to draw coin image, falling back to color", e);
-          drawFallbackCoin(ctx, coin);
+          drawFallbackCoin(ctx, coin); // Fallback already draws a circle
         }
       } else {
-        drawFallbackCoin(ctx, coin);
+        // Image not available or not loaded, use fallback
+        drawFallbackCoin(ctx, coin); // Fallback already draws a circle
       }
     }
     
-    ctx.restore(); // Restore context state (especially globalAlpha)
+    ctx.restore(); // Restore context state changed for this coin
   });
 };
 
 function drawFallbackCoin(ctx: CanvasRenderingContext2D, coin: CoinState) {
   // This function is now only called when the coin itself is visible (not particles)
-  // and the image failed. The globalAlpha is already set by the caller.
+  // and the image failed or is not yet loaded. The globalAlpha is already set by the caller.
   ctx.fillStyle = COIN_COLOR;
   ctx.beginPath();
   ctx.arc(
