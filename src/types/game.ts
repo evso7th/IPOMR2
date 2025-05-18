@@ -20,15 +20,17 @@ export interface Tile {
   height: number;
   type: number; // 0: empty, 1: solid
   color: string;
+  vx?: number; // Optional: horizontal velocity for moving platforms
+  direction?: number; // Optional: direction of movement (-1 for left, 1 for right)
   // image?: HTMLImageElement; // Tile image will be passed to renderer directly
 }
 
 export interface LevelData {
   tileWidth: number;
   tileHeight: number;
-  layout: number[][]; 
-  playerStart: { xPx: number; yPx: number; xTile?: number; yTile?: number }; 
-  tiles: Tile[]; 
+  layout: number[][];
+  playerStart: { xPx: number; yPx: number; xTile?: number; yTile?: number };
+  tiles: Tile[];
 }
 
 export type GameAction = 'moveLeft' | 'moveRight' | 'jump' | 'stopMoveLeft' | 'stopMoveRight';
