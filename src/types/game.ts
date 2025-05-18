@@ -13,14 +13,30 @@ export interface PlayerState {
   image?: HTMLImageElement;
 }
 
+export interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  size: number;
+  opacity: number;
+  life: number; // remaining lifespan in ms
+}
+
 export interface CoinState {
   id: string;
   x: number;
   y: number;
   width: number;
   height: number;
+  
   isCollected: boolean;
-  // image?: HTMLImageElement; // Optional: if each coin can have a different image
+  collectionTime?: number; // Time when collection process started (for particle generation)
+  
+  targetSpawnTime: number; // For staggered spawn
+  currentOpacity: number; // For fade-in effect of the coin itself / or to hide it when particles are active
+  
+  particles: Particle[]; // Particles for dissolve effect
 }
 
 export type TilePositioningAnchor =
@@ -76,7 +92,6 @@ export interface RawLevelData {
 export interface ProcessedLevelData {
   playerStart: { xPx: number; yPx: number }; // Absolute pixel coordinates
   tiles: Tile[]; // Tiles with absolute coordinates and dimensions
-  // coins: CoinState[]; // Coins are now managed by GameCanvas state
 }
 
 export type GameAction = 'moveLeft' | 'moveRight' | 'jump' | 'stopMoveLeft' | 'stopMoveRight';
@@ -88,4 +103,3 @@ export interface Rect {
   width: number;
   height: number;
 }
-

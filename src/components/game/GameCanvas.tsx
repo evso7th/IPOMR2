@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import type { PlayerState, RawLevelData, ProcessedLevelData, Tile as ProcessedTile, RawTileData, CoinState, GameAction, Rect } from '@/types/game';
+import type { PlayerState, RawLevelData, ProcessedLevelData, Tile as ProcessedTile, RawTileData, CoinState, GameAction, Rect, Particle } from '@/types/game';
 import {
   GRAVITY,
   PLAYER_SPEED,
@@ -14,6 +14,13 @@ import {
   COIN_VERTICAL_SPAWN_BOTTOM_OFFSET,
   COIN_SPAWN_TOP_MARGIN,
   MAX_JUMP_HEIGHT,
+  COIN_FADE_IN_DURATION,
+  COIN_SPAWN_STAGGER_DELAY,
+  COIN_PARTICLE_COUNT,
+  COIN_PARTICLE_LIFESPAN,
+  COIN_PARTICLE_SPEED_MULTIPLIER,
+  COIN_PARTICLE_GRAVITY_FACTOR,
+  COIN_PARTICLE_SIZE,
 } from '@/config/gameConfig';
 import { useToast } from "@/hooks/use-toast";
 import { checkCollision } from '@/game/utils/collision';
@@ -72,48 +79,47 @@ function spawnNewCoinPair(
 
   const newPair: CoinState[] = [];
   const midPoint = canvasWidth / 2;
-  const horizontalSpawnMargin = COIN_SIZE * 2; // Minimum distance of a coin from the center line
+  const horizontalSpawnMargin = COIN_SIZE * 2; 
+
+  const currentTime = Date.now();
 
   // Coin 1 (left half)
-  // Ensure spawn area for X is valid
   const leftHalfWidth = midPoint - horizontalSpawnMargin - COIN_SIZE;
   if (leftHalfWidth > 0) {
     const coin1X = Math.max(0, Math.random() * leftHalfWidth);
     const coin1Y = Math.random() * (ySpawnZoneBottom - ySpawnZoneTop) + ySpawnZoneTop;
     newPair.push({
-      id: `coin-${Date.now()}-1`,
+      id: `coin-${currentTime}-1`,
       x: coin1X,
       y: coin1Y,
       width: COIN_SIZE,
       height: COIN_SIZE,
       isCollected: false,
+      targetSpawnTime: currentTime,
+      currentOpacity: 0,
+      particles: [],
     });
-  } else {
-    console.warn("Canvas too narrow to spawn coin in left half with desired separation.");
   }
-
 
   // Coin 2 (right half)
   const rightHalfBaseX = midPoint + horizontalSpawnMargin;
   const rightHalfWidth = canvasWidth - rightHalfBaseX - COIN_SIZE;
-
   if (rightHalfWidth > 0) {
     const coin2X = rightHalfBaseX + (Math.random() * rightHalfWidth);
     const coin2Y = Math.random() * (ySpawnZoneBottom - ySpawnZoneTop) + ySpawnZoneTop;
     newPair.push({
-      id: `coin-${Date.now()}-2`,
+      id: `coin-${currentTime}-2`,
       x: coin2X,
       y: coin2Y,
       width: COIN_SIZE,
       height: COIN_SIZE,
       isCollected: false,
+      targetSpawnTime: currentTime + COIN_SPAWN_STAGGER_DELAY,
+      currentOpacity: 0,
+      particles: [],
     });
-  } else {
-    console.warn("Canvas too narrow to spawn coin in right half with desired separation.");
   }
   
-  // If only one coin could be spawned due to narrow canvas, we might want to handle this
-  // For now, it will return a pair of 0, 1 or 2 coins.
   return newPair;
 }
 
@@ -122,7 +128,7 @@ function processRawLevelData(
   rawData: RawLevelData,
   canvasWidth: number,
   canvasHeight: number
-): Omit<ProcessedLevelData, 'coins'> { // Coins are handled separately now
+): ProcessedLevelData {
   const processedTiles: ProcessedTile[] = rawData.tiles.map((rawTile: RawTileData) => {
     const tileWidth = parseDimension(rawTile.width, canvasWidth);
     const tileHeight = parseDimension(rawTile.height, canvasHeight);
@@ -209,14 +215,14 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     tileImage: HTMLImageElement | null;
     coinImage: HTMLImageElement | null;
     playerImageLoaded: boolean;
-    tileImageLoaded: boolean;
-    coinImageLoaded: boolean;
+    tileImageLoaded: boolean; 
+    coinImageLoaded: boolean; 
   }>({
     playerImage: null,
     tileImage: null,
     coinImage: null,
     playerImageLoaded: false,
-    tileImageLoaded: true, 
+    tileImageLoaded: false, 
     coinImageLoaded: false, 
   });
 
@@ -228,16 +234,16 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     pImg.onload = () => setAssets(prev => ({ ...prev, playerImage: pImg, playerImageLoaded: true }));
     pImg.onerror = () => {
       console.error("Failed to load player image.");
-      setAssets(prev => ({ ...prev, playerImageLoaded: true })); // Mark as "attempted"
+      setAssets(prev => ({ ...prev, playerImageLoaded: true })); 
     };
 
-    const tImg = new Image(); // Tile image placeholder
-    tImg.src = `https://placehold.co/1x1/8D6E63/FFFFFF.png?text=T`; // 1x1 placeholder is fine for tiles using color
+    const tImg = new Image(); 
+    tImg.src = `https://placehold.co/1x1/8D6E63/FFFFFF.png?text=T`; 
     tImg.setAttribute('data-ai-hint', 'platform tile');
     tImg.onload = () => setAssets(prev => ({...prev, tileImage: tImg, tileImageLoaded: true}));
     tImg.onerror = () => {
         console.error("Failed to load tile image.");
-        setAssets(prev => ({...prev, tileImageLoaded: true})); // Mark as "attempted"
+        setAssets(prev => ({...prev, tileImageLoaded: true}));
     };
 
     const cImg = new Image();
@@ -246,7 +252,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     cImg.onload = () => setAssets(prev => ({ ...prev, coinImage: cImg, coinImageLoaded: true }));
     cImg.onerror = () => {
       console.error("Failed to load coin image.");
-      setAssets(prev => ({ ...prev, coinImageLoaded: true })); // Mark as "attempted"
+      setAssets(prev => ({ ...prev, coinImageLoaded: true })); 
     };
   }, []);
 
@@ -299,7 +305,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     setIsLoading(true);
     setRawLevelData(null); 
     setProcessedLevel(null);
-    setActiveCoins([]); // Clear active coins on level change
+    setActiveCoins([]); 
 
     loadLevel(levelPath)
       .then(data => {
@@ -319,19 +325,15 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   
   useEffect(() => {
     if (!isClient || !rawLevelData || canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImageLoaded || !assets.tileImageLoaded || !assets.coinImageLoaded) {
-      if (isLoading === false && (!rawLevelData || canvasSize.width === 0 || canvasSize.height === 0)) {
-         // This ensures we show loading if essential data is missing after an attempt.
+      if (!isLoading && (!rawLevelData || canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImageLoaded || !assets.tileImageLoaded || !assets.coinImageLoaded )) {
          if (!isLoading) setIsLoading(true);
       }
       return;
     }
     
     try {
-      const newProcessedLevelData = processRawLevelData(rawLevelData, canvasSize.width, canvasSize.height);
-      // Cast to ProcessedLevelData, assuming coins will be handled by activeCoins state
-      const newProcessedLevel = newProcessedLevelData as ProcessedLevelData;
+      const newProcessedLevel = processRawLevelData(rawLevelData, canvasSize.width, canvasSize.height);
       setProcessedLevel(newProcessedLevel);
-
 
       const newPlayer: PlayerState = {
         x: newProcessedLevel.playerStart.xPx,
@@ -349,7 +351,6 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       playerInstanceRef.current = newPlayer;
       if (parentPlayerRef) parentPlayerRef.current = newPlayer;
       
-      // Spawn initial coin pair
       if (newProcessedLevel.tiles) {
         setActiveCoins(spawnNewCoinPair(newProcessedLevel.tiles, canvasSize.width, canvasSize.height));
       }
@@ -363,16 +364,15 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   }, [isClient, rawLevelData, canvasSize, assets, parentPlayerRef, toast]);
 
 
-  // Effect to respawn coins when all active ones are collected
   useEffect(() => {
     if (!isClient || isLoading || !processedLevel || !processedLevel.tiles || canvasSize.width === 0 || canvasSize.height === 0) return;
 
-    const allCurrentlyActiveCoinsCollected = activeCoins.length > 0 && activeCoins.every(c => c.isCollected);
+    const allCollectedAndParticlesGone = activeCoins.length > 0 && activeCoins.every(c => c.isCollected && c.particles.length === 0);
 
-    if (allCurrentlyActiveCoinsCollected) {
+    if (allCollectedAndParticlesGone) {
       setActiveCoins(spawnNewCoinPair(processedLevel.tiles, canvasSize.width, canvasSize.height));
     }
-  }, [activeCoins, isClient, isLoading, processedLevel, canvasSize, setActiveCoins]);
+  }, [activeCoins, isClient, isLoading, processedLevel, canvasSize]);
 
 
   useEffect(() => {
@@ -383,12 +383,17 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     if (!ctx) return;
 
     let animationFrameId: number;
+    const lastFrameTime = useRef(Date.now());
 
     const gameLoop = () => {
+      const currentTime = Date.now();
+      const deltaTime = currentTime - lastFrameTime.current; // Time elapsed since last frame in ms
+      lastFrameTime.current = currentTime;
+
       const player = playerInstanceRef.current;
       const currentLevel = processedLevel; 
       
-      if (!player || !currentLevel || !currentLevel.tiles) { // ensure tiles exist
+      if (!player || !currentLevel || !currentLevel.tiles) {
           animationFrameId = requestAnimationFrame(gameLoop);
           return;
       }
@@ -476,21 +481,62 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
          player.isOnGround = true;
       }
 
-      // Coin collection logic
-      const playerRect = { x: player.x, y: player.y, width: player.width, height: player.height };
-      let coinCollectedThisFrame = false;
+      // Update and process coins
       const updatedCoins = activeCoins.map(coin => {
-        if (!coin.isCollected && checkCollision(playerRect, coin as Rect)) {
-          coinCollectedThisFrame = true;
-          // toast({ title: "Coin Collected!", description: `You collected ${coin.id}` });
-          return { ...coin, isCollected: true };
+        let newCoin = { ...coin };
+
+        // Particle update
+        if (newCoin.particles.length > 0) {
+          newCoin.particles = newCoin.particles
+            .map(p => {
+              const particleDeltaTimeFactor = deltaTime / (1000 / 60); // Normalize based on 60fps
+              const newParticle: Particle = {
+                ...p,
+                x: p.x + p.vx * particleDeltaTimeFactor,
+                y: p.y + p.vy * particleDeltaTimeFactor,
+                vy: p.vy + GRAVITY * COIN_PARTICLE_GRAVITY_FACTOR * particleDeltaTimeFactor,
+                life: p.life - deltaTime,
+                opacity: Math.max(0, (p.life - deltaTime) / COIN_PARTICLE_LIFESPAN),
+              };
+              return newParticle;
+            })
+            .filter(p => p.life > 0);
         }
-        return coin;
+
+        // Coin fade-in
+        if (!newCoin.isCollected && currentTime >= newCoin.targetSpawnTime && newCoin.currentOpacity < 1) {
+          const opacityIncrease = deltaTime / COIN_FADE_IN_DURATION;
+          newCoin.currentOpacity = Math.min(1, newCoin.currentOpacity + opacityIncrease);
+        }
+
+        // Coin collection logic
+        const playerRect = { x: player.x, y: player.y, width: player.width, height: player.height };
+        if (!newCoin.isCollected && newCoin.currentOpacity > 0.5 && checkCollision(playerRect, newCoin as Rect)) { // Check opacity to avoid collecting during fade-in
+          newCoin.isCollected = true;
+          newCoin.collectionTime = currentTime;
+          newCoin.currentOpacity = 0; // Hide original coin immediately
+
+          // Generate particles
+          newCoin.particles = [];
+          for (let i = 0; i < COIN_PARTICLE_COUNT; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * COIN_PARTICLE_SPEED_MULTIPLIER + 0.5;
+            newCoin.particles.push({
+              x: newCoin.x + newCoin.width / 2,
+              y: newCoin.y + newCoin.height / 2,
+              vx: Math.cos(angle) * speed,
+              vy: Math.sin(angle) * speed,
+              size: COIN_PARTICLE_SIZE,
+              opacity: 1,
+              life: COIN_PARTICLE_LIFESPAN,
+            });
+          }
+          // toast({ title: "Coin Collected!", description: `You collected ${newCoin.id}` });
+        }
+        return newCoin;
       });
 
-      if (coinCollectedThisFrame) {
-        setActiveCoins(updatedCoins); // This will trigger the respawn useEffect
-      }
+      setActiveCoins(updatedCoins);
 
       if (parentPlayerRef) parentPlayerRef.current = { ...player };
 
@@ -506,7 +552,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [isClient, isLoading, processedLevel, executeAction, resetExecuteAction, parentPlayerRef, assets, canvasSize, activeCoins, setActiveCoins]);
+  }, [isClient, isLoading, processedLevel, executeAction, resetExecuteAction, parentPlayerRef, assets, canvasSize, activeCoins, setActiveCoins]); // Removed 'toast' dependency as it wasn't used in the loop.
 
   useEffect(() => {
     if(!isClient) return;
