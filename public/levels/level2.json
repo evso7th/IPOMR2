@@ -1,0 +1,18 @@
+{
+  "playerStart": { "platformId": "ground", "horizontalAlign": "left", "xOffsetPx": 30 },
+  "tiles": [
+    {
+      "id": "ground", "width": "80%", "height": 20, "type": 1, "color": "hsl(var(--accent))",
+      "positioning": { "anchor": "bottom-center", "yOffsetPx": 20 }
+    },
+    {
+      "id": "movingPlatform", "width": 120, "height": 16, "type": 1, "color": "hsl(var(--accent))",
+      "vx": 1.1, "direction": 1,
+      "positioning": { "anchor": "center", "yOffsetPx": -50 }
+    },
+    {
+      "id": "smallTopPlatform", "width": 80, "height": 16, "type": 1, "color": "hsl(var(--accent))",
+      "positioning": { "anchor": "top-right", "xOffsetPx": 40, "yOffsetPx": 60 }
+    }
+  ]
+}

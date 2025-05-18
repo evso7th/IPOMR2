@@ -23,13 +23,11 @@ export default function PlatformerPage() {
     <div className="flex flex-col h-screen bg-background text-foreground">
       <GameHeader />
 
-      {/* Removed p-4 and items-center, added pb-16 to main */}
-      <main className="flex-grow flex flex-col w-full pb-16"> {/* Changed classes here */}
+      <main className="flex-grow flex flex-col w-full pb-16">
         
-        {/* Removed max-w-4xl from this div */}
-        <div className="relative w-full flex-grow"> {/* Changed classes here */}
+        <div className="relative w-full flex-grow">
           <GameCanvas 
-            levelPath="/levels/level1.json" 
+            levelPath="/levels/level2.json" // Changed to level2.json
             onPlayerAction={handlePlayerAction}
             playerRef={playerRef}
             executeAction={executeAction}

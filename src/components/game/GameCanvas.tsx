@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import type { PlayerState, LevelData, Tile, GameAction } from '@/types/game';
+import type { PlayerState, RawLevelData, ProcessedLevelData, Tile as ProcessedTile, RawTileData, TilePositioning, GameAction } from '@/types/game';
 import {
   GRAVITY,
   PLAYER_SPEED,
@@ -10,13 +10,14 @@ import {
   PLAYER_WIDTH,
   PLAYER_HEIGHT,
   PLAYER_COLOR,
-  TILE_COLOR_GROUND,
-  PLATFORM_SPEED, 
+  // TILE_COLOR_GROUND is now in JSON
+  // PLATFORM_SPEED, // PLATFORM_SPEED will come from tile.vx if defined
 } from '@/config/gameConfig';
 import { useToast } from "@/hooks/use-toast";
 import { checkCollision } from '@/game/utils/collision';
 import { renderPlayer } from '@/game/entities/playerRenderer';
 import { renderLevel } from '@/game/entities/levelRenderer';
+import { loadLevel } from '@/lib/levelLoader';
 
 interface GameCanvasProps {
   levelPath: string;
@@ -26,9 +27,125 @@ interface GameCanvasProps {
   resetExecuteAction: () => void;
 }
 
+// Helper function to parse dimension values (number, "X%", or "Xpx")
+function parseDimension(value: number | string, totalSize: number): number {
+  if (typeof value === 'number') {
+    return value;
+  }
+  if (typeof value === 'string') {
+    if (value.endsWith('%')) {
+      return (parseFloat(value.substring(0, value.length - 1)) / 100) * totalSize;
+    }
+    if (value.endsWith('px')) {
+      return parseFloat(value.substring(0, value.length - 2));
+    }
+    const parsed = parseFloat(value);
+    if (!isNaN(parsed)) return parsed; // Fallback for number as string
+  }
+  console.warn(`Could not parse dimension value: ${value} against totalSize: ${totalSize}. Defaulting to 0.`);
+  return 0; 
+}
+
+function processRawLevelData(
+  rawData: RawLevelData,
+  canvasWidth: number,
+  canvasHeight: number
+): ProcessedLevelData {
+  const processedTiles: ProcessedTile[] = rawData.tiles.map((rawTile: RawTileData) => {
+    const tileWidth = parseDimension(rawTile.width, canvasWidth);
+    const tileHeight = parseDimension(rawTile.height, canvasHeight);
+
+    let tileX = 0;
+    let tileY = 0;
+    
+    const xOffset = rawTile.positioning.xOffsetPx || 0;
+    const yOffset = rawTile.positioning.yOffsetPx || 0;
+
+    // Calculate X based on anchor
+    switch (rawTile.positioning.anchor) {
+      case 'top-left':    tileX = xOffset; break;
+      case 'center-left': tileX = xOffset; break;
+      case 'bottom-left': tileX = xOffset; break;
+      
+      case 'top-center':    tileX = (canvasWidth / 2) - (tileWidth / 2) + xOffset; break;
+      case 'center':        tileX = (canvasWidth / 2) - (tileWidth / 2) + xOffset; break;
+      case 'bottom-center': tileX = (canvasWidth / 2) - (tileWidth / 2) + xOffset; break;
+      
+      case 'top-right':     tileX = canvasWidth - tileWidth - xOffset; break;
+      case 'center-right':  tileX = canvasWidth - tileWidth - xOffset; break;
+      case 'bottom-right':  tileX = canvasWidth - tileWidth - xOffset; break;
+      default: tileX = xOffset; // Should not happen
+    }
+
+    // Calculate Y based on anchor
+    switch (rawTile.positioning.anchor) {
+      case 'top-left':    tileY = yOffset; break;
+      case 'top-center':  tileY = yOffset; break;
+      case 'top-right':   tileY = yOffset; break;
+
+      case 'center-left': tileY = (canvasHeight / 2) - (tileHeight / 2) + yOffset; break;
+      case 'center':      tileY = (canvasHeight / 2) - (tileHeight / 2) + yOffset; break;
+      case 'center-right':tileY = (canvasHeight / 2) - (tileHeight / 2) + yOffset; break;
+
+      case 'bottom-left':   tileY = canvasHeight - tileHeight - yOffset; break;
+      case 'bottom-center': tileY = canvasHeight - tileHeight - yOffset; break;
+      case 'bottom-right':  tileY = canvasHeight - tileHeight - yOffset; break;
+      default: tileY = yOffset; // Should not happen
+    }
+
+    return {
+      id: rawTile.id,
+      x: tileX,
+      y: tileY,
+      width: tileWidth,
+      height: tileHeight,
+      type: rawTile.type,
+      color: rawTile.color,
+      vx: rawTile.vx,
+      direction: rawTile.direction,
+    };
+  });
+
+  let playerStartX = 0;
+  let playerStartY = 0;
+  const startPlatform = processedTiles.find(tile => tile.id === rawData.playerStart.platformId);
+
+  if (startPlatform) {
+    const playerXOffset = rawData.playerStart.xOffsetPx || 0;
+    const playerYOffset = rawData.playerStart.yOffsetPx || 0; // Offset from player's feet to platform top
+
+    switch (rawData.playerStart.horizontalAlign) {
+      case 'left':
+        playerStartX = startPlatform.x + playerXOffset;
+        break;
+      case 'center':
+        playerStartX = startPlatform.x + (startPlatform.width / 2) - (PLAYER_WIDTH / 2) + playerXOffset;
+        break;
+      case 'right':
+        playerStartX = startPlatform.x + startPlatform.width - PLAYER_WIDTH - playerXOffset;
+        break;
+    }
+    // Player's y is its top edge. Player stands on top of platform.
+    playerStartY = startPlatform.y - PLAYER_HEIGHT - playerYOffset; 
+  } else {
+    console.warn(`Player start platform with id "${rawData.playerStart.platformId}" not found. Defaulting player position.`);
+    playerStartX = 50;
+    playerStartY = canvasHeight - PLAYER_HEIGHT - 50;
+  }
+
+  return {
+    playerStart: { xPx: playerStartX, yPx: playerStartY },
+    tiles: processedTiles,
+  };
+}
+
+
 export default function GameCanvas({ levelPath, onPlayerAction, playerRef: parentPlayerRef, executeAction, resetExecuteAction }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [level, setLevel] = useState<LevelData | null>(null);
+  
+  const [rawLevelData, setRawLevelData] = useState<RawLevelData | null>(null);
+  const [processedLevel, setProcessedLevel] = useState<ProcessedLevelData | null>(null);
+  
   const playerInstanceRef = useRef<PlayerState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -37,35 +154,27 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
   const [assets, setAssets] = useState<{
     playerImage: HTMLImageElement | null;
-    tileImage: HTMLImageElement | null;
+    tileImage: HTMLImageElement | null; 
     playerImageLoaded: boolean;
-    tileImageLoaded: boolean;
+    tileImageLoaded: boolean; 
   }>({
     playerImage: null,
-    tileImage: null,
+    tileImage: null, // Generic tile image, not currently used per tile
     playerImageLoaded: false,
-    tileImageLoaded: false,
+    tileImageLoaded: true, // Assume true as we're not loading a generic tile image for now
   });
 
   useEffect(() => {
     setIsClient(true);
     const pImg = new Image();
-    pImg.src = 'https://placehold.co/48x75/388E3C/E8F5E9.png?text=P'; // Adjusted to PLAYER_WIDTHxPLAYER_HEIGHT
+    pImg.src = 'https://placehold.co/48x75/388E3C/E8F5E9.png?text=P';
     pImg.setAttribute('data-ai-hint', 'player character');
     pImg.onload = () => setAssets(prev => ({ ...prev, playerImage: pImg, playerImageLoaded: true }));
     pImg.onerror = () => {
         console.error("Failed to load player image.");
-        setAssets(prev => ({ ...prev, playerImageLoaded: true })); // Mark as loaded (attempted) even on error
+        setAssets(prev => ({ ...prev, playerImageLoaded: true })); // Mark as attempt complete
     };
-
-    const tImg = new Image();
-    tImg.src = 'https://placehold.co/150x16/795548/E8F5E9.png?text=PF'; // Adjusted to platform Width x Height
-    tImg.setAttribute('data-ai-hint', 'platform tile');
-    tImg.onload = () => setAssets(prev => ({ ...prev, tileImage: tImg, tileImageLoaded: true }));
-    tImg.onerror = () => {
-        console.error("Failed to load tile image.");
-        setAssets(prev => ({ ...prev, tileImageLoaded: true })); // Mark as loaded (attempted) even on error
-    };
+    // No generic tile image loading for now, so tileImageLoaded remains true.
   }, []);
 
   useEffect(() => {
@@ -79,12 +188,8 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       let newHeight = 600;
 
       if (container) {
-        if (container.clientWidth > 0) {
-          newWidth = container.clientWidth;
-        }
-        if (container.clientHeight > 0) {
-          newHeight = container.clientHeight;
-        }
+        if (container.clientWidth > 0) newWidth = container.clientWidth;
+        if (container.clientHeight > 0) newHeight = container.clientHeight;
       }
       
       setCanvasSize(currentSize => {
@@ -97,7 +202,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       });
     };
     
-    updateSize();
+    updateSize(); 
 
     let resizeObserver: ResizeObserver | null = null;
     if (canvas.parentElement && typeof ResizeObserver !== 'undefined') {
@@ -117,80 +222,72 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   }, [isClient]); 
 
   useEffect(() => {
-    // Wait for client, canvas size, and asset loading attempts to complete
-    if (!isClient || canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImageLoaded || !assets.tileImageLoaded) {
-      setIsLoading(true);
+    if (!isClient || !levelPath) return;
+    setIsLoading(true);
+    setRawLevelData(null); 
+    setProcessedLevel(null);
+
+    loadLevel(levelPath)
+      .then(data => {
+        if (data) {
+          setRawLevelData(data);
+          // Processing will happen in the next effect that depends on rawLevelData and canvasSize
+        } else {
+          toast({ title: "Error", description: `Failed to load level: ${levelPath}`, variant: "destructive" });
+          setIsLoading(false);
+        }
+      })
+      .catch(error => {
+        console.error("Error in loadLevel promise chain:", error);
+        toast({ title: "Error", description: "An unexpected error occurred while loading level data.", variant: "destructive" });
+        setIsLoading(false);
+      });
+  }, [levelPath, isClient, toast]);
+
+  useEffect(() => {
+    if (!isClient || !rawLevelData || canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImageLoaded || !assets.tileImageLoaded) {
+      if(!rawLevelData || canvasSize.width === 0 || canvasSize.height === 0) {
+         // Only set isLoading to true if essential data for processing is missing.
+         // If rawLevelData is null, the previous effect is still loading it.
+         if (isLoading === false && (!rawLevelData || canvasSize.width === 0 || canvasSize.height === 0)) {
+            setIsLoading(true);
+         }
+      }
       return;
     }
-
-    const currentCanvasWidth = canvasSize.width;
-    const currentCanvasHeight = canvasSize.height;
-    const platformWidth = 150;
-    const platformHeight = 16; // Platform height is 16px
-
-    // P1 (верхняя платформа)
-    // Нижний край P1 находится на 300px от НИЗА холста
-    // y-координата (верхний край P1) = высотаХолста - 300 - высотаПлатформы
-    const p1_y_bottom_offset = 300;
-    const p1_y = currentCanvasHeight - p1_y_bottom_offset - platformHeight;
-    const p1_x = 50; // Слева
-
-    // P2 (нижняя платформа)
-    // Нижний край P2 находится на 150px от НИЗА холста
-    // y-координата (верхний край P2) = высотаХолста - 150 - высотаПлатформы
-    const p2_y_bottom_offset = 150;
-    const p2_y = currentCanvasHeight - p2_y_bottom_offset - platformHeight;
-    const p2_x = currentCanvasWidth - platformWidth - 50; // Справа
-
-    const playerInitialX = p2_x + (platformWidth / 2) - (PLAYER_WIDTH / 2); // Center player on P2
-    const playerInitialYTop = p2_y - PLAYER_HEIGHT; 
-
-    const customLevelData: LevelData = {
-        playerStart: { xPx: playerInitialX, yPx: playerInitialYTop },
-        tiles: [
-            {
-              x: p1_x, y: p1_y, width: platformWidth, height: platformHeight, type: 1,
-              color: TILE_COLOR_GROUND,
-              vx: PLATFORM_SPEED, 
-              direction: 1, // P1 starts moving right
-            },
-            {
-              x: p2_x, y: p2_y, width: platformWidth, height: platformHeight, type: 1,
-              color: TILE_COLOR_GROUND,
-              vx: PLATFORM_SPEED, 
-              direction: -1, // P2 starts moving left
-            }
-        ],
-        tileWidth: platformWidth, 
-        tileHeight: platformHeight,
-        layout: [[]], 
-    };
     
-    setLevel(customLevelData);
+    try {
+      const newProcessedLevel = processRawLevelData(rawLevelData, canvasSize.width, canvasSize.height);
+      setProcessedLevel(newProcessedLevel);
 
-    const newPlayer: PlayerState = {
-      x: playerInitialX,
-      y: playerInitialYTop,
-      width: PLAYER_WIDTH,
-      height: PLAYER_HEIGHT,
-      vx: 0,
-      vy: 0,
-      isOnGround: false,
-      isMovingLeft: false,
-      isMovingRight: false,
-      color: PLAYER_COLOR,
-      image: assets.playerImage, // Use loaded image if available, else color is fallback
-    };
-    playerInstanceRef.current = newPlayer;
-    if (parentPlayerRef) parentPlayerRef.current = newPlayer;
-    
-    setIsLoading(false);
+      const newPlayer: PlayerState = {
+        x: newProcessedLevel.playerStart.xPx,
+        y: newProcessedLevel.playerStart.yPx,
+        width: PLAYER_WIDTH,
+        height: PLAYER_HEIGHT,
+        vx: 0,
+        vy: 0,
+        isOnGround: false,
+        isMovingLeft: false,
+        isMovingRight: false,
+        color: PLAYER_COLOR,
+        image: assets.playerImage,
+      };
+      playerInstanceRef.current = newPlayer;
+      if (parentPlayerRef) parentPlayerRef.current = newPlayer;
+      
+      setIsLoading(false); 
+    } catch (error) {
+        console.error("Error processing level data:", error);
+        toast({ title: "Processing Error", description: "Failed to process level data.", variant: "destructive" });
+        setIsLoading(false); 
+    }
 
-  }, [isClient, canvasSize, assets.playerImage, assets.tileImage, assets.playerImageLoaded, assets.tileImageLoaded, parentPlayerRef]);
+  }, [isClient, rawLevelData, canvasSize, assets.playerImage, assets.playerImageLoaded, assets.tileImageLoaded, parentPlayerRef, toast, isLoading]);
 
 
   useEffect(() => {
-    if (!isClient || isLoading || !level || !playerInstanceRef.current || !canvasRef.current) return;
+    if (!isClient || isLoading || !processedLevel || !playerInstanceRef.current || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -200,12 +297,11 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
     const gameLoop = () => {
       const player = playerInstanceRef.current;
-      if (!player || !level) {
+      if (!player || !processedLevel) {
           animationFrameId = requestAnimationFrame(gameLoop);
           return;
       }
 
-      // 1. Handle player input actions
       if (executeAction) {
         switch (executeAction) {
           case 'moveLeft': player.isMovingLeft = true; break;
@@ -222,47 +318,41 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
         resetExecuteAction();
       }
       
-      // 2. Update player.vx based on movement state
       if (player.isMovingLeft) player.vx = -PLAYER_SPEED;
       else if (player.isMovingRight) player.vx = PLAYER_SPEED;
       else player.vx = 0;
       
-      // 3. Update platform positions
-      level.tiles.forEach(tile => {
+      processedLevel.tiles.forEach(tile => {
         if (tile.vx !== undefined && tile.direction !== undefined && canvas.width > 0) {
             tile.x += (tile.vx * tile.direction);
-
-            if (tile.x <= 0) {
+            if (tile.x <= 0 && tile.direction === -1) { // Check direction to prevent sticking
                 tile.x = 0;
                 tile.direction *= -1;
-            } else if (tile.x + tile.width >= canvas.width) {
+            } else if (tile.x + tile.width >= canvas.width && tile.direction === 1) { // Check direction
                 tile.x = canvas.width - tile.width;
                 tile.direction *= -1;
             }
         }
       });
 
-      // 4. Apply gravity to player
       player.vy += GRAVITY;
       
-      // 5. Tentative vertical update for player
       const tentativePlayerY = player.y + player.vy;
       let newPlayerY = tentativePlayerY;
       player.isOnGround = false;
       let platformInducedMoveX = 0;
 
-      // 6. Vertical collision resolution for player
-      level.tiles.forEach(tile => {
+      processedLevel.tiles.forEach(tile => {
         const tempPlayerStateForVerticalCheck = { ...player, y: tentativePlayerY };
         if (checkCollision(tempPlayerStateForVerticalCheck, tile)) {
-          if (player.vy > 0) { // Moving down
+          if (player.vy > 0) { 
             newPlayerY = tile.y - player.height;
             player.vy = 0;
             player.isOnGround = true;
             if (tile.vx !== undefined && tile.direction !== undefined) {
               platformInducedMoveX = (tile.vx * tile.direction);
             }
-          } else if (player.vy < 0) { // Moving up
+          } else if (player.vy < 0) { 
             newPlayerY = tile.y + tile.height;
             player.vy = 0;
           }
@@ -270,12 +360,10 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       });
       player.y = newPlayerY;
       
-      // 7. Tentative horizontal update for player (input + platform carry)
       const tentativePlayerX = player.x + player.vx + platformInducedMoveX;
       let newPlayerX = tentativePlayerX;
 
-      // 8. Horizontal collision resolution for player
-      level.tiles.forEach(tile => {
+      processedLevel.tiles.forEach(tile => {
         const tempPlayerStateForHorizontalCheck = { ...player, x: tentativePlayerX };
         if (checkCollision(tempPlayerStateForHorizontalCheck, tile)) {
           const totalIntentVx = player.vx + platformInducedMoveX;
@@ -288,7 +376,6 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       });
       player.x = newPlayerX;
       
-      // 9. Boundary checks for canvas edges (player)
       if (player.x < 0) player.x = 0;
       if (canvas.width > 0 && player.x + player.width > canvas.width) player.x = canvas.width - player.width;
       
@@ -301,7 +388,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       if (parentPlayerRef) parentPlayerRef.current = { ...player };
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      renderLevel(ctx, level, assets.tileImage);
+      renderLevel(ctx, processedLevel, assets.tileImage); 
       renderPlayer(ctx, player, assets.playerImage);
 
       animationFrameId = requestAnimationFrame(gameLoop);
@@ -311,7 +398,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [isClient, isLoading, level, executeAction, resetExecuteAction, parentPlayerRef, assets.tileImage, assets.playerImage, canvasSize]);
+  }, [isClient, isLoading, processedLevel, executeAction, resetExecuteAction, parentPlayerRef, assets.tileImage, assets.playerImage, canvasSize]);
 
   useEffect(() => {
     if(!isClient) return;
@@ -347,7 +434,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     <div className="relative w-full h-full"> 
       <canvas
         ref={canvasRef}
-        className="w-full h-full block" // Removed border, shadow, rounded
+        className="w-full h-full block"
         tabIndex={0}
       />
       {isLoading && (
@@ -358,4 +445,3 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     </div>
   );
 }
-
