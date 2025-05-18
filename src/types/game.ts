@@ -10,7 +10,7 @@ export interface PlayerState {
   isMovingLeft: boolean;
   isMovingRight: boolean;
   color: string;
-  image?: HTMLImageElement;
+  image?: HTMLImageElement; // Image is part of state for current renderer
 }
 
 export interface Tile {
@@ -20,16 +20,15 @@ export interface Tile {
   height: number;
   type: number; // 0: empty, 1: solid
   color: string;
-  image?: HTMLImageElement;
+  // image?: HTMLImageElement; // Tile image will be passed to renderer directly
 }
 
 export interface LevelData {
   tileWidth: number;
   tileHeight: number;
-  layout: number[][]; // May not be fully utilized if platforms are defined directly
-  playerStart: { xPx: number; yPx: number; xTile?: number; yTile?: number }; // Player start now in PIXELS, xTile/yTile optional
-  tiles: Tile[]; // Processed tiles for rendering and collision (includes platforms)
+  layout: number[][]; 
+  playerStart: { xPx: number; yPx: number; xTile?: number; yTile?: number }; 
+  tiles: Tile[]; 
 }
 
 export type GameAction = 'moveLeft' | 'moveRight' | 'jump' | 'stopMoveLeft' | 'stopMoveRight';
-

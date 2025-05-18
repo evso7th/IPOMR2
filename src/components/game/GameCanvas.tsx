@@ -3,7 +3,6 @@
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import type { PlayerState, LevelData, Tile, GameAction } from '@/types/game';
-// import { loadLevel } from '@/lib/levelLoader'; // Temporarily unused
 import {
   TILE_SIZE,
   GRAVITY,
@@ -15,10 +14,13 @@ import {
   TILE_COLOR_GROUND,
 } from '@/config/gameConfig';
 import { useToast } from "@/hooks/use-toast";
+import { checkCollision } from '@/game/utils/collision';
+import { renderPlayer } from '@/game/entities/playerRenderer';
+import { renderLevel } from '@/game/entities/levelRenderer';
 
 interface GameCanvasProps {
-  levelPath: string; // Temporarily unused but kept for prop consistency
-  onPlayerAction: (action: GameAction) => void; 
+  levelPath: string; 
+  onPlayerAction: (action: GameAction) => void;
   playerRef: React.MutableRefObject<PlayerState | null>;
   executeAction: GameAction | null;
   resetExecuteAction: () => void;
@@ -28,8 +30,8 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [level, setLevel] = useState<LevelData | null>(null);
   const playerInstanceRef = useRef<PlayerState | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // Initialize isLoading to true
-  const { toast } = useToast(); 
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
@@ -41,7 +43,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   useEffect(() => {
     setIsClient(true);
     const pImg = new Image();
-    pImg.src = 'https://placehold.co/32x32/388E3C/E8F5E9.png?text=P'; 
+    pImg.src = 'https://placehold.co/32x32/388E3C/E8F5E9.png?text=P';
     pImg.setAttribute('data-ai-hint', 'player character');
     pImg.onload = () => setAssets(prev => ({ ...prev, playerImage: pImg }));
     pImg.onerror = () => {
@@ -57,15 +59,14 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     };
   }, []);
 
-  // Effect for handling canvas resize
   useEffect(() => {
     if(!isClient) return;
     const canvas = canvasRef.current;
-    if (!canvas) return; // If canvas doesn't exist yet, bail
+    if (!canvas) return; 
 
     const updateSize = () => {
-      const container = canvas.parentElement; // This parent is the new wrapper div
-      let newWidth = 800; 
+      const container = canvas.parentElement; 
+      let newWidth = 800;
       let newHeight = 600;
 
       if (container) {
@@ -78,10 +79,8 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       }
       
       setCanvasSize(currentSize => {
-        // Only update canvas element size if it actually changed to avoid unnecessary redraws
         if (canvas.width !== newWidth) canvas.width = newWidth;
         if (canvas.height !== newHeight) canvas.height = newHeight;
-        // Only update state if size truly changed
         if (currentSize.width !== newWidth || currentSize.height !== newHeight) {
           return { width: newWidth, height: newHeight };
         }
@@ -89,10 +88,9 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       });
     };
     
-    updateSize(); 
+    updateSize();
 
     let resizeObserver: ResizeObserver | null = null;
-    // canvas.parentElement should be the new wrapper div
     if (canvas.parentElement && typeof ResizeObserver !== 'undefined') {
         resizeObserver = new ResizeObserver(updateSize);
         resizeObserver.observe(canvas.parentElement);
@@ -107,53 +105,45 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
             window.removeEventListener('resize', updateSize);
         }
     };
-  }, [isClient]); // isClient ensures canvasRef.current is available
+  }, [isClient]); 
 
-  // Effect for initializing/updating level geometry based on canvas size and assets
   useEffect(() => {
     if (!isClient || canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImage || !assets.tileImage) {
-      setIsLoading(true); 
+      setIsLoading(true);
       return;
     }
 
     const currentCanvasWidth = canvasSize.width;
     const currentCanvasHeight = canvasSize.height;
     const platformWidth = 150;
-    const platformHeight = 12; // Platform height, crucial for y-calculation from bottom
+    const platformHeight = 12; 
 
-    // P1 (верхняя платформа)
-    // Нижний край P1 находится на 300px от НИЗА холста.
-    // y-координата (верхний край P1 для отрисовки) = высотаХолста - 300 - высотаПлатформы.
-    const p1_y = currentCanvasHeight - 300 - platformHeight;
-    const p1_x = 50; // Слева
+    const p1_y_bottom_offset = 300;
+    const p1_y = currentCanvasHeight - p1_y_bottom_offset - platformHeight;
+    const p1_x = 50;
 
-    // P2 (нижняя платформа)
-    // Нижний край P2 находится на 150px от НИЗА холста.
-    // y-координата (верхний край P2 для отрисовки) = высотаХолста - 150 - высотаПлатформы.
-    const p2_y = currentCanvasHeight - 150 - platformHeight;
-    const p2_x = currentCanvasWidth - platformWidth - 50; // Справа
+    const p2_y_bottom_offset = 150;
+    const p2_y = currentCanvasHeight - p2_y_bottom_offset - platformHeight;
+    const p2_x = currentCanvasWidth - platformWidth - 50;
 
-
-    const playerInitialX = p2_x + 10; 
-    // Игрок стоит НА P2. Его ноги находятся на уровне p2_y (верхний край P2).
-    // Поэтому верхний край игрока = p2_y - PLAYER_HEIGHT.
+    const playerInitialX = p2_x + 10;
     const playerInitialYTop = p2_y - PLAYER_HEIGHT;
 
     const customLevelData: LevelData = {
         playerStart: { xPx: playerInitialX, yPx: playerInitialYTop },
         tiles: [
-            { 
-              x: p1_x, y: p1_y, width: platformWidth, height: platformHeight, type: 1, 
-              color: TILE_COLOR_GROUND, 
+            {
+              x: p1_x, y: p1_y, width: platformWidth, height: platformHeight, type: 1,
+              color: TILE_COLOR_GROUND,
             },
-            { 
-              x: p2_x, y: p2_y, width: platformWidth, height: platformHeight, type: 1, 
+            {
+              x: p2_x, y: p2_y, width: platformWidth, height: platformHeight, type: 1,
               color: TILE_COLOR_GROUND,
             }
         ],
-        tileWidth: TILE_SIZE, 
-        tileHeight: TILE_SIZE, // Not strictly used for these custom platforms but part of LevelData
-        layout: [[]], // Not used for custom platforms
+        tileWidth: TILE_SIZE,
+        tileHeight: TILE_SIZE, 
+        layout: [[]], 
     };
     
     setLevel(customLevelData);
@@ -165,7 +155,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       height: PLAYER_HEIGHT,
       vx: 0,
       vy: 0,
-      isOnGround: false, 
+      isOnGround: false,
       isMovingLeft: false,
       isMovingRight: false,
       color: PLAYER_COLOR,
@@ -174,14 +164,12 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     playerInstanceRef.current = newPlayer;
     if (parentPlayerRef) parentPlayerRef.current = newPlayer;
     
-    setIsLoading(false); 
+    setIsLoading(false);
 
   }, [isClient, canvasSize, assets.playerImage, assets.tileImage, parentPlayerRef]);
 
 
-  // Effect for game loop
   useEffect(() => {
-    // Game loop should only run if not loading, level and player are set, and canvas exists
     if (!isClient || isLoading || !level || !playerInstanceRef.current || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
@@ -192,7 +180,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
     const gameLoop = () => {
       const player = playerInstanceRef.current;
-      if (!player || !level) { 
+      if (!player || !level) {
           animationFrameId = requestAnimationFrame(gameLoop);
           return;
       }
@@ -203,7 +191,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
           case 'moveRight': player.isMovingRight = true; break;
           case 'stopMoveLeft': player.isMovingLeft = false; break;
           case 'stopMoveRight': player.isMovingRight = false; break;
-          case 'jump': 
+          case 'jump':
             if (player.isOnGround) {
               player.vy = JUMP_STRENGTH;
               player.isOnGround = false;
@@ -221,12 +209,12 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
       level.tiles.forEach(tile => {
         if (checkCollision(player, tile)) {
-          if (player.vx > 0) { 
+          if (player.vx > 0) {
             player.x = tile.x - player.width;
-          } else if (player.vx < 0) { 
+          } else if (player.vx < 0) {
             player.x = tile.x + tile.width;
           }
-          player.vx = 0; 
+          player.vx = 0;
         }
       });
 
@@ -236,20 +224,19 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
       level.tiles.forEach(tile => {
         if (checkCollision(player, tile)) {
-          if (player.vy > 0) { 
+          if (player.vy > 0) {
             player.y = tile.y - player.height;
             player.vy = 0;
             player.isOnGround = true;
-          } else if (player.vy < 0) { 
+          } else if (player.vy < 0) {
             player.y = tile.y + tile.height;
-            player.vy = 0; 
+            player.vy = 0;
           }
         }
       });
       
       if (player.x < 0) player.x = 0;
       if (canvas.width > 0 && player.x + player.width > canvas.width) player.x = canvas.width - player.width;
-      // Prevent falling through the "bottom" of the canvas, effectively making it a solid floor
       if (canvas.height > 0 && player.y + player.height > canvas.height) {
          player.y = canvas.height - player.height;
          player.vy = 0;
@@ -259,8 +246,8 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       if (parentPlayerRef) parentPlayerRef.current = { ...player };
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      renderLevel(ctx, level);
-      renderPlayer(ctx, player);
+      renderLevel(ctx, level, assets.tileImage);
+      renderPlayer(ctx, player, assets.playerImage);
 
       animationFrameId = requestAnimationFrame(gameLoop);
     };
@@ -269,9 +256,8 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [isClient, isLoading, level, executeAction, resetExecuteAction, parentPlayerRef, assets.tileImage, canvasSize]); // Added canvasSize to dependencies
+  }, [isClient, isLoading, level, executeAction, resetExecuteAction, parentPlayerRef, assets.tileImage, assets.playerImage, canvasSize]);
 
-  // Keyboard controls effect
   useEffect(() => {
     if(!isClient) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -304,45 +290,16 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   }, [onPlayerAction, isClient]);
 
 
-  const checkCollision = (rect1: PlayerState | Tile, rect2: Tile) => {
-    return rect1.x < rect2.x + rect2.width &&
-           rect1.x + rect1.width > rect2.x &&
-           rect1.y < rect2.y + rect2.height &&
-           rect1.y + rect1.height > rect2.y;
-  };
-
-  const renderPlayer = (ctx: CanvasRenderingContext2D, player: PlayerState) => {
-    if (player.image && assets.playerImage?.complete) { 
-      ctx.drawImage(player.image, player.x, player.y, player.width, player.height);
-    } else {
-      ctx.fillStyle = player.color;
-      ctx.fillRect(player.x, player.y, player.width, player.height);
-    }
-  };
-
-  const renderLevel = (ctx: CanvasRenderingContext2D, currentLevel: LevelData) => {
-    currentLevel.tiles.forEach(tile => {
-       if (assets.tileImage?.complete && tile.type === 1) { 
-         ctx.drawImage(assets.tileImage, tile.x, tile.y, tile.width, tile.height);
-       } else {
-         ctx.fillStyle = tile.color; 
-         ctx.fillRect(tile.x, tile.y, tile.width, tile.height);
-       }
-    });
-  };
-
   if (!isClient) {
-    // This message is shown before client-side hydration
     return <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground rounded-md">Loading Game...</div>;
   }
   
-  // Canvas is always rendered. Overlay is shown if isLoading is true.
   return (
-    <div className="relative w-full h-full"> {/* Wrapper for positioning overlay */}
-      <canvas 
-        ref={canvasRef} 
-        className="w-full h-full block" // Removed border, shadow, rounded-md
-        tabIndex={0} 
+    <div className="relative w-full h-full"> 
+      <canvas
+        ref={canvasRef}
+        className="w-full h-full block" 
+        tabIndex={0}
       />
       {isLoading && (
         <div className="absolute inset-0 bg-muted/80 backdrop-blur-sm flex items-center justify-center text-muted-foreground rounded-md z-10">
@@ -352,4 +309,3 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     </div>
   );
 }
-
