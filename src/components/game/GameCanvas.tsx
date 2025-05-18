@@ -66,11 +66,15 @@ function spawnNewCoinPair(
   if (processedTiles.length > 0) {
     highestPlatformTopY = Math.min(...processedTiles.map(tile => tile.y));
   } else {
+     // Fallback if no platforms, coins spawn lower. Adjust as needed.
      highestPlatformTopY = MAX_JUMP_HEIGHT + COIN_SPAWN_TOP_MARGIN + COIN_SIZE + 10;
   }
 
-  const ySpawnZoneTop = highestPlatformTopY - MAX_JUMP_HEIGHT - COIN_SPAWN_TOP_MARGIN;
+  // Top of the spawn zone for the top edge of the coin
+  const ySpawnZoneTop = highestPlatformTopY - MAX_JUMP_HEIGHT - COIN_SPAWN_TOP_MARGIN - COIN_SIZE;
+  // Bottom of the spawn zone for the top edge of the coin
   const ySpawnZoneBottom = canvasHeight - COIN_VERTICAL_SPAWN_BOTTOM_OFFSET - COIN_SIZE;
+
 
   if (ySpawnZoneTop >= ySpawnZoneBottom) {
     console.warn("Coin spawn zone is invalid (top is below or at bottom). No coins will be generated.");
@@ -84,9 +88,10 @@ function spawnNewCoinPair(
   const currentTime = Date.now();
 
   // Coin 1 (left half)
+  // Ensure there's enough space in the left half for a coin
   const leftHalfWidth = midPoint - horizontalSpawnMargin - COIN_SIZE;
   if (leftHalfWidth > 0) {
-    const coin1X = Math.max(0, Math.random() * leftHalfWidth);
+    const coin1X = Math.max(0, Math.random() * leftHalfWidth); // Ensure coin is not placed at negative X
     const coin1Y = Math.random() * (ySpawnZoneBottom - ySpawnZoneTop) + ySpawnZoneTop;
     newPair.push({
       id: `coin-${currentTime}-1`,
@@ -99,11 +104,13 @@ function spawnNewCoinPair(
       currentOpacity: 0,
       particles: [],
     });
+  } else {
+    // console.warn("Not enough space in the left half to spawn a coin.");
   }
 
   // Coin 2 (right half)
   const rightHalfBaseX = midPoint + horizontalSpawnMargin;
-  const rightHalfWidth = canvasWidth - rightHalfBaseX - COIN_SIZE;
+  const rightHalfWidth = canvasWidth - rightHalfBaseX - COIN_SIZE; // Space available in right half
   if (rightHalfWidth > 0) {
     const coin2X = rightHalfBaseX + (Math.random() * rightHalfWidth);
     const coin2Y = Math.random() * (ySpawnZoneBottom - ySpawnZoneTop) + ySpawnZoneTop;
@@ -118,6 +125,8 @@ function spawnNewCoinPair(
       currentOpacity: 0,
       particles: [],
     });
+  } else {
+    // console.warn("Not enough space in the right half to spawn a coin.");
   }
   
   return newPair;
@@ -177,18 +186,18 @@ function processRawLevelData(
   });
 
   let playerStartX = 50;
-  let playerStartY = canvasHeight - PLAYER_HEIGHT - 50;
+  let playerStartY = canvasHeight - PLAYER_HEIGHT - 50; // Default if platform not found
   const startPlatform = processedTiles.find(tile => tile.id === rawData.playerStart.platformId);
 
   if (startPlatform) {
     const playerXOffset = rawData.playerStart.xOffsetPx || 0;
-    const playerYOffset = rawData.playerStart.yOffsetPx || 0;
+    const playerYOffset = rawData.playerStart.yOffsetPx || 0; // Offset from top of platform
     switch (rawData.playerStart.horizontalAlign) {
       case 'left': playerStartX = startPlatform.x + playerXOffset; break;
       case 'center': playerStartX = startPlatform.x + (startPlatform.width / 2) - (PLAYER_WIDTH / 2) + playerXOffset; break;
       case 'right': playerStartX = startPlatform.x + startPlatform.width - PLAYER_WIDTH - playerXOffset; break;
     }
-    playerStartY = startPlatform.y - PLAYER_HEIGHT - playerYOffset;
+    playerStartY = startPlatform.y - PLAYER_HEIGHT - playerYOffset; // Player's feet are on top of platform - yOffset
   } else {
     console.warn(`Player start platform with id "${rawData.playerStart.platformId}" not found. Defaulting player position.`);
   }
@@ -209,6 +218,8 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  const lastFrameTime = useRef<number>(Date.now());
+
 
   const [assets, setAssets] = useState<{
     playerImage: HTMLImageElement | null;
@@ -274,6 +285,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       setCanvasSize(currentSize => {
         if (canvas.width !== newWidth) canvas.width = newWidth;
         if (canvas.height !== newHeight) canvas.height = newHeight;
+        // Only return new object if size actually changed to avoid unnecessary re-renders/effects
         if (currentSize.width !== newWidth || currentSize.height !== newHeight) {
           return { width: newWidth, height: newHeight };
         }
@@ -281,13 +293,14 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       });
     };
     
-    updateSize(); 
+    updateSize(); // Initial size set
 
     let resizeObserver: ResizeObserver | null = null;
     if (canvas.parentElement && typeof ResizeObserver !== 'undefined') {
         resizeObserver = new ResizeObserver(updateSize);
         resizeObserver.observe(canvas.parentElement);
     } else {
+        // Fallback for older browsers or environments without ResizeObserver
         window.addEventListener('resize', updateSize);
     }
     
@@ -303,14 +316,15 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   useEffect(() => {
     if (!isClient || !levelPath) return;
     setIsLoading(true);
-    setRawLevelData(null); 
-    setProcessedLevel(null);
-    setActiveCoins([]); 
+    setRawLevelData(null); // Reset raw data on level change
+    setProcessedLevel(null); // Reset processed level
+    setActiveCoins([]); // Reset coins
 
     loadLevel(levelPath)
       .then(data => {
         if (data) {
           setRawLevelData(data);
+          // Processing will happen in the next useEffect dependent on rawLevelData and canvasSize
         } else {
           toast({ title: "Error", description: `Failed to load level: ${levelPath}`, variant: "destructive" });
           setIsLoading(false);
@@ -324,7 +338,9 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   }, [levelPath, isClient, toast]);
   
   useEffect(() => {
+    // This effect depends on rawLevelData, canvasSize, and asset loading status
     if (!isClient || !rawLevelData || canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImageLoaded || !assets.tileImageLoaded || !assets.coinImageLoaded) {
+      // If not loading but dependencies aren't met, set to loading (e.g., canvas resized before images loaded)
       if (!isLoading && (!rawLevelData || canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImageLoaded || !assets.tileImageLoaded || !assets.coinImageLoaded )) {
          if (!isLoading) setIsLoading(true);
       }
@@ -346,20 +362,21 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
         isMovingLeft: false,
         isMovingRight: false,
         color: PLAYER_COLOR,
-        image: assets.playerImage,
+        image: assets.playerImage, // Use loaded player image
       };
       playerInstanceRef.current = newPlayer;
       if (parentPlayerRef) parentPlayerRef.current = newPlayer;
       
+      // Spawn initial coins only if newProcessedLevel.tiles exists and is not empty
       if (newProcessedLevel.tiles) {
         setActiveCoins(spawnNewCoinPair(newProcessedLevel.tiles, canvasSize.width, canvasSize.height));
       }
 
-      setIsLoading(false); 
+      setIsLoading(false); // All ready, stop loading
     } catch (error) {
         console.error("Error processing level data:", error);
         toast({ title: "Processing Error", description: "Failed to process level data.", variant: "destructive" });
-        setIsLoading(false); 
+        setIsLoading(false); // Stop loading on error
     }
   }, [isClient, rawLevelData, canvasSize, assets, parentPlayerRef, toast]);
 
@@ -370,9 +387,10 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     const allCollectedAndParticlesGone = activeCoins.length > 0 && activeCoins.every(c => c.isCollected && c.particles.length === 0);
 
     if (allCollectedAndParticlesGone) {
+      // Ensure new coins are spawned based on the current (and potentially updated) processedLevel.tiles
       setActiveCoins(spawnNewCoinPair(processedLevel.tiles, canvasSize.width, canvasSize.height));
     }
-  }, [activeCoins, isClient, isLoading, processedLevel, canvasSize]);
+  }, [activeCoins, isClient, isLoading, processedLevel, canvasSize]); // Added processedLevel dependency
 
 
   useEffect(() => {
@@ -383,11 +401,11 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     if (!ctx) return;
 
     let animationFrameId: number;
-    const lastFrameTime = useRef(Date.now());
+    lastFrameTime.current = Date.now(); // Reset lastFrameTime before starting the loop
 
     const gameLoop = () => {
       const currentTime = Date.now();
-      const deltaTime = currentTime - lastFrameTime.current; // Time elapsed since last frame in ms
+      const deltaTime = currentTime - lastFrameTime.current; 
       lastFrameTime.current = currentTime;
 
       const player = playerInstanceRef.current;
@@ -441,16 +459,16 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       currentLevel.tiles.forEach(tile => {
         const tempPlayerStateForVerticalCheck = { ...player, y: tentativePlayerY };
         if (checkCollision(tempPlayerStateForVerticalCheck, tile)) {
-          if (player.vy > 0) { 
+          if (player.vy > 0) { // Moving down
             newPlayerY = tile.y - player.height;
             player.vy = 0;
             player.isOnGround = true;
             if (tile.vx !== undefined && tile.direction !== undefined) {
               platformInducedMoveX = (tile.vx * tile.direction);
             }
-          } else if (player.vy < 0) { 
+          } else if (player.vy < 0) { // Moving up
             newPlayerY = tile.y + tile.height;
-            player.vy = 0;
+            player.vy = 0; // Stop upward movement
           }
         }
       });
@@ -463,22 +481,26 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
         const tempPlayerStateForHorizontalCheck = { ...player, x: tentativePlayerX };
         if (checkCollision(tempPlayerStateForHorizontalCheck, tile)) {
           const totalIntentVx = player.vx + platformInducedMoveX;
-          if (totalIntentVx > 0) { 
+          if (totalIntentVx > 0) { // Moving right
             newPlayerX = tile.x - player.width;
-          } else if (totalIntentVx < 0) { 
+          } else if (totalIntentVx < 0) { // Moving left
             newPlayerX = tile.x + tile.width;
           }
+          // If platformInducedMoveX is the only horizontal movement and causes collision,
+          // this logic might need refinement. For now, it stops player if they would enter tile.
         }
       });
       player.x = newPlayerX;
       
+      // Boundary checks for player
       if (player.x < 0) player.x = 0;
       if (canvas.width > 0 && player.x + player.width > canvas.width) player.x = canvas.width - player.width;
       
+      // Fall off bottom of screen (or land on bottom)
       if (canvas.height > 0 && player.y + player.height > canvas.height) {
          player.y = canvas.height - player.height;
          player.vy = 0;
-         player.isOnGround = true;
+         player.isOnGround = true; // Treat bottom of canvas as ground
       }
 
       // Update and process coins
@@ -540,10 +562,11 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
       if (parentPlayerRef) parentPlayerRef.current = { ...player };
 
+      // Drawing
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       renderLevel(ctx, currentLevel, assets.tileImage); 
-      renderCoins(ctx, activeCoins, assets.coinImage);
-      renderPlayer(ctx, player, assets.playerImage);
+      renderCoins(ctx, activeCoins, assets.coinImage); // Pass activeCoins and coinImage
+      renderPlayer(ctx, player, assets.playerImage); // Pass player image
 
       animationFrameId = requestAnimationFrame(gameLoop);
     };
@@ -552,13 +575,13 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [isClient, isLoading, processedLevel, executeAction, resetExecuteAction, parentPlayerRef, assets, canvasSize, activeCoins, setActiveCoins]); // Removed 'toast' dependency as it wasn't used in the loop.
+  }, [isClient, isLoading, processedLevel, executeAction, resetExecuteAction, parentPlayerRef, assets, canvasSize, activeCoins, setActiveCoins]);
 
   useEffect(() => {
-    if(!isClient) return;
+    if(!isClient) return; // Only run on client
     const handleKeyDown = (e: KeyboardEvent) => {
       const player = playerInstanceRef.current;
-      if (!player) return;
+      if (!player) return; // Player might not be initialized yet
       if (e.key === 'ArrowLeft') onPlayerAction('moveLeft');
       if (e.key === 'ArrowRight') onPlayerAction('moveRight');
       if (e.key === 'ArrowUp' || e.key === ' ') {
@@ -577,10 +600,11 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [onPlayerAction, isClient]);
+  }, [onPlayerAction, isClient]); // isClient ensures this runs only after client-side mount
 
 
   if (!isClient) {
+    // Render a placeholder or nothing on the server
     return <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground rounded-md">Loading Game...</div>;
   }
   
@@ -588,8 +612,8 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     <div className="relative w-full h-full"> 
       <canvas
         ref={canvasRef}
-        className="w-full h-full block"
-        tabIndex={0}
+        className="w-full h-full block" // Ensure canvas tries to fill its parent
+        tabIndex={0} // Make canvas focusable for keyboard events if needed directly (though we use window events)
       />
       {isLoading && (
         <div className="absolute inset-0 bg-muted/80 backdrop-blur-sm flex items-center justify-center text-muted-foreground rounded-md z-10">
