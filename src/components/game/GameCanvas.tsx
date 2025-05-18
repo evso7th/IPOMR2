@@ -298,17 +298,6 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
          player.isOnGround = true;
       }
 
-      // Log speeds for debugging
-      // This will log every frame. For less console spam, consider logging conditionally or using an on-screen display.
-      if (player) {
-        // console.log(`Player Horizontal Speed (vx): ${player.vx.toFixed(2)}`);
-      }
-      level.tiles.forEach((tile, index) => {
-        if (tile.vx !== undefined && tile.direction !== undefined) {
-          // console.log(`Platform ${index + 1} Effective Speed: ${(tile.vx * tile.direction).toFixed(2)} (Base vx: ${tile.vx.toFixed(2)}, Direction: ${tile.direction})`);
-        }
-      });
-
       if (parentPlayerRef) parentPlayerRef.current = { ...player };
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
