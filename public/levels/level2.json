@@ -1,18 +1,38 @@
+
 {
-  "playerStart": { "platformId": "ground", "horizontalAlign": "left", "xOffsetPx": 30 },
+  "playerStart": {
+    "platformId": "p2",
+    "horizontalAlign": "left",
+    "xOffsetPx": 10 
+  },
   "tiles": [
     {
-      "id": "ground", "width": "80%", "height": 20, "type": 1, "color": "hsl(var(--accent))",
-      "positioning": { "anchor": "bottom-center", "yOffsetPx": 20 }
+      "id": "p1",
+      "width": 150,
+      "height": 16,
+      "type": 1,
+      "color": "hsl(var(--accent))",
+      "vx": 0.9375,
+      "direction": 1,
+      "positioning": {
+        "anchor": "bottom-left",
+        "xOffsetPx": 50,
+        "yOffsetPx": 300 
+      }
     },
     {
-      "id": "movingPlatform", "width": 120, "height": 16, "type": 1, "color": "hsl(var(--accent))",
-      "vx": 1.1, "direction": 1,
-      "positioning": { "anchor": "center", "yOffsetPx": -50 }
-    },
-    {
-      "id": "smallTopPlatform", "width": 80, "height": 16, "type": 1, "color": "hsl(var(--accent))",
-      "positioning": { "anchor": "top-right", "xOffsetPx": 40, "yOffsetPx": 60 }
+      "id": "p2",
+      "width": 150,
+      "height": 16,
+      "type": 1,
+      "color": "hsl(var(--accent))",
+      "vx": 0.9375,
+      "direction": -1,
+      "positioning": {
+        "anchor": "bottom-right",
+        "xOffsetPx": 50,
+        "yOffsetPx": 150 
+      }
     }
   ]
 }
