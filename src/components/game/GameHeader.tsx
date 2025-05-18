@@ -3,7 +3,7 @@
 "use client";
 
 import React from 'react';
-import { Medal, Gem, Heart } from 'lucide-react'; // Используем Heart для жизней
+import { Medal, Gem, CircleDollarSign } from 'lucide-react'; // Используем CircleDollarSign для жизней/монет
 
 interface GameHeaderProps {
   // В будущем можно передавать значения через props
@@ -16,7 +16,7 @@ export default function GameHeader({ }: GameHeaderProps) {
   // Заглушки для значений
   const score = 0;
   const level = 1;
-  const lives = 3;
+  const lives = 3; // Это значение теперь может символизировать что-то другое, если иконка монеты
 
   return (
     <header className="h-16 bg-primary text-primary-foreground shadow-md flex items-center shrink-0">
@@ -31,8 +31,8 @@ export default function GameHeader({ }: GameHeaderProps) {
             <Gem className="w-4 h-4 sm:w-5 sm:h-5 mr-1" />
             <span className="text-sm sm:text-base">{score}</span>
           </div>
-          <div className="flex items-center" title="Lives">
-            <Heart className="w-4 h-4 sm:w-5 sm:h-5 mr-1 text-red-400 fill-red-500" />
+          <div className="flex items-center" title="Coins/Lives"> {/* Обновил title */}
+            <CircleDollarSign className="w-4 h-4 sm:w-5 sm:h-5 mr-1" /> {/* Новая иконка */}
             <span className="text-sm sm:text-base">{lives}</span>
           </div>
         </div>
@@ -40,3 +40,4 @@ export default function GameHeader({ }: GameHeaderProps) {
     </header>
   );
 }
+
