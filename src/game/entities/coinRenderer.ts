@@ -47,9 +47,10 @@ function drawFallbackCoin(ctx: CanvasRenderingContext2D, coin: CoinState) {
   ctx.arc(
     coin.x + coin.width / 2,
     coin.y + coin.height / 2,
-    coin.width / 2, // Use current dynamic size if we were shrinking
+    coin.width / 2, 
     0,
     Math.PI * 2
   );
   ctx.fill();
 }
+

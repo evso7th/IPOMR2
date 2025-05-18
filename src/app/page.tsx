@@ -27,7 +27,7 @@ export default function PlatformerPage() {
         
         <div className="relative w-full flex-grow">
           <GameCanvas 
-            levelPath="/levels/level1.json" // Changed back to level1.json
+            levelPath="/levels/level2.json" // Changed to level2.json
             onPlayerAction={handlePlayerAction}
             playerRef={playerRef}
             executeAction={executeAction}
@@ -40,3 +40,4 @@ export default function PlatformerPage() {
     </div>
   );
 }
+
