@@ -119,16 +119,24 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     const currentCanvasWidth = canvasSize.width;
     const currentCanvasHeight = canvasSize.height;
     const platformWidth = 150;
-    const platformHeight = 12;
+    const platformHeight = 12; // Platform height, crucial for y-calculation from bottom
 
-    const p1_x = 50;
-    const p1_y = 200; // Upper platform Y (from top)
+    // P1 (верхняя платформа)
+    // Нижний край P1 находится на 400px от НИЗА холста.
+    // y-координата (верхний край P1 для отрисовки) = высотаХолста - 400 - высотаПлатформы.
+    const p1_y = currentCanvasHeight - 400 - platformHeight;
+    const p1_x = 50; // Слева
 
-    const p2_x = currentCanvasWidth - platformWidth - 50; 
-    // Lower platform Y: 80px clearance from bottom of canvas + platform height
-    const p2_y = currentCanvasHeight - 80 - platformHeight; 
+    // P2 (нижняя платформа)
+    // Нижний край P2 находится на 200px от НИЗА холста.
+    // y-координата (верхний край P2 для отрисовки) = высотаХолста - 200 - высотаПлатформы.
+    const p2_y = currentCanvasHeight - 200 - platformHeight;
+    const p2_x = currentCanvasWidth - platformWidth - 50; // Справа
+
 
     const playerInitialX = p2_x + 10; 
+    // Игрок стоит НА P2. Его ноги находятся на уровне p2_y (верхний край P2).
+    // Поэтому верхний край игрока = p2_y - PLAYER_HEIGHT.
     const playerInitialYTop = p2_y - PLAYER_HEIGHT;
 
     const customLevelData: LevelData = {
@@ -144,8 +152,8 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
             }
         ],
         tileWidth: TILE_SIZE, 
-        tileHeight: TILE_SIZE,
-        layout: [[]], 
+        tileHeight: TILE_SIZE, // Not strictly used for these custom platforms but part of LevelData
+        layout: [[]], // Not used for custom platforms
     };
     
     setLevel(customLevelData);
@@ -241,6 +249,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       
       if (player.x < 0) player.x = 0;
       if (canvas.width > 0 && player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+      // Prevent falling through the "bottom" of the canvas, effectively making it a solid floor
       if (canvas.height > 0 && player.y + player.height > canvas.height) {
          player.y = canvas.height - player.height;
          player.vy = 0;
