@@ -5,8 +5,6 @@ import React, { useRef, useState, useCallback } from 'react';
 import GameCanvas from '@/components/game/GameCanvas';
 import TouchControls from '@/components/game/TouchControls';
 import type { PlayerState, GameAction } from '@/types/game';
-// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'; // Removed Card imports
-// import { AlertTriangle } from 'lucide-react'; // Removed AlertTriangle import
 import GameHeader from '@/components/game/GameHeader';
 
 export default function PlatformerPage() {
@@ -25,11 +23,11 @@ export default function PlatformerPage() {
     <div className="flex flex-col h-screen bg-background text-foreground">
       <GameHeader />
 
-      {/* Removed overflow-hidden from main to allow content to scroll if it exceeds available height, ensuring flex-grow on canvas container works */}
-      <main className="flex-grow flex flex-col items-center w-full p-4">
-        {/* Removed Informational Card */}
+      {/* Removed p-4 and items-center, added pb-16 to main */}
+      <main className="flex-grow flex flex-col w-full pb-16"> {/* Changed classes here */}
         
-        <div className="relative w-full max-w-4xl flex-grow">
+        {/* Removed max-w-4xl from this div */}
+        <div className="relative w-full flex-grow"> {/* Changed classes here */}
           <GameCanvas 
             levelPath="/levels/level1.json" 
             onPlayerAction={handlePlayerAction}
