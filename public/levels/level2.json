@@ -1,13 +1,14 @@
+
 {
   "playerStart": {
-    "platformId": "p2-l2",
-    "horizontalAlign": "center",
-    "xOffsetPx": 0,
-    "yOffsetPx": 0
+    "platformId": "p2",
+    "horizontalAlign": "left",
+    "xOffsetPx": 10,
+    "yOffsetPx": 0 
   },
   "tiles": [
     {
-      "id": "p1-l2",
+      "id": "p1",
       "width": 150,
       "height": 16,
       "type": 1,
@@ -21,7 +22,7 @@
       }
     },
     {
-      "id": "p2-l2",
+      "id": "p2",
       "width": 150,
       "height": 16,
       "type": 1,
@@ -35,9 +36,9 @@
       }
     },
     {
-      "id": "p3-l2-floor",
+      "id": "p_ground",
       "width": "100%",
-      "height": 1,
+      "height": "1px",
       "type": 1,
       "color": "hsl(var(--accent))",
       "positioning": {

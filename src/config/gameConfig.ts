@@ -29,3 +29,7 @@ export const COIN_PARTICLE_LIFESPAN = 600; // ms
 export const COIN_PARTICLE_SPEED_MULTIPLIER = 1.5;
 export const COIN_PARTICLE_GRAVITY_FACTOR = 0.2; // A lighter gravity for particles
 
+// Enemy Configuration
+export const ENEMY_RADIUS = 32; // pixels
+export const ENEMY_COLOR = 'red'; // color of the enemy
+export const ENEMY_SPEED_FACTOR = 0.5; // Factor of PLATFORM_SPEED (e.g., 0.5 means 50% of platform speed)
