@@ -160,7 +160,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       if (parentPlayerRef) parentPlayerRef.current = { ...player };
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // renderLevel(ctx, level); // Тайлы больше не отрисовываются
+      renderLevel(ctx, level); // Восстанавливаем отрисовку тайлов
       renderPlayer(ctx, player);
 
       animationFrameId = requestAnimationFrame(gameLoop);
@@ -290,3 +290,4 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     />
   );
 }
+
