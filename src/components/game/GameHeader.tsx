@@ -3,7 +3,7 @@
 "use client";
 
 import React from 'react';
-import { Medal, Gem, Coins } from 'lucide-react'; // Changed CircleDollarSign to Coins
+import { Medal, Gem, Coins } from 'lucide-react';
 
 interface GameHeaderProps {
   // В будущем можно передавать значения через props
@@ -17,6 +17,7 @@ export default function GameHeader({ }: GameHeaderProps) {
   const score = 0;
   const level = 1;
   const lives = 3; 
+  const maxLives = 7; // Пример общего количества
 
   return (
     <header className="h-16 bg-primary text-primary-foreground shadow-md flex items-center shrink-0">
@@ -31,13 +32,12 @@ export default function GameHeader({ }: GameHeaderProps) {
             <Gem className="w-4 h-4 sm:w-5 sm:h-5 mr-1" />
             <span className="text-sm sm:text-base">{score}</span>
           </div>
-          <div className="flex items-center" title="Coins/Lives">
-            <Coins className="w-4 h-4 sm:w-5 sm:h-5 mr-1" /> {/* Changed to Coins icon */}
-            <span className="text-sm sm:text-base">{lives}</span>
+          <div className="flex items-center" title="Lives/Collected">
+            <Coins className="w-4 h-4 sm:w-5 sm:h-5 mr-1 text-[hsl(var(--chart-4))]" /> {/* Using chart-4 for yellow-ish color */}
+            <span className="text-sm sm:text-base">{lives} ({maxLives})</span>
           </div>
         </div>
       </div>
     </header>
   );
 }
-
