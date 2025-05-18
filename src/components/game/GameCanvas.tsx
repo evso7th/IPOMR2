@@ -117,13 +117,16 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     }
 
     const currentCanvasWidth = canvasSize.width;
+    const currentCanvasHeight = canvasSize.height;
     const platformWidth = 150;
+    const platformHeight = 12;
 
     const p1_x = 50;
-    const p1_y = 200; 
+    const p1_y = 200; // Upper platform Y (from top)
 
     const p2_x = currentCanvasWidth - platformWidth - 50; 
-    const p2_y = 400;
+    // Lower platform Y: 80px clearance from bottom of canvas + platform height
+    const p2_y = currentCanvasHeight - 80 - platformHeight; 
 
     const playerInitialX = p2_x + 10; 
     const playerInitialYTop = p2_y - PLAYER_HEIGHT;
@@ -132,11 +135,11 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
         playerStart: { xPx: playerInitialX, yPx: playerInitialYTop },
         tiles: [
             { 
-              x: p1_x, y: p1_y, width: platformWidth, height: 12, type: 1, 
+              x: p1_x, y: p1_y, width: platformWidth, height: platformHeight, type: 1, 
               color: TILE_COLOR_GROUND, 
             },
             { 
-              x: p2_x, y: p2_y, width: platformWidth, height: 12, type: 1, 
+              x: p2_x, y: p2_y, width: platformWidth, height: platformHeight, type: 1, 
               color: TILE_COLOR_GROUND,
             }
         ],
