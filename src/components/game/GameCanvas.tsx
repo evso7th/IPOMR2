@@ -122,15 +122,15 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     const platformHeight = 12; // Platform height, crucial for y-calculation from bottom
 
     // P1 (верхняя платформа)
-    // Нижний край P1 находится на 400px от НИЗА холста.
-    // y-координата (верхний край P1 для отрисовки) = высотаХолста - 400 - высотаПлатформы.
-    const p1_y = currentCanvasHeight - 400 - platformHeight;
+    // Нижний край P1 находится на 300px от НИЗА холста.
+    // y-координата (верхний край P1 для отрисовки) = высотаХолста - 300 - высотаПлатформы.
+    const p1_y = currentCanvasHeight - 300 - platformHeight;
     const p1_x = 50; // Слева
 
     // P2 (нижняя платформа)
-    // Нижний край P2 находится на 200px от НИЗА холста.
-    // y-координата (верхний край P2 для отрисовки) = высотаХолста - 200 - высотаПлатформы.
-    const p2_y = currentCanvasHeight - 200 - platformHeight;
+    // Нижний край P2 находится на 150px от НИЗА холста.
+    // y-координата (верхний край P2 для отрисовки) = высотаХолста - 150 - высотаПлатформы.
+    const p2_y = currentCanvasHeight - 150 - platformHeight;
     const p2_x = currentCanvasWidth - platformWidth - 50; // Справа
 
 
