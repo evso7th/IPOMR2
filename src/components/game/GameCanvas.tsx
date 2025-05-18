@@ -57,29 +57,42 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
     const initGame = () => {
       setIsLoading(true);
+      
+      const canvas = canvasRef.current;
+      // Use a fallback width if canvas isn't sized yet to prevent issues.
+      // The resizeCanvas logic also has a fallback (800).
+      const canvasWidth = canvas && canvas.width > 0 ? canvas.width : 800;
 
-      // Define level data directly:
-      // Platform 1: x=100, y=500, width=150, height=12
-      // Platform 2: x=300, y=400, width=150, height=12
-      // Player start x=110, player's feet at y=500 (on platform 1)
-      const playerInitialYTop = 500 - PLAYER_HEIGHT; // Player's y is top-edge
+      const platformWidth = 150;
+      const platformHeight = 12;
+
+      // Platform 1 (p1) - UPPER, on the left side
+      const p1_x = 50;
+      const p1_y = 200; 
+
+      // Platform 2 (p2) - LOWER, on the right side
+      const p2_x = canvasWidth - platformWidth - 50; // Positioned 50px from the right edge
+      const p2_y = 400;
+
+      // Player starts on the lower platform (p2)
+      const playerInitialX = p2_x + 10; // A bit from the left edge of p2
+      const playerInitialYTop = p2_y - PLAYER_HEIGHT; // Player's feet on p2's surface
 
       const customLevelData: LevelData = {
-          playerStart: { xPx: 110, yPx: playerInitialYTop },
+          playerStart: { xPx: playerInitialX, yPx: playerInitialYTop },
           tiles: [
-              { 
-                x: 100, y: 500, width: 150, height: 12, type: 1, 
+              { // Platform 1 (p1 - upper, left)
+                x: p1_x, y: p1_y, width: platformWidth, height: platformHeight, type: 1, 
                 color: TILE_COLOR_GROUND, 
-                // image field will be implicitly handled by renderLevel if assets.tileImage is present
               },
-              { 
-                x: 300, y: 400, width: 150, height: 12, type: 1, 
+              { // Platform 2 (p2 - lower, right)
+                x: p2_x, y: p2_y, width: platformWidth, height: platformHeight, type: 1, 
                 color: TILE_COLOR_GROUND,
               }
           ],
           tileWidth: TILE_SIZE, 
           tileHeight: TILE_SIZE,
-          layout: [[]], // Dummy layout
+          layout: [[]], // Dummy layout, as tiles are defined directly
       };
       
       setLevel(customLevelData);
@@ -102,12 +115,9 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       setIsLoading(false);
     };
     
-    // Initialize game once client-side and assets are potentially loaded
-    // The gameLoop depends on `level` which is set by `initGame`.
-    // `assets` in dependency array ensures re-run if assets change, initGame will re-setup.
     initGame();
 
-  }, [isClient, assets.playerImage, assets.tileImage, parentPlayerRef ]); // levelPath and toast removed from deps for hardcoded level
+  }, [isClient, assets.playerImage, assets.tileImage, parentPlayerRef ]);
 
   useEffect(() => {
     if (!isClient || isLoading || !level || !playerInstanceRef.current) return;
@@ -149,12 +159,12 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
       level.tiles.forEach(tile => {
         if (checkCollision(player, tile)) {
-          if (player.vx > 0) {
+          if (player.vx > 0) { // Moving right, collided with left side of tile
             player.x = tile.x - player.width;
-          } else if (player.vx < 0) {
+          } else if (player.vx < 0) { // Moving left, collided with right side of tile
             player.x = tile.x + tile.width;
           }
-          player.vx = 0;
+          player.vx = 0; // Stop horizontal movement
         }
       });
 
@@ -164,19 +174,21 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
       level.tiles.forEach(tile => {
         if (checkCollision(player, tile)) {
-          if (player.vy > 0) {
+          if (player.vy > 0) { // Moving down, collided with top of tile
             player.y = tile.y - player.height;
             player.vy = 0;
             player.isOnGround = true;
-          } else if (player.vy < 0) {
+          } else if (player.vy < 0) { // Moving up, collided with bottom of tile
             player.y = tile.y + tile.height;
-            player.vy = 0;
+            player.vy = 0; // Stop upward movement (hit head)
           }
         }
       });
       
+      // Prevent player from going off-screen (sides and bottom)
       if (player.x < 0) player.x = 0;
       if (canvas.width > 0 && player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+      // Ground collision / falling off bottom of screen
       if (canvas.height > 0 && player.y + player.height > canvas.height) {
          player.y = canvas.height - player.height;
          player.vy = 0;
@@ -197,7 +209,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [isLoading, level, executeAction, resetExecuteAction, parentPlayerRef, isClient, assets.tileImage]); // assets.tileImage is used in renderLevel
+  }, [isLoading, level, executeAction, resetExecuteAction, parentPlayerRef, isClient, assets.tileImage]);
 
   useEffect(() => {
     if(!isClient) return;
@@ -243,18 +255,31 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
             canvas.width = container.clientWidth;
             canvas.height = container.clientHeight;
         } else {
-            const fallbackWidth = 800; // Default or minimum width
-            const fallbackHeight = 600; // Default or minimum height
+            const fallbackWidth = 800; 
+            const fallbackHeight = 600;
             canvas.width = fallbackWidth;
             canvas.height = fallbackHeight;
         }
+        // Re-initialize game if canvas size changes significantly, as platform positions might depend on it.
+        // This is a simple way; a more complex game might update positions without full re-init.
+        // For now, this ensures the right-side platform is correctly placed if the initial size was a fallback.
+        // Note: This might cause a flicker or reset player position.
+        // Consider if this re-init is desired or if platforms should be static after first init.
+        // For this specific request, static after first init is fine.
+        // If initGame depends on canvas.width for platform X, then initGame should be recalled.
+        // The dependency array of initGame's useEffect does not include canvas.width directly.
+        // For now, let's keep it simple: platforms are set at initial canvas size.
       }
     };
     
-    resizeCanvas();
+    resizeCanvas(); // Initial resize
     let resizeObserver: ResizeObserver | null = null;
     if (canvas.parentElement && typeof ResizeObserver !== 'undefined') {
-        resizeObserver = new ResizeObserver(resizeCanvas);
+        resizeObserver = new ResizeObserver(() => {
+            resizeCanvas();
+            // If platform positions depend on canvas.width, you might need to trigger a re-init or update level here.
+            // For now, initGame is not re-triggered automatically by canvas resize after initial load.
+        });
         resizeObserver.observe(canvas.parentElement);
     } else {
         window.addEventListener('resize', resizeCanvas);
@@ -267,9 +292,10 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
             window.removeEventListener('resize', resizeCanvas);
         }
     };
-  }, [isClient]);
+  }, [isClient]); // Re-run if isClient changes
 
   const checkCollision = (rect1: PlayerState | Tile, rect2: Tile) => {
+    // Check for AABB collision
     return rect1.x < rect2.x + rect2.width &&
            rect1.x + rect1.width > rect2.x &&
            rect1.y < rect2.y + rect2.height &&
@@ -287,7 +313,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
   const renderLevel = (ctx: CanvasRenderingContext2D, currentLevel: LevelData) => {
     currentLevel.tiles.forEach(tile => {
-       if (assets.tileImage?.complete && tile.type === 1) {
+       if (assets.tileImage?.complete && tile.type === 1) { // Ensure tileImage is loaded and tile is of a type that uses it
          ctx.drawImage(assets.tileImage, tile.x, tile.y, tile.width, tile.height);
        } else {
          ctx.fillStyle = tile.color; 
@@ -308,7 +334,8 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     <canvas 
       ref={canvasRef} 
       className="border border-primary rounded-md shadow-lg w-full h-full"
-      tabIndex={0}
+      tabIndex={0} // Make canvas focusable for keyboard events
     />
   );
 }
+
