@@ -11,7 +11,7 @@ import {
   PLAYER_HEIGHT,
   PLAYER_COLOR,
   TILE_COLOR_GROUND,
-  PLATFORM_SPEED, // Import PLATFORM_SPEED
+  PLATFORM_SPEED, 
 } from '@/config/gameConfig';
 import { useToast } from "@/hooks/use-toast";
 import { checkCollision } from '@/game/utils/collision';
@@ -50,21 +50,21 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   useEffect(() => {
     setIsClient(true);
     const pImg = new Image();
-    pImg.src = 'https://placehold.co/32x32/388E3C/E8F5E9.png?text=P';
+    pImg.src = 'https://placehold.co/48x75/388E3C/E8F5E9.png?text=P'; // Adjusted to PLAYER_WIDTHxPLAYER_HEIGHT
     pImg.setAttribute('data-ai-hint', 'player character');
     pImg.onload = () => setAssets(prev => ({ ...prev, playerImage: pImg, playerImageLoaded: true }));
     pImg.onerror = () => {
         console.error("Failed to load player image.");
-        setAssets(prev => ({ ...prev, playerImageLoaded: true }));
+        setAssets(prev => ({ ...prev, playerImageLoaded: true })); // Mark as loaded (attempted) even on error
     };
 
     const tImg = new Image();
-    tImg.src = 'https://placehold.co/32x30/795548/E8F5E9.png?text=T';
-    tImg.setAttribute('data-ai-hint', 'ground tile');
+    tImg.src = 'https://placehold.co/150x16/795548/E8F5E9.png?text=PF'; // Adjusted to platform Width x Height
+    tImg.setAttribute('data-ai-hint', 'platform tile');
     tImg.onload = () => setAssets(prev => ({ ...prev, tileImage: tImg, tileImageLoaded: true }));
     tImg.onerror = () => {
         console.error("Failed to load tile image.");
-        setAssets(prev => ({ ...prev, tileImageLoaded: true }));
+        setAssets(prev => ({ ...prev, tileImageLoaded: true })); // Mark as loaded (attempted) even on error
     };
   }, []);
 
@@ -117,6 +117,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   }, [isClient]); 
 
   useEffect(() => {
+    // Wait for client, canvas size, and asset loading attempts to complete
     if (!isClient || canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImageLoaded || !assets.tileImageLoaded) {
       setIsLoading(true);
       return;
@@ -125,18 +126,24 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     const currentCanvasWidth = canvasSize.width;
     const currentCanvasHeight = canvasSize.height;
     const platformWidth = 150;
-    const platformHeight = 16;
+    const platformHeight = 16; // Platform height is 16px
 
+    // P1 (верхняя платформа)
+    // Нижний край P1 находится на 300px от НИЗА холста
+    // y-координата (верхний край P1) = высотаХолста - 300 - высотаПлатформы
     const p1_y_bottom_offset = 300;
     const p1_y = currentCanvasHeight - p1_y_bottom_offset - platformHeight;
-    const p1_x = 50;
+    const p1_x = 50; // Слева
 
+    // P2 (нижняя платформа)
+    // Нижний край P2 находится на 150px от НИЗА холста
+    // y-координата (верхний край P2) = высотаХолста - 150 - высотаПлатформы
     const p2_y_bottom_offset = 150;
     const p2_y = currentCanvasHeight - p2_y_bottom_offset - platformHeight;
-    const p2_x = currentCanvasWidth - platformWidth - 50;
+    const p2_x = currentCanvasWidth - platformWidth - 50; // Справа
 
-    const playerInitialX = p2_x + 10;
-    const playerInitialYTop = p2_y - PLAYER_HEIGHT;
+    const playerInitialX = p2_x + (platformWidth / 2) - (PLAYER_WIDTH / 2); // Center player on P2
+    const playerInitialYTop = p2_y - PLAYER_HEIGHT; 
 
     const customLevelData: LevelData = {
         playerStart: { xPx: playerInitialX, yPx: playerInitialYTop },
@@ -144,17 +151,17 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
             {
               x: p1_x, y: p1_y, width: platformWidth, height: platformHeight, type: 1,
               color: TILE_COLOR_GROUND,
-              vx: PLATFORM_SPEED, // P1 starts moving right
-              direction: 1,
+              vx: PLATFORM_SPEED, 
+              direction: 1, // P1 starts moving right
             },
             {
               x: p2_x, y: p2_y, width: platformWidth, height: platformHeight, type: 1,
               color: TILE_COLOR_GROUND,
-              vx: PLATFORM_SPEED, // P2 starts moving left
-              direction: -1,
+              vx: PLATFORM_SPEED, 
+              direction: -1, // P2 starts moving left
             }
         ],
-        tileWidth: platformWidth, // Effectively, since these are custom
+        tileWidth: platformWidth, 
         tileHeight: platformHeight,
         layout: [[]], 
     };
@@ -172,7 +179,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       isMovingLeft: false,
       isMovingRight: false,
       color: PLAYER_COLOR,
-      image: assets.playerImage,
+      image: assets.playerImage, // Use loaded image if available, else color is fallback
     };
     playerInstanceRef.current = newPlayer;
     if (parentPlayerRef) parentPlayerRef.current = newPlayer;
@@ -291,6 +298,17 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
          player.isOnGround = true;
       }
 
+      // Log speeds for debugging
+      // This will log every frame. For less console spam, consider logging conditionally or using an on-screen display.
+      if (player) {
+        // console.log(`Player Horizontal Speed (vx): ${player.vx.toFixed(2)}`);
+      }
+      level.tiles.forEach((tile, index) => {
+        if (tile.vx !== undefined && tile.direction !== undefined) {
+          // console.log(`Platform ${index + 1} Effective Speed: ${(tile.vx * tile.direction).toFixed(2)} (Base vx: ${tile.vx.toFixed(2)}, Direction: ${tile.direction})`);
+        }
+      });
+
       if (parentPlayerRef) parentPlayerRef.current = { ...player };
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -311,11 +329,9 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     const handleKeyDown = (e: KeyboardEvent) => {
       const player = playerInstanceRef.current;
       if (!player) return;
-      // Use onPlayerAction to centralize action dispatching for touch/keyboard parity
       if (e.key === 'ArrowLeft') onPlayerAction('moveLeft');
       if (e.key === 'ArrowRight') onPlayerAction('moveRight');
       if (e.key === 'ArrowUp' || e.key === ' ') {
-         // Jump action is handled directly in executeAction logic for isOnGround check
          onPlayerAction('jump');
       }
     };
@@ -342,7 +358,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     <div className="relative w-full h-full"> 
       <canvas
         ref={canvasRef}
-        className="w-full h-full block"
+        className="w-full h-full block" // Removed border, shadow, rounded
         tabIndex={0}
       />
       {isLoading && (
@@ -353,3 +369,4 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     </div>
   );
 }
+
