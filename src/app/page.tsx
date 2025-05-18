@@ -25,7 +25,8 @@ export default function PlatformerPage() {
     <div className="flex flex-col h-screen bg-background text-foreground">
       <GameHeader />
 
-      <main className="flex-grow flex flex-col items-center w-full overflow-hidden p-4">
+      {/* Removed overflow-hidden from main to allow content to scroll if it exceeds available height, ensuring flex-grow on canvas container works */}
+      <main className="flex-grow flex flex-col items-center w-full p-4">
         <Card className="w-full max-w-4xl mb-4 shadow-xl shrink-0">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
