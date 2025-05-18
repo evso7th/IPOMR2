@@ -23,11 +23,11 @@ export default function PlatformerPage() {
     <div className="flex flex-col h-screen bg-background text-foreground">
       <GameHeader />
 
-      <main className="flex-grow flex flex-col w-full pb-16">
+      <main className="flex-grow flex flex-col w-full pb-16 overflow-hidden"> {/* Added overflow-hidden */}
         
         <div className="relative w-full flex-grow">
           <GameCanvas 
-            levelPath="/levels/level2.json" // Changed to level2.json
+            levelPath="/levels/level2.json" 
             onPlayerAction={handlePlayerAction}
             playerRef={playerRef}
             executeAction={executeAction}
@@ -40,4 +40,3 @@ export default function PlatformerPage() {
     </div>
   );
 }
-
