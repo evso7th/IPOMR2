@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import type { PlayerState, RawLevelData, ProcessedLevelData, Tile as ProcessedTile, RawTileData, TilePositioning, GameAction } from '@/types/game';
+import type { PlayerState, RawLevelData, ProcessedLevelData, Tile as ProcessedTile, RawTileData, CoinState, GameAction, Rect } from '@/types/game';
 import {
   GRAVITY,
   PLAYER_SPEED,
@@ -10,13 +10,17 @@ import {
   PLAYER_WIDTH,
   PLAYER_HEIGHT,
   PLAYER_COLOR,
-  // TILE_COLOR_GROUND is now in JSON
-  // PLATFORM_SPEED, // PLATFORM_SPEED will come from tile.vx if defined
+  NUMBER_OF_COINS,
+  COIN_SIZE,
+  COIN_VERTICAL_SPAWN_BOTTOM_OFFSET,
+  COIN_SPAWN_TOP_MARGIN,
+  MAX_JUMP_HEIGHT,
 } from '@/config/gameConfig';
 import { useToast } from "@/hooks/use-toast";
 import { checkCollision } from '@/game/utils/collision';
 import { renderPlayer } from '@/game/entities/playerRenderer';
 import { renderLevel } from '@/game/entities/levelRenderer';
+import { renderCoins } from '@/game/entities/coinRenderer'; // Import coin renderer
 import { loadLevel } from '@/lib/levelLoader';
 
 interface GameCanvasProps {
@@ -27,7 +31,6 @@ interface GameCanvasProps {
   resetExecuteAction: () => void;
 }
 
-// Helper function to parse dimension values (number, "X%", or "Xpx")
 function parseDimension(value: number | string, totalSize: number): number {
   if (typeof value === 'number') {
     return value;
@@ -40,11 +43,56 @@ function parseDimension(value: number | string, totalSize: number): number {
       return parseFloat(value.substring(0, value.length - 2));
     }
     const parsed = parseFloat(value);
-    if (!isNaN(parsed)) return parsed; // Fallback for number as string
+    if (!isNaN(parsed)) return parsed;
   }
   console.warn(`Could not parse dimension value: ${value} against totalSize: ${totalSize}. Defaulting to 0.`);
-  return 0; 
+  return 0;
 }
+
+function generateCoins(
+  processedTiles: ProcessedTile[],
+  canvasWidth: number,
+  canvasHeight: number
+): CoinState[] {
+  const coins: CoinState[] = [];
+  if (canvasWidth <= 0 || canvasHeight <= 0) return coins;
+
+  let highestPlatformTopY = canvasHeight; // Start with bottom of canvas if no platforms
+  if (processedTiles.length > 0) {
+    highestPlatformTopY = Math.min(...processedTiles.map(tile => tile.y));
+  } else {
+     // If no platforms, define a fallback spawn zone or return no coins
+     // For now, let's make the spawn zone relative to canvas top if no platforms
+     highestPlatformTopY = MAX_JUMP_HEIGHT + COIN_SPAWN_TOP_MARGIN + COIN_SIZE + 10; // Ensure coins are reachable from ground
+  }
+
+
+  // Top boundary for coin's top edge (lowest Y value on screen)
+  const ySpawnZoneTop = highestPlatformTopY - MAX_JUMP_HEIGHT - COIN_SPAWN_TOP_MARGIN;
+
+  // Bottom boundary for coin's top edge (highest Y value on screen)
+  const ySpawnZoneBottom = canvasHeight - COIN_VERTICAL_SPAWN_BOTTOM_OFFSET - COIN_SIZE;
+
+  if (ySpawnZoneTop >= ySpawnZoneBottom) {
+    console.warn("Coin spawn zone is invalid (top is below or at bottom). No coins will be generated.");
+    return coins;
+  }
+
+  for (let i = 0; i < NUMBER_OF_COINS; i++) {
+    const coinX = Math.random() * (canvasWidth - COIN_SIZE);
+    const coinY = Math.random() * (ySpawnZoneBottom - ySpawnZoneTop) + ySpawnZoneTop;
+    coins.push({
+      id: `coin-${i}`,
+      x: coinX,
+      y: coinY,
+      width: COIN_SIZE,
+      height: COIN_SIZE,
+      isCollected: false,
+    });
+  }
+  return coins;
+}
+
 
 function processRawLevelData(
   rawData: RawLevelData,
@@ -54,43 +102,35 @@ function processRawLevelData(
   const processedTiles: ProcessedTile[] = rawData.tiles.map((rawTile: RawTileData) => {
     const tileWidth = parseDimension(rawTile.width, canvasWidth);
     const tileHeight = parseDimension(rawTile.height, canvasHeight);
-
     let tileX = 0;
     let tileY = 0;
-    
     const xOffset = rawTile.positioning.xOffsetPx || 0;
     const yOffset = rawTile.positioning.yOffsetPx || 0;
 
-    // Calculate X based on anchor
     switch (rawTile.positioning.anchor) {
       case 'top-left':    tileX = xOffset; break;
       case 'center-left': tileX = xOffset; break;
       case 'bottom-left': tileX = xOffset; break;
-      
       case 'top-center':    tileX = (canvasWidth / 2) - (tileWidth / 2) + xOffset; break;
       case 'center':        tileX = (canvasWidth / 2) - (tileWidth / 2) + xOffset; break;
       case 'bottom-center': tileX = (canvasWidth / 2) - (tileWidth / 2) + xOffset; break;
-      
       case 'top-right':     tileX = canvasWidth - tileWidth - xOffset; break;
       case 'center-right':  tileX = canvasWidth - tileWidth - xOffset; break;
       case 'bottom-right':  tileX = canvasWidth - tileWidth - xOffset; break;
-      default: tileX = xOffset; // Should not happen
+      default: tileX = xOffset;
     }
 
-    // Calculate Y based on anchor
     switch (rawTile.positioning.anchor) {
       case 'top-left':    tileY = yOffset; break;
       case 'top-center':  tileY = yOffset; break;
       case 'top-right':   tileY = yOffset; break;
-
       case 'center-left': tileY = (canvasHeight / 2) - (tileHeight / 2) + yOffset; break;
       case 'center':      tileY = (canvasHeight / 2) - (tileHeight / 2) + yOffset; break;
       case 'center-right':tileY = (canvasHeight / 2) - (tileHeight / 2) + yOffset; break;
-
       case 'bottom-left':   tileY = canvasHeight - tileHeight - yOffset; break;
       case 'bottom-center': tileY = canvasHeight - tileHeight - yOffset; break;
       case 'bottom-right':  tileY = canvasHeight - tileHeight - yOffset; break;
-      default: tileY = yOffset; // Should not happen
+      default: tileY = yOffset;
     }
 
     return {
@@ -106,46 +146,36 @@ function processRawLevelData(
     };
   });
 
-  let playerStartX = 0;
-  let playerStartY = 0;
+  let playerStartX = 50;
+  let playerStartY = canvasHeight - PLAYER_HEIGHT - 50;
   const startPlatform = processedTiles.find(tile => tile.id === rawData.playerStart.platformId);
 
   if (startPlatform) {
     const playerXOffset = rawData.playerStart.xOffsetPx || 0;
-    const playerYOffset = rawData.playerStart.yOffsetPx || 0; // Offset from player's feet to platform top
-
+    const playerYOffset = rawData.playerStart.yOffsetPx || 0;
     switch (rawData.playerStart.horizontalAlign) {
-      case 'left':
-        playerStartX = startPlatform.x + playerXOffset;
-        break;
-      case 'center':
-        playerStartX = startPlatform.x + (startPlatform.width / 2) - (PLAYER_WIDTH / 2) + playerXOffset;
-        break;
-      case 'right':
-        playerStartX = startPlatform.x + startPlatform.width - PLAYER_WIDTH - playerXOffset;
-        break;
+      case 'left': playerStartX = startPlatform.x + playerXOffset; break;
+      case 'center': playerStartX = startPlatform.x + (startPlatform.width / 2) - (PLAYER_WIDTH / 2) + playerXOffset; break;
+      case 'right': playerStartX = startPlatform.x + startPlatform.width - PLAYER_WIDTH - playerXOffset; break;
     }
-    // Player's y is its top edge. Player stands on top of platform.
-    playerStartY = startPlatform.y - PLAYER_HEIGHT - playerYOffset; 
+    playerStartY = startPlatform.y - PLAYER_HEIGHT - playerYOffset;
   } else {
     console.warn(`Player start platform with id "${rawData.playerStart.platformId}" not found. Defaulting player position.`);
-    playerStartX = 50;
-    playerStartY = canvasHeight - PLAYER_HEIGHT - 50;
   }
+  
+  const coins = generateCoins(processedTiles, canvasWidth, canvasHeight);
 
   return {
     playerStart: { xPx: playerStartX, yPx: playerStartY },
     tiles: processedTiles,
+    coins: coins,
   };
 }
 
-
 export default function GameCanvas({ levelPath, onPlayerAction, playerRef: parentPlayerRef, executeAction, resetExecuteAction }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  
   const [rawLevelData, setRawLevelData] = useState<RawLevelData | null>(null);
   const [processedLevel, setProcessedLevel] = useState<ProcessedLevelData | null>(null);
-  
   const playerInstanceRef = useRef<PlayerState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -154,27 +184,40 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
   const [assets, setAssets] = useState<{
     playerImage: HTMLImageElement | null;
-    tileImage: HTMLImageElement | null; 
+    tileImage: HTMLImageElement | null;
+    coinImage: HTMLImageElement | null; // Added coin image
     playerImageLoaded: boolean;
-    tileImageLoaded: boolean; 
+    tileImageLoaded: boolean;
+    coinImageLoaded: boolean; // Added coin image loaded status
   }>({
     playerImage: null,
-    tileImage: null, // Generic tile image, not currently used per tile
+    tileImage: null,
+    coinImage: null,
     playerImageLoaded: false,
-    tileImageLoaded: true, // Assume true as we're not loading a generic tile image for now
+    tileImageLoaded: true, 
+    coinImageLoaded: false, 
   });
 
   useEffect(() => {
     setIsClient(true);
     const pImg = new Image();
-    pImg.src = 'https://placehold.co/48x75/388E3C/E8F5E9.png?text=P';
+    pImg.src = `https://placehold.co/${PLAYER_WIDTH}x${PLAYER_HEIGHT}/388E3C/E8F5E9.png?text=P`;
     pImg.setAttribute('data-ai-hint', 'player character');
     pImg.onload = () => setAssets(prev => ({ ...prev, playerImage: pImg, playerImageLoaded: true }));
     pImg.onerror = () => {
-        console.error("Failed to load player image.");
-        setAssets(prev => ({ ...prev, playerImageLoaded: true })); // Mark as attempt complete
+      console.error("Failed to load player image.");
+      setAssets(prev => ({ ...prev, playerImageLoaded: true }));
     };
-    // No generic tile image loading for now, so tileImageLoaded remains true.
+
+    const cImg = new Image(); // Coin image
+    cImg.src = `https://placehold.co/${COIN_SIZE}x${COIN_SIZE}/FFD700/000000.png?text=C`;
+    cImg.setAttribute('data-ai-hint', 'coin gold');
+    cImg.onload = () => setAssets(prev => ({ ...prev, coinImage: cImg, coinImageLoaded: true }));
+    cImg.onerror = () => {
+      console.error("Failed to load coin image.");
+      setAssets(prev => ({ ...prev, coinImageLoaded: true }));
+    };
+    // Assuming tileImageLoaded is true as we're not using specific tile images yet
   }, []);
 
   useEffect(() => {
@@ -231,7 +274,6 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       .then(data => {
         if (data) {
           setRawLevelData(data);
-          // Processing will happen in the next effect that depends on rawLevelData and canvasSize
         } else {
           toast({ title: "Error", description: `Failed to load level: ${levelPath}`, variant: "destructive" });
           setIsLoading(false);
@@ -243,15 +285,11 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
         setIsLoading(false);
       });
   }, [levelPath, isClient, toast]);
-
+  
   useEffect(() => {
-    if (!isClient || !rawLevelData || canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImageLoaded || !assets.tileImageLoaded) {
-      if(!rawLevelData || canvasSize.width === 0 || canvasSize.height === 0) {
-         // Only set isLoading to true if essential data for processing is missing.
-         // If rawLevelData is null, the previous effect is still loading it.
-         if (isLoading === false && (!rawLevelData || canvasSize.width === 0 || canvasSize.height === 0)) {
-            setIsLoading(true);
-         }
+    if (!isClient || !rawLevelData || canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImageLoaded || !assets.tileImageLoaded || !assets.coinImageLoaded) {
+      if (isLoading === false && (!rawLevelData || canvasSize.width === 0 || canvasSize.height === 0)) {
+         setIsLoading(true);
       }
       return;
     }
@@ -282,8 +320,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
         toast({ title: "Processing Error", description: "Failed to process level data.", variant: "destructive" });
         setIsLoading(false); 
     }
-
-  }, [isClient, rawLevelData, canvasSize, assets.playerImage, assets.playerImageLoaded, assets.tileImageLoaded, parentPlayerRef, toast, isLoading]);
+  }, [isClient, rawLevelData, canvasSize, assets.playerImage, assets.tileImage, assets.coinImage, assets.playerImageLoaded, assets.tileImageLoaded, assets.coinImageLoaded, parentPlayerRef, toast, isLoading]);
 
 
   useEffect(() => {
@@ -297,7 +334,9 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
     const gameLoop = () => {
       const player = playerInstanceRef.current;
-      if (!player || !processedLevel) {
+      const currentLevel = processedLevel; // Use a local variable for processedLevel
+      
+      if (!player || !currentLevel) {
           animationFrameId = requestAnimationFrame(gameLoop);
           return;
       }
@@ -322,13 +361,13 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       else if (player.isMovingRight) player.vx = PLAYER_SPEED;
       else player.vx = 0;
       
-      processedLevel.tiles.forEach(tile => {
+      currentLevel.tiles.forEach(tile => {
         if (tile.vx !== undefined && tile.direction !== undefined && canvas.width > 0) {
             tile.x += (tile.vx * tile.direction);
-            if (tile.x <= 0 && tile.direction === -1) { // Check direction to prevent sticking
+            if (tile.x <= 0 && tile.direction === -1) {
                 tile.x = 0;
                 tile.direction *= -1;
-            } else if (tile.x + tile.width >= canvas.width && tile.direction === 1) { // Check direction
+            } else if (tile.x + tile.width >= canvas.width && tile.direction === 1) {
                 tile.x = canvas.width - tile.width;
                 tile.direction *= -1;
             }
@@ -342,7 +381,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       player.isOnGround = false;
       let platformInducedMoveX = 0;
 
-      processedLevel.tiles.forEach(tile => {
+      currentLevel.tiles.forEach(tile => {
         const tempPlayerStateForVerticalCheck = { ...player, y: tentativePlayerY };
         if (checkCollision(tempPlayerStateForVerticalCheck, tile)) {
           if (player.vy > 0) { 
@@ -363,7 +402,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       const tentativePlayerX = player.x + player.vx + platformInducedMoveX;
       let newPlayerX = tentativePlayerX;
 
-      processedLevel.tiles.forEach(tile => {
+      currentLevel.tiles.forEach(tile => {
         const tempPlayerStateForHorizontalCheck = { ...player, x: tentativePlayerX };
         if (checkCollision(tempPlayerStateForHorizontalCheck, tile)) {
           const totalIntentVx = player.vx + platformInducedMoveX;
@@ -385,10 +424,21 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
          player.isOnGround = true;
       }
 
+      // Coin collection logic
+      currentLevel.coins.forEach(coin => {
+        if (!coin.isCollected && checkCollision(player, coin as Rect)) { // Cast coin to Rect
+          coin.isCollected = true;
+          // TODO: Add score update logic here
+          // toast({ title: "Coin Collected!", description: `You collected ${coin.id}` });
+        }
+      });
+
+
       if (parentPlayerRef) parentPlayerRef.current = { ...player };
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      renderLevel(ctx, processedLevel, assets.tileImage); 
+      renderLevel(ctx, currentLevel, assets.tileImage); 
+      renderCoins(ctx, currentLevel.coins, assets.coinImage); // Render coins
       renderPlayer(ctx, player, assets.playerImage);
 
       animationFrameId = requestAnimationFrame(gameLoop);
@@ -398,7 +448,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [isClient, isLoading, processedLevel, executeAction, resetExecuteAction, parentPlayerRef, assets.tileImage, assets.playerImage, canvasSize]);
+  }, [isClient, isLoading, processedLevel, executeAction, resetExecuteAction, parentPlayerRef, assets.tileImage, assets.playerImage, assets.coinImage, canvasSize]); // Added assets.coinImage
 
   useEffect(() => {
     if(!isClient) return;
