@@ -139,17 +139,12 @@ function processRawLevelData(
     const p_ground_tile = processedTiles.find(tile => tile.id === 'p_ground');
     if (p_ground_tile && canvasWidth > 0 && canvasHeight > 0) {
         const p3_size = 48;
-        const p3_center_x_target = 100; 
-        const p3_center_y_target = 100;
+        // Horizontal: center of canvas
+        const p3_x = (canvasWidth / 2) - (p3_size / 2);
         
+        // Vertical: top surface of P3 is 300px above top surface of p_ground
         const p_ground_top_y = p_ground_tile.y;
-
-        const p3_x = p3_center_x_target - (p3_size / 2);
-        // Y for p3 is calculated so its top is 300px above p_ground_top_y
-        // p3_y_top = p_ground_top_y - 300
-        // So p3_y = p_ground_top_y - 300 for its top edge.
-        // Let's position P3's center X = 100, Y = 100 as per previous request
-        const p3_y = p3_center_y_target - (p3_size / 2);
+        const p3_y = p_ground_top_y - 300; // p3_y is the top edge of P3
 
 
         processedTiles.push({
@@ -351,7 +346,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   useEffect(() => { 
     if (!isClient || !levelPath) return;
     setRawLevelData(null); 
-    setProcessedLevel(null); // Clear processed level when new level path is set
+    setProcessedLevel(null); 
     setIsLoading(true);
 
     loadLevel(levelPath)
@@ -361,30 +356,24 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
         } else {
           toast({ title: "Error", description: `Failed to load level: ${levelPath}`, variant: "destructive" });
           setRawLevelData(null);
-          setIsLoading(false); 
         }
       })
       .catch(error => {
         console.error("Error in loadLevel promise chain:", error);
         toast({ title: "Error", description: "An unexpected error occurred loading level data.", variant: "destructive" });
         setRawLevelData(null);
-        setIsLoading(false);
       });
-  }, [levelPath, isClient, toast]);
+  }, [levelPath, isClient, toast, setIsLoading, setRawLevelData, setProcessedLevel]);
   
-  // Effect to process raw level data and initialize player
   useEffect(() => {
     if (!isClient || !rawLevelData || canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImageLoaded || !assets.tileImageLoaded || !assets.coinImageLoaded) {
-      if (!rawLevelData || canvasSize.width === 0 || canvasSize.height === 0) {
-        setIsLoading(true); 
-      }
+      setIsLoading(true);
       return;
     }
     
     setActiveCoins([]); 
     setActiveEnemies([]);
-    // setProcessedLevel(null); // Already cleared when levelPath changes
-
+    
     const newProcessedLevel = processRawLevelData(rawLevelData, canvasSize.width, canvasSize.height);
     
     if (newProcessedLevel) {
@@ -396,29 +385,29 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       };
       playerInstanceRef.current = newPlayer;
       if (parentPlayerRef) parentPlayerRef.current = newPlayer;
+      // Initializing isLoading is handled by the next useEffect
     } else {
       toast({ title: "Processing Error", description: "Failed to process level data.", variant: "destructive" });
       setProcessedLevel(null); 
-      setIsLoading(true); // Stay loading on error
+      setIsLoading(true); 
     }
-  }, [isClient, rawLevelData, canvasSize, assets.playerImageLoaded, assets.tileImageLoaded, assets.coinImageLoaded, parentPlayerRef, toast, setActiveCoins, setActiveEnemies, setProcessedLevel, setIsLoading]);
+  }, [
+    isClient, rawLevelData, canvasSize, assets.playerImageLoaded, assets.tileImageLoaded, assets.coinImageLoaded, 
+    parentPlayerRef, toast, 
+    setActiveCoins, setActiveEnemies, setProcessedLevel, setIsLoading 
+  ]);
 
-  // Effect to spawn entities and finalize loading state
   useEffect(() => {
     if (!isClient || !processedLevel || canvasSize.width === 0 || canvasSize.height === 0) {
-      // If essential data isn't ready, ensure isLoading is true if not already definitively false.
-      // This effect primarily reacts to processedLevel, so if it's null, we shouldn't proceed.
-      // The previous effect handles setting isLoading based on rawLevelData/canvasSize readiness.
-      return; 
+      if (!isLoading) setIsLoading(true); // Ensure loading state if essentials are missing
+      return;
     }
 
-    if (isLoading) { // Only attempt to spawn and finalize loading if currently in loading state
+    if (isLoading) {
       let coinsSpawnedOrAttempted = activeCoins.length > 0;
       if (!coinsSpawnedOrAttempted && processedLevel.tiles.length > 0) {
         const newCoins = spawnNewCoinPair(processedLevel, canvasSize.width, canvasSize.height);
-        if (newCoins.length > 0) {
-          setActiveCoins(newCoins); // This will cause a re-render and this effect will run again
-        }
+        if (newCoins.length > 0) setActiveCoins(newCoins);
         coinsSpawnedOrAttempted = true; 
       }
 
@@ -426,31 +415,21 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       if (levelPath !== '/levels/level2.json') {
         if (!enemiesSpawnedOrAttempted && processedLevel.tiles.length > 0) {
           const newEnemy = spawnSingleEnemy(processedLevel, canvasSize.width, canvasSize.height);
-          if (newEnemy) {
-            setActiveEnemies([newEnemy]); // This will cause a re-render
-          }
+          if (newEnemy) setActiveEnemies([newEnemy]);
           enemiesSpawnedOrAttempted = true;
         }
       } else {
         enemiesSpawnedOrAttempted = true; // On level 2, no enemies needed to "complete" loading
       }
       
-      // Finalize loading if level is empty OR all relevant entities have been dealt with
       if (processedLevel.tiles.length === 0 || (coinsSpawnedOrAttempted && enemiesSpawnedOrAttempted)) {
         setIsLoading(false);
       }
     }
   }, [
-    isClient, 
-    processedLevel, 
-    canvasSize, 
-    isLoading, 
-    levelPath, 
-    activeCoins.length, // React to changes in activeCoins length
-    activeEnemies.length, // React to changes in activeEnemies length
-    setActiveCoins, // Include setters as they are part of the effect's logic
-    setActiveEnemies,
-    setIsLoading
+    isClient, processedLevel, canvasSize, isLoading, levelPath, 
+    activeCoins.length, activeEnemies.length, 
+    setActiveCoins, setActiveEnemies, setIsLoading
   ]);
 
 
@@ -535,7 +514,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
           player.y = groundPlatform.y - player.height;
           player.vy = 0;
           player.isOnGround = true;
-      } else if (canvas.height > 0 && player.y + player.height > canvas.height) { // Fallback to canvas bottom if p_ground interaction fails
+      } else if (canvas.height > 0 && player.y + player.height > canvas.height) { 
            player.y = canvas.height - player.height;
            player.vy = 0;
            player.isOnGround = true;
@@ -623,7 +602,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     };
     animationFrameId = requestAnimationFrame(gameLoop);
     return () => { cancelAnimationFrame(animationFrameId); };
-  }, [isClient, isLoading, processedLevel, executeAction, resetExecuteAction, parentPlayerRef, assets, canvasSize, activeCoins, activeEnemies, toast, setActiveCoins, setActiveEnemies]); // Added setActiveCoins, setActiveEnemies to game loop deps
+  }, [isClient, isLoading, processedLevel, executeAction, resetExecuteAction, parentPlayerRef, assets, canvasSize, activeCoins, activeEnemies, toast, setActiveCoins, setActiveEnemies]);
 
   useEffect(() => { 
     if (!isClient) return;
