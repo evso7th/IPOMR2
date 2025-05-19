@@ -139,12 +139,9 @@ function processRawLevelData(
     const p_ground_tile = processedTiles.find(tile => tile.id === 'p_ground');
     if (p_ground_tile && canvasWidth > 0 && canvasHeight > 0) {
         const p3_size = 48;
-        // Horizontal: center of canvas
         const p3_x = (canvasWidth / 2) - (p3_size / 2);
-        
-        // Vertical: top surface of P3 is 300px above top surface of p_ground
         const p_ground_top_y = p_ground_tile.y;
-        const p3_y = p_ground_top_y - 300; // p3_y is the top edge of P3
+        const p3_y = p_ground_top_y - 300;
 
 
         processedTiles.push({
@@ -283,14 +280,14 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   useEffect(() => {
     setIsClient(true);
     const pImg = new Image();
-    pImg.src = `https://placehold.co/${PLAYER_WIDTH}x${PLAYER_HEIGHT}/388E3C/E8F5E9.png?text=P`;
-    pImg.setAttribute('data-ai-hint', 'player character');
+    pImg.src = `https://placehold.co/${PLAYER_WIDTH}x${PLAYER_HEIGHT}/4CAF50/FFFFFF.png?text=H`;
+    pImg.setAttribute('data-ai-hint', 'character pixel');
     pImg.onload = () => setAssets(prev => ({ ...prev, playerImage: pImg, playerImageLoaded: true }));
     pImg.onerror = () => { console.error("Failed to load player image."); setAssets(prev => ({ ...prev, playerImageLoaded: true })); };
 
     const tImg = new Image();
-    tImg.src = `https://placehold.co/1x1/8D6E63/FFFFFF.png?text=T`;
-    tImg.setAttribute('data-ai-hint', 'platform tile');
+    tImg.src = `https://placehold.co/1x1/795548/FFFFFF.png?text=B`;
+    tImg.setAttribute('data-ai-hint', 'platform stone');
     tImg.onload = () => setAssets(prev => ({...prev, tileImage: tImg, tileImageLoaded: true}));
     tImg.onerror = () => {
         console.error("Failed to load tile image.");
@@ -298,8 +295,8 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     };
 
     const cImg = new Image();
-    cImg.src = `https://placehold.co/${COIN_SIZE}x${COIN_SIZE}/FFD700/000000.png?text=C`;
-    cImg.setAttribute('data-ai-hint', 'coin gold');
+    cImg.src = `https://placehold.co/${COIN_SIZE}x${COIN_SIZE}/FFC107/000000.png?text=$`;
+    cImg.setAttribute('data-ai-hint', 'coin shiny');
     cImg.onload = () => setAssets(prev => ({ ...prev, coinImage: cImg, coinImageLoaded: true }));
     cImg.onerror = () => { console.error("Failed to load coin image."); setAssets(prev => ({ ...prev, coinImageLoaded: true })); };
   }, []);
@@ -344,10 +341,14 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   }, [isClient]);
 
   useEffect(() => { 
-    if (!isClient || !levelPath) return;
+    if (!isClient || !levelPath) {
+      if (!isLoading) setIsLoading(true);
+      return;
+    }
     setRawLevelData(null); 
     setProcessedLevel(null); 
-    setIsLoading(true);
+    if (!isLoading) setIsLoading(true);
+
 
     loadLevel(levelPath)
       .then(data => {
@@ -363,11 +364,11 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
         toast({ title: "Error", description: "An unexpected error occurred loading level data.", variant: "destructive" });
         setRawLevelData(null);
       });
-  }, [levelPath, isClient, toast, setIsLoading, setRawLevelData, setProcessedLevel]);
+  }, [levelPath, isClient, toast, setIsLoading]);
   
   useEffect(() => {
     if (!isClient || !rawLevelData || canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImageLoaded || !assets.tileImageLoaded || !assets.coinImageLoaded) {
-      setIsLoading(true);
+      if (!isLoading) setIsLoading(true);
       return;
     }
     
@@ -385,46 +386,41 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       };
       playerInstanceRef.current = newPlayer;
       if (parentPlayerRef) parentPlayerRef.current = newPlayer;
-      // Initializing isLoading is handled by the next useEffect
     } else {
       toast({ title: "Processing Error", description: "Failed to process level data.", variant: "destructive" });
       setProcessedLevel(null); 
-      setIsLoading(true); 
+      if (!isLoading) setIsLoading(true); 
     }
   }, [
     isClient, rawLevelData, canvasSize, assets.playerImageLoaded, assets.tileImageLoaded, assets.coinImageLoaded, 
-    parentPlayerRef, toast, 
-    setActiveCoins, setActiveEnemies, setProcessedLevel, setIsLoading 
+    parentPlayerRef, toast, setIsLoading, setProcessedLevel, setActiveCoins, setActiveEnemies
   ]);
 
   useEffect(() => {
-    if (!isClient || !processedLevel || canvasSize.width === 0 || canvasSize.height === 0) {
-      if (!isLoading) setIsLoading(true); // Ensure loading state if essentials are missing
+    if (!isClient || !processedLevel || canvasSize.width === 0 || canvasSize.height === 0 || !isLoading) {
       return;
     }
 
-    if (isLoading) {
-      let coinsSpawnedOrAttempted = activeCoins.length > 0;
-      if (!coinsSpawnedOrAttempted && processedLevel.tiles.length > 0) {
-        const newCoins = spawnNewCoinPair(processedLevel, canvasSize.width, canvasSize.height);
-        if (newCoins.length > 0) setActiveCoins(newCoins);
-        coinsSpawnedOrAttempted = true; 
-      }
+    let coinsSpawnedOrAttempted = activeCoins.length > 0;
+    if (!coinsSpawnedOrAttempted && processedLevel.tiles.length > 0) {
+      const newCoins = spawnNewCoinPair(processedLevel, canvasSize.width, canvasSize.height);
+      if (newCoins.length > 0) setActiveCoins(newCoins);
+      coinsSpawnedOrAttempted = true; 
+    }
 
-      let enemiesSpawnedOrAttempted = activeEnemies.length > 0;
-      if (levelPath !== '/levels/level2.json') {
-        if (!enemiesSpawnedOrAttempted && processedLevel.tiles.length > 0) {
-          const newEnemy = spawnSingleEnemy(processedLevel, canvasSize.width, canvasSize.height);
-          if (newEnemy) setActiveEnemies([newEnemy]);
-          enemiesSpawnedOrAttempted = true;
-        }
-      } else {
-        enemiesSpawnedOrAttempted = true; // On level 2, no enemies needed to "complete" loading
+    let enemiesSpawnedOrAttempted = activeEnemies.length > 0;
+    if (levelPath !== '/levels/level2.json') {
+      if (!enemiesSpawnedOrAttempted && processedLevel.tiles.length > 0) {
+        const newEnemy = spawnSingleEnemy(processedLevel, canvasSize.width, canvasSize.height);
+        if (newEnemy) setActiveEnemies([newEnemy]);
+        enemiesSpawnedOrAttempted = true;
       }
-      
-      if (processedLevel.tiles.length === 0 || (coinsSpawnedOrAttempted && enemiesSpawnedOrAttempted)) {
-        setIsLoading(false);
-      }
+    } else {
+      enemiesSpawnedOrAttempted = true; 
+    }
+    
+    if (processedLevel.tiles.length === 0 || (coinsSpawnedOrAttempted && enemiesSpawnedOrAttempted)) {
+      setIsLoading(false);
     }
   }, [
     isClient, processedLevel, canvasSize, isLoading, levelPath, 
@@ -514,8 +510,8 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
           player.y = groundPlatform.y - player.height;
           player.vy = 0;
           player.isOnGround = true;
-      } else if (canvas.height > 0 && player.y + player.height > canvas.height) { 
-           player.y = canvas.height - player.height;
+      } else if (canvas.height > 0 && player.y + player.height > canvas.height && player.vy >=0 ) { // Ensure player is falling or on ground
+           player.y = canvas.height - player.height; // Fallback if p_ground not found or player below it somehow
            player.vy = 0;
            player.isOnGround = true;
       }
@@ -602,7 +598,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     };
     animationFrameId = requestAnimationFrame(gameLoop);
     return () => { cancelAnimationFrame(animationFrameId); };
-  }, [isClient, isLoading, processedLevel, executeAction, resetExecuteAction, parentPlayerRef, assets, canvasSize, activeCoins, activeEnemies, toast, setActiveCoins, setActiveEnemies]);
+  }, [isClient, isLoading, processedLevel, executeAction, resetExecuteAction, parentPlayerRef, assets, canvasSize, activeCoins, activeEnemies, toast, setActiveCoins, setActiveEnemies, levelPath]);
 
   useEffect(() => { 
     if (!isClient) return;
