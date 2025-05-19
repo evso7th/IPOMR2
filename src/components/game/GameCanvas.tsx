@@ -148,12 +148,11 @@ function processRawLevelData(
     const p_ground_tile = processedTiles.find(tile => tile.id === 'p_ground');
     if (p_ground_tile && canvasWidth > 0 && canvasHeight > 0) {
         const p3_width = 48;
-        const p3_height = 32; // Updated P3 height
+        const p3_height = 32; 
         const p_ground_top_y = p_ground_tile.y; 
         
-        // Position P3 so its top edge is 300px above p_ground's top edge
-        const p3_base_y = p_ground_top_y - 300; 
-        const p3_base_x = (canvasWidth / 2) - (p3_width / 2); // Centered horizontally
+        const p3_base_y = p_ground_top_y - 300;
+        const p3_base_x = (canvasWidth / 2) - (p3_width / 2); 
                         
         p3BasePosRef.current = { x: p3_base_x, y: p3_base_y };
         p3InterestPointsRef.current = [
@@ -173,7 +172,7 @@ function processRawLevelData(
           x: p3_base_x + initialOffset.xOffset,
           y: p3_base_y + initialOffset.yOffset,
           width: p3_width,
-          height: p3_height, // Updated P3 height
+          height: p3_height, 
           type: 1, 
           color: 'hsl(var(--secondary))', 
           vx: 0, 
@@ -328,7 +327,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     };
 
     const cImg = new Image();
-    cImg.src = `/assets/Images/thankscoin.png`; // Corrected path
+    cImg.src = `/assets/images/thankscoin.png`; 
     cImg.setAttribute('data-ai-hint', 'collectible coin gold');
     cImg.onload = () => setAssets(prev => ({ ...prev, coinImage: cImg, coinImageLoaded: true }));
     cImg.onerror = () => { console.error("Failed to load coin image."); setAssets(prev => ({ ...prev, coinImageLoaded: true })); };
@@ -396,13 +395,11 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
         toast({ title: "Error", description: "An unexpected error occurred loading level data.", variant: "destructive" });
         setRawLevelData(null); 
       });
-  }, [levelPath, isClient, toast, isLoading, setIsLoading, setRawLevelData]);
+  }, [levelPath, isClient, toast, setIsLoading]); // Removed isLoading and setRawLevelData from deps as they cause re-runs when set
 
   useEffect(() => {
     if (!isClient || !rawLevelData || canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImageLoaded || !assets.tileImageLoaded || !assets.coinImageLoaded) {
-      if (!isLoading) {
-         setIsLoading(true); 
-      }
+      if (!isLoading) setIsLoading(true); 
       return;
     }
     
@@ -435,8 +432,8 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     }
   }, [
     isClient, rawLevelData, canvasSize, assets.playerImageLoaded, assets.tileImageLoaded, assets.coinImageLoaded, 
-    parentPlayerRef, toast, isLoading, setIsLoading, setProcessedLevel, setActiveCoins, setActiveEnemies,
-    p3BasePosition, p3InterestPoints, p3CurrentTargetIndex, p3MovementState 
+    parentPlayerRef, toast, setIsLoading, setProcessedLevel, setActiveCoins, setActiveEnemies, // Added setIsLoading, setProcessedLevel, etc.
+    p3BasePosition, p3InterestPoints, p3CurrentTargetIndex, p3MovementState, isLoading 
   ]);
 
   useEffect(() => {
