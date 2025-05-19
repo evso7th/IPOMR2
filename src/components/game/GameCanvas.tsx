@@ -322,7 +322,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     };
 
     const cImg = new Image();
-    cImg.src = `/assets/Images/thankscoin.png`; // Corrected path
+    cImg.src = `/assets/images/thankscoin.png`; // Corrected path to lowercase 'images'
     cImg.setAttribute('data-ai-hint', 'collectible coin');
     cImg.onload = () => setAssets(prev => ({ ...prev, coinImage: cImg, coinImageLoaded: true }));
     cImg.onerror = () => { console.error("Failed to load coin image."); setAssets(prev => ({ ...prev, coinImageLoaded: true })); };
@@ -398,10 +398,11 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
   useEffect(() => {
     if (!isClient || !rawLevelData || canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImageLoaded || !assets.tileImageLoaded || !assets.coinImageLoaded) {
-      if (!isLoading) setIsLoading(true);
+      if (!isLoading && (canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImageLoaded || !assets.tileImageLoaded || !assets.coinImageLoaded)) {
+         setIsLoading(true); // Ensure loading is true if critical assets/dimensions are missing
+      }
       return;
     }
-    
     
     setActiveCoins([]); 
     setActiveEnemies([]);
@@ -425,7 +426,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       };
       playerInstanceRef.current = newPlayer;
       if (parentPlayerRef) parentPlayerRef.current = newPlayer;
-      
+      // isLoading will be set to false in the next effect if conditions are met
     } else {
       toast({ title: "Processing Error", description: "Failed to process level data.", variant: "destructive" });
       setProcessedLevel(null);
@@ -439,9 +440,10 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
   useEffect(() => {
     if (!isClient || !processedLevel || canvasSize.width === 0 || canvasSize.height === 0) {
+      if (!isLoading) setIsLoading(true); // if processedLevel is not ready, we are still loading
       return; 
     }
-    if (!isLoading) return; 
+    if (!isLoading) return; // Only proceed if we are currently in a loading state
 
     let coinsSpawnedOrAttempted = activeCoins.length > 0;
     if (!coinsSpawnedOrAttempted && processedLevel.tiles.length > 0) {
@@ -449,23 +451,24 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       if (newCoins.length > 0) setActiveCoins(newCoins);
       coinsSpawnedOrAttempted = true; 
     } else if (processedLevel.tiles.length === 0) {
-      coinsSpawnedOrAttempted = true; 
+      coinsSpawnedOrAttempted = true; // No tiles, so no coins to spawn, consider "attempted"
     }
 
 
     let enemiesSpawnedOrAttempted = activeEnemies.length > 0;
-    if (levelPath !== '/levels/level2.json') { 
+    if (levelPath !== '/levels/level2.json') { // Only spawn enemies if not level 2
       if (!enemiesSpawnedOrAttempted && processedLevel.tiles.length > 0) {
         const newEnemy = spawnSingleEnemy(processedLevel, canvasSize.width, canvasSize.height);
         if (newEnemy) setActiveEnemies([newEnemy]);
         enemiesSpawnedOrAttempted = true;
       } else if (processedLevel.tiles.length === 0) {
-        enemiesSpawnedOrAttempted = true; 
+        enemiesSpawnedOrAttempted = true; // No tiles, no enemies to spawn
       }
     } else {
-      enemiesSpawnedOrAttempted = true; 
+      enemiesSpawnedOrAttempted = true; // On level 2, consider enemies "attempted" as they are not needed
     }
     
+    // Only set isLoading to false if all conditions are met
     if (processedLevel.tiles.length === 0 || (coinsSpawnedOrAttempted && enemiesSpawnedOrAttempted)) {
       setIsLoading(false);
     }
