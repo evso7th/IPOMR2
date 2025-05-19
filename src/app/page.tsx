@@ -1,15 +1,17 @@
 
 "use client";
 
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import GameCanvas from '@/components/game/GameCanvas';
 import TouchControls from '@/components/game/TouchControls';
 import type { PlayerState, GameAction } from '@/types/game';
 import GameHeader from '@/components/game/GameHeader';
+import StartScreen from '@/components/game/screens/StartScreen'; // New import
 
 export default function PlatformerPage() {
   const playerRef = useRef<PlayerState | null>(null);
   const [executeAction, setExecuteAction] = useState<GameAction | null>(null);
+  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('startScreen');
 
   const handlePlayerAction = useCallback((action: GameAction) => {
     setExecuteAction(action);
@@ -19,15 +21,37 @@ export default function PlatformerPage() {
     setExecuteAction(null);
   }, []);
 
-  return (
-    <div className="flex flex-col h-screen bg-background text-foreground">
-      <GameHeader />
+  const requestFullscreen = () => {
+    const element = document.documentElement;
+    if (element.requestFullscreen) {
+      element.requestFullscreen().catch(err => {
+        console.warn(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+      });
+    } else if ((element as any).mozRequestFullScreen) { // Firefox
+      (element as any).mozRequestFullScreen();
+    } else if ((element as any).webkitRequestFullscreen) { // Chrome, Safari and Opera
+      (element as any).webkitRequestFullscreen();
+    } else if ((element as any).msRequestFullscreen) { // IE/Edge
+      (element as any).msRequestFullscreen();
+    }
+  };
 
-      <main className="flex-1 w-full overflow-hidden flex flex-col"> {/* Changed: flex-1, removed pb-16, added flex flex-col */}
-        
-        <div className="relative w-full h-full"> {/* Changed: h-full instead of flex-grow */}
-          <GameCanvas 
-            levelPath="/levels/level2.json" 
+  const handleStartGame = () => {
+    requestFullscreen();
+    setGameState('playing');
+  };
+
+  if (gameState === 'startScreen') {
+    return <StartScreen onStartGame={handleStartGame} />;
+  }
+
+  return (
+    <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
+      <GameHeader />
+      <main className="flex-1 w-full overflow-hidden flex flex-col">
+        <div className="relative w-full h-full">
+          <GameCanvas
+            levelPath="/levels/level2.json"
             onPlayerAction={handlePlayerAction}
             playerRef={playerRef}
             executeAction={executeAction}
@@ -35,8 +59,7 @@ export default function PlatformerPage() {
           />
         </div>
       </main>
-      
-      <TouchControls onAction={handlePlayerAction} /> {/* Will now be part of the flex flow */}
+      <TouchControls onAction={handlePlayerAction} />
     </div>
   );
 }
