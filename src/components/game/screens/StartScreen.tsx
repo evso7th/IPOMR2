@@ -15,7 +15,7 @@ export default function StartScreen({ onStartGame }: StartScreenProps) {
       <div className="text-center space-y-8 bg-card p-8 rounded-xl shadow-2xl max-w-md w-full">
         <Image
           src="https://placehold.co/600x400.png" // Replace with your game's logo or a thematic image
-          alt="Platformer Port Title Image"
+          alt="IPO Mad Racing Title Image"
           width={300}
           height={200}
           className="mx-auto rounded-lg shadow-lg"
@@ -23,7 +23,7 @@ export default function StartScreen({ onStartGame }: StartScreenProps) {
           priority // Good for LCP
         />
         <h1 className="text-4xl sm:text-5xl font-bold text-primary">
-          Platformer Port
+          IPO Mad Racing
         </h1>
         <p className="text-lg text-muted-foreground">
           Готовы к приключениям? Нажмите кнопку ниже, чтобы начать игру!

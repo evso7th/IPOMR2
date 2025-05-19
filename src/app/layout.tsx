@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Platformer Port',
+  title: 'IPO Mad Racing',
   description: 'A fun platformer game built with Next.js and Canvas.',
 };
 

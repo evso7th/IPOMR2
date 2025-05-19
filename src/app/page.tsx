@@ -6,7 +6,7 @@ import GameCanvas from '@/components/game/GameCanvas';
 import TouchControls from '@/components/game/TouchControls';
 import type { PlayerState, GameAction } from '@/types/game';
 import GameHeader from '@/components/game/GameHeader';
-import StartScreen from '@/components/game/screens/StartScreen'; // New import
+import StartScreen from '@/components/game/screens/StartScreen';
 
 export default function PlatformerPage() {
   const playerRef = useRef<PlayerState | null>(null);
@@ -41,13 +41,20 @@ export default function PlatformerPage() {
     setGameState('playing');
   };
 
+  const handleExitToStart = () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(err => console.warn(`Error exiting fullscreen: ${err.message}`));
+    }
+    setGameState('startScreen');
+  };
+
   if (gameState === 'startScreen') {
     return <StartScreen onStartGame={handleStartGame} />;
   }
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
-      <GameHeader />
+      <GameHeader onExitToStart={handleExitToStart} />
       <main className="flex-1 w-full overflow-hidden flex flex-col">
         <div className="relative w-full h-full">
           <GameCanvas
