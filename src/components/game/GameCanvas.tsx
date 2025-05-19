@@ -151,7 +151,7 @@ function processRawLevelData(
           width: p3_size,
           height: p3_size,
           type: 1, 
-          color: 'hsl(var(--secondary))',
+          color: 'hsl(var(--secondary))', // A distinct color for P3
           vx: 0, 
           direction: 0,
         });
@@ -280,14 +280,14 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   useEffect(() => {
     setIsClient(true);
     const pImg = new Image();
-    pImg.src = `https://placehold.co/${PLAYER_WIDTH}x${PLAYER_HEIGHT}/4CAF50/FFFFFF.png?text=H`;
-    pImg.setAttribute('data-ai-hint', 'character pixel');
+    pImg.src = `https://placehold.co/${PLAYER_WIDTH}x${PLAYER_HEIGHT}/FFA500/FFFFFF.png?text=H`;
+    pImg.setAttribute('data-ai-hint', 'character orange blue');
     pImg.onload = () => setAssets(prev => ({ ...prev, playerImage: pImg, playerImageLoaded: true }));
     pImg.onerror = () => { console.error("Failed to load player image."); setAssets(prev => ({ ...prev, playerImageLoaded: true })); };
 
     const tImg = new Image();
-    tImg.src = `https://placehold.co/1x1/795548/FFFFFF.png?text=B`;
-    tImg.setAttribute('data-ai-hint', 'platform stone');
+    tImg.src = `https://placehold.co/1x1/008000/FFFFFF.png?text=P`;
+    tImg.setAttribute('data-ai-hint', 'platform grass dirt');
     tImg.onload = () => setAssets(prev => ({...prev, tileImage: tImg, tileImageLoaded: true}));
     tImg.onerror = () => {
         console.error("Failed to load tile image.");

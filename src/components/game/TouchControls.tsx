@@ -31,44 +31,42 @@ export default function TouchControls({ onAction }: TouchControlsProps) {
   };
 
   return (
-    // Removed: fixed bottom-0 left-0 right-0 z-50
-    // Added: shrink-0
     <div className="h-16 flex justify-around items-center px-4 sm:justify-center sm:gap-8 bg-accent/90 backdrop-blur-sm border-t border-border text-accent-foreground shrink-0">
       <div className="flex gap-4">
         <Button
           variant="outline"
           size="lg"
-          className="p-3 aspect-square !bg-accent/80 !text-accent-foreground hover:!bg-accent active:!bg-accent/90"
+          className="p-3 rounded-full aspect-square !bg-accent/80 !text-accent-foreground hover:!bg-accent active:!bg-accent/90"
           onTouchStart={(e) => handleTouchStart('moveLeft', e)}
           onTouchEnd={(e) => handleTouchEnd('moveLeft', e)}
           onMouseDown={() => handleMouseDown('moveLeft')}
           onMouseUp={() => handleMouseUp('moveLeft')}
           aria-label="Move Left"
         >
-          <ArrowLeft size={28} /> {/* Slightly smaller icon for better fit */}
+          <ArrowLeft size={28} />
         </Button>
         <Button
           variant="outline"
           size="lg"
-          className="p-3 aspect-square !bg-accent/80 !text-accent-foreground hover:!bg-accent active:!bg-accent/90"
+          className="p-3 rounded-full aspect-square !bg-accent/80 !text-accent-foreground hover:!bg-accent active:!bg-accent/90"
           onTouchStart={(e) => handleTouchStart('moveRight', e)}
           onTouchEnd={(e) => handleTouchEnd('moveRight', e)}
           onMouseDown={() => handleMouseDown('moveRight')}
           onMouseUp={() => handleMouseUp('moveRight')}
           aria-label="Move Right"
         >
-          <ArrowRight size={28} /> {/* Slightly smaller icon */}
+          <ArrowRight size={28} />
         </Button>
       </div>
       <Button
         variant="outline"
         size="lg"
-        className="p-3 aspect-square !bg-accent/80 !text-accent-foreground hover:!bg-accent active:!bg-accent/90 sm:ml-16" // Added sm:ml-16 for wider spacing from arrows
+        className="p-3 rounded-full aspect-square !bg-accent/80 !text-accent-foreground hover:!bg-accent active:!bg-accent/90 sm:ml-16"
         onTouchStart={(e) => handleTouchStart('jump', e)}
         onMouseDown={() => handleMouseDown('jump')}
         aria-label="Jump"
       >
-        <ArrowUp size={28} /> {/* Slightly smaller icon */}
+        <ArrowUp size={28} />
       </Button>
     </div>
   );

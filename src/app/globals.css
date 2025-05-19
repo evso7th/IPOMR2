@@ -17,7 +17,7 @@ body {
     --popover: 125 42% 94%;
     --popover-foreground: 200 14% 18%;
 
-    --primary: 123 41% 40%; /* Forest green (#388E3C) */
+    --primary: 220 35% 25%; /* Deep Navy - For HUD Background */
     --primary-foreground: 0 0% 98%; /* White for contrast on primary */
 
     --secondary: 125 42% 88%; /* Slightly darker variant of background for secondary elements */
@@ -26,7 +26,7 @@ body {
     --muted: 125 42% 85%;
     --muted-foreground: 200 14% 35%;
 
-    --accent: 16 25% 42%; /* Earthy brown (#795548) */
+    --accent: 30 90% 55%; /* Orange - For Control Panel Buttons/Background */
     --accent-foreground: 0 0% 98%; /* White for contrast on accent */
 
     --destructive: 0 84.2% 60.2%;
@@ -34,7 +34,7 @@ body {
 
     --border: 125 20% 80%; /* Lighter border */
     --input: 125 20% 85%;
-    --ring: 123 41% 40%; /* Primary color for ring */
+    --ring: 220 35% 25%; /* Primary color (Deep Navy) for ring */
 
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
@@ -65,7 +65,7 @@ body {
     --popover: 200 14% 10%;
     --popover-foreground: 125 42% 94%;
 
-    --primary: 123 41% 50%; 
+    --primary: 220 35% 35%; /* Slightly lighter Deep Navy for dark mode */
     --primary-foreground: 0 0% 98%;
 
     --secondary: 200 14% 15%;
@@ -74,7 +74,7 @@ body {
     --muted: 200 14% 15%;
     --muted-foreground: 125 42% 70%;
 
-    --accent: 16 25% 52%;
+    --accent: 30 90% 60%; /* Slightly lighter Orange for dark mode */
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 62.8% 30.6%;
@@ -82,7 +82,7 @@ body {
 
     --border: 200 14% 20%;
     --input: 200 14% 20%;
-    --ring: 123 41% 50%;
+    --ring: 220 35% 35%;
 
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
