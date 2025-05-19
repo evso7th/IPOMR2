@@ -1,6 +1,6 @@
 
-import type { CoinState, Particle } from '@/types/game';
-import { COIN_COLOR, COIN_SIZE } from '@/config/gameConfig';
+import type { CoinState } from '@/types/game';
+import { COIN_COLOR, COIN_SHADOW_COLOR, COIN_SHADOW_BLUR, COIN_SHADOW_OFFSET_X, COIN_SHADOW_OFFSET_Y } from '@/config/gameConfig';
 
 export const renderCoins = (
   ctx: CanvasRenderingContext2D,
@@ -8,59 +8,73 @@ export const renderCoins = (
   coinImage: HTMLImageElement | null
 ): void => {
   coins.forEach(coin => {
-    ctx.save(); // Save context state for this coin (handles opacity, clipping, etc.)
+    ctx.save(); // Save context state for this coin (handles opacity, clipping, shadows etc.)
 
-    // Render particles if they exist
     if (coin.particles.length > 0) {
+      // Render particles (these won't have the coin's shadow unless specifically set)
       coin.particles.forEach(particle => {
         ctx.globalAlpha = particle.opacity;
-        // For simplicity, drawing particles as squares. Could be circles.
-        ctx.fillStyle = COIN_COLOR; // Or a particle-specific color
+        ctx.fillStyle = COIN_COLOR; 
         ctx.fillRect(particle.x - particle.size / 2, particle.y - particle.size / 2, particle.size, particle.size);
       });
-    } 
-    // Else, if not collected and opacity > 0 (for fade-in or normal display)
-    else if (!coin.isCollected && coin.currentOpacity > 0) {
+    } else if (!coin.isCollected && coin.currentOpacity > 0) {
       ctx.globalAlpha = coin.currentOpacity;
+
+      // Calculate scaled width for rotation effect
+      // Math.cos(angle) goes from 1 to -1. abs() makes it 0 to 1.
+      // This will make the coin shrink to 0 width when edge-on.
+      const scaleX = Math.abs(Math.cos(coin.rotationAngle));
+      const currentDisplayWidth = coin.width * scaleX;
+      // Adjust x to keep the coin centered as it scales
+      const currentDisplayX = coin.x + (coin.width - currentDisplayWidth) / 2;
+
+      // Apply shadow before drawing the coin itself
+      ctx.shadowColor = COIN_SHADOW_COLOR;
+      ctx.shadowBlur = COIN_SHADOW_BLUR;
+      ctx.shadowOffsetX = COIN_SHADOW_OFFSET_X;
+      ctx.shadowOffsetY = COIN_SHADOW_OFFSET_Y;
       
       if (coinImage?.complete && coinImage.src) {
         try {
           // Apply circular clipping mask
-          ctx.save(); // Save context specifically for clipping the image
+          ctx.save(); 
           ctx.beginPath();
           ctx.arc(
             coin.x + coin.width / 2, 
             coin.y + coin.height / 2, 
-            coin.width / 2, // Radius
+            coin.width / 2, 
             0, 
             Math.PI * 2
           );
           ctx.closePath();
           ctx.clip();
           
-          // Draw the image, which will be clipped to the circle
-          ctx.drawImage(coinImage, coin.x, coin.y, coin.width, coin.height);
+          // Draw the image, scaled horizontally for rotation, which will be clipped to the circle
+          ctx.drawImage(coinImage, currentDisplayX, coin.y, currentDisplayWidth, coin.height);
           
-          ctx.restore(); // Restore context to remove the clipping mask for subsequent draws
+          ctx.restore(); 
 
         } catch (e) {
           console.warn("Failed to draw coin image, falling back to color", e);
-          drawFallbackCoin(ctx, coin); // Fallback already draws a circle
+          // Fallback coin drawing (will also be affected by shadow if set before fillStyle)
+          // For simplicity, fallback will not "rotate" but will be clipped.
+          drawFallbackCoin(ctx, coin); 
         }
       } else {
-        // Image not available or not loaded, use fallback
-        drawFallbackCoin(ctx, coin); // Fallback already draws a circle
+        // Fallback coin drawing
+        drawFallbackCoin(ctx, coin);
       }
     }
     
-    ctx.restore(); // Restore context state changed for this coin
+    ctx.restore(); // Restore context state (clears shadow, globalAlpha for the next coin/element)
   });
 };
 
 function drawFallbackCoin(ctx: CanvasRenderingContext2D, coin: CoinState) {
   // This function is now only called when the coin itself is visible (not particles)
-  // and the image failed or is not yet loaded. The globalAlpha is already set by the caller.
-  ctx.fillStyle = COIN_COLOR;
+  // and the image failed or is not yet loaded. The globalAlpha and shadow are set by the caller.
+  // The clipping is also handled by the caller.
+  ctx.fillStyle = COIN_COLOR; // Shadow should be set before this if fallback needs shadow
   ctx.beginPath();
   ctx.arc(
     coin.x + coin.width / 2,
@@ -71,4 +85,3 @@ function drawFallbackCoin(ctx: CanvasRenderingContext2D, coin: CoinState) {
   );
   ctx.fill();
 }
-

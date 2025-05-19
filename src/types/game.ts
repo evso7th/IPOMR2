@@ -31,12 +31,28 @@ export interface CoinState {
   height: number;
   
   isCollected: boolean;
-  collectionTime?: number; // Time when collection process started (for particle generation)
+  collectionTime?: number; 
   
-  targetSpawnTime: number; // For staggered spawn
-  currentOpacity: number; // For fade-in effect of the coin itself / or to hide it when particles are active
+  targetSpawnTime: number; 
+  currentOpacity: number; 
   
-  particles: Particle[]; // Particles for dissolve effect
+  particles: Particle[]; 
+  isVisuallyPresent: boolean; 
+
+  rotationAngle: number; // For 3D-like rotation effect
+  rotationSpeed: number; // Speed of rotation
+}
+
+export interface EnemyState {
+  id: string;
+  x: number;
+  y: number;
+  radius: number;
+  width: number; // For collision detection convenience (radius * 2)
+  height: number; // For collision detection convenience (radius * 2)
+  vx: number;
+  direction: number;
+  color: string;
 }
 
 export type TilePositioningAnchor =
@@ -46,13 +62,12 @@ export type TilePositioningAnchor =
 
 export interface TilePositioning {
   anchor: TilePositioningAnchor;
-  xOffsetPx?: number; // Pixel offset from anchor point (or 0 if omitted)
-  yOffsetPx?: number; // Pixel offset from anchor point (or 0 if omitted)
+  xOffsetPx?: number; 
+  yOffsetPx?: number; 
 }
 
-// Tile definition with absolute, calculated values, used in the game loop
 export interface Tile {
-  id?: string;
+  id: string; // Ensure id is always present for ProcessedTile
   x: number;
   y: number;
   width: number;
@@ -63,11 +78,10 @@ export interface Tile {
   direction?: number;
 }
 
-// Raw tile definition as it comes from JSON
 export interface RawTileData {
-  id?: string;
-  width: number | string; // e.g., 150 or "80%"
-  height: number | string; // e.g., 16 or "20px"
+  id: string; // Make id mandatory for RawTileData as well
+  width: number | string; 
+  height: number | string; 
   type: number;
   color: string;
   vx?: number;
@@ -76,27 +90,24 @@ export interface RawTileData {
 }
 
 export interface RawPlayerStart {
-  platformId: string; // ID of the tile the player starts on
-  horizontalAlign: 'left' | 'center' | 'right'; // Alignment on the platform
-  xOffsetPx?: number; // Optional pixel offset from the alignment point
-  yOffsetPx?: number; // Optional vertical offset from top of platform (default 0)
+  platformId: string; 
+  horizontalAlign: 'left' | 'center' | 'right'; 
+  xOffsetPx?: number; 
+  yOffsetPx?: number; 
 }
 
-// Structure of the JSON level file
 export interface RawLevelData {
   playerStart: RawPlayerStart;
   tiles: RawTileData[];
 }
 
-// Processed level data, ready for the game engine
 export interface ProcessedLevelData {
-  playerStart: { xPx: number; yPx: number }; // Absolute pixel coordinates
-  tiles: Tile[]; // Tiles with absolute coordinates and dimensions
+  playerStart: { xPx: number; yPx: number }; 
+  tiles: Tile[]; 
 }
 
 export type GameAction = 'moveLeft' | 'moveRight' | 'jump' | 'stopMoveLeft' | 'stopMoveRight';
 
-// Generic rectangle interface for collision detection
 export interface Rect {
   x: number;
   y: number;
