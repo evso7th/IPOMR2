@@ -11,7 +11,7 @@ import StartScreen from '@/components/game/screens/StartScreen';
 export default function PlatformerPage() {
   const playerRef = useRef<PlayerState | null>(null);
   const [executeAction, setExecuteAction] = useState<GameAction | null>(null);
-  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('startScreen');
+  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing'); // Изменено начальное состояние
 
   const handlePlayerAction = useCallback((action: GameAction) => {
     setExecuteAction(action);
@@ -36,7 +36,8 @@ export default function PlatformerPage() {
     }
   };
 
-  const handleStartGame = () => {
+  // Эта функция больше не будет вызываться автоматически при запуске, если gameState сразу 'playing'
+  const handleStartGame = () => { 
     requestFullscreen();
     setGameState('playing');
   };
