@@ -150,8 +150,7 @@ function processRawLevelData(
         const p3_size = 48;
         const p_ground_top_y = p_ground_tile.y; 
         
-        // P3's top surface should be 300px above p_ground's top surface
-        const p3_base_y = p_ground_top_y - 300 - p3_size; // Y for p3's top edge
+        const p3_base_y = p_ground_top_y - 300; // Y for p3's top edge
         const p3_base_x = (canvasWidth / 2) - (p3_size / 2); // Centered horizontally
                         
         p3BasePosRef.current = { x: p3_base_x, y: p3_base_y };
@@ -318,8 +317,8 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     pImg.onerror = () => { console.error("Failed to load player image."); setAssets(prev => ({ ...prev, playerImageLoaded: true })); };
 
     const tImg = new Image();
-    tImg.src = `https://placehold.co/1x1/008000/FFFFFF.png?text=P`;
-    tImg.setAttribute('data-ai-hint', 'platform grass dirt');
+    tImg.src = `/assets/images/platform_grass.png`;
+    tImg.setAttribute('data-ai-hint', 'platform grass');
     tImg.onload = () => setAssets(prev => ({...prev, tileImage: tImg, tileImageLoaded: true}));
     tImg.onerror = () => {
         console.error("Failed to load tile image.");
@@ -327,7 +326,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     };
 
     const cImg = new Image();
-    cImg.src = `/assets/images/thankscoin.png`; 
+    cImg.src = `/assets/images/thankscoin.png`;
     cImg.setAttribute('data-ai-hint', 'collectible coin gold');
     cImg.onload = () => setAssets(prev => ({ ...prev, coinImage: cImg, coinImageLoaded: true }));
     cImg.onerror = () => { console.error("Failed to load coin image."); setAssets(prev => ({ ...prev, coinImageLoaded: true })); };
@@ -402,7 +401,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
   useEffect(() => {
     if (!isClient || !rawLevelData || canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImageLoaded || !assets.tileImageLoaded || !assets.coinImageLoaded) {
-      if (!isLoading && (canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImageLoaded || !assets.tileImageLoaded || !assets.coinImageLoaded)) {
+      if (!isLoading) {
          setIsLoading(true); 
       }
       return;
@@ -442,12 +441,10 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   ]);
 
   useEffect(() => {
-    if (!isClient || !processedLevel || canvasSize.width === 0 || canvasSize.height === 0) {
-      if (!isLoading) setIsLoading(true);
+    if (!isClient || !processedLevel || !isLoading || canvasSize.width === 0 || canvasSize.height === 0) {
       return; 
     }
-    if (!isLoading) return; 
-
+    
     let coinsSpawnedOrAttempted = activeCoins.length > 0;
     if (!coinsSpawnedOrAttempted && processedLevel.tiles.length > 0) {
       const newCoins = spawnNewCoinPair(processedLevel, canvasSize.width, canvasSize.height);
@@ -731,3 +728,4 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     </div>
   );
 }
+
