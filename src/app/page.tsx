@@ -23,9 +23,9 @@ export default function PlatformerPage() {
     <div className="flex flex-col h-screen bg-background text-foreground">
       <GameHeader />
 
-      <main className="flex-grow flex flex-col w-full pb-16 overflow-hidden"> {/* Added overflow-hidden */}
+      <main className="flex-1 w-full overflow-hidden flex flex-col"> {/* Changed: flex-1, removed pb-16, added flex flex-col */}
         
-        <div className="relative w-full flex-grow">
+        <div className="relative w-full h-full"> {/* Changed: h-full instead of flex-grow */}
           <GameCanvas 
             levelPath="/levels/level2.json" 
             onPlayerAction={handlePlayerAction}
@@ -36,8 +36,7 @@ export default function PlatformerPage() {
         </div>
       </main>
       
-      <TouchControls onAction={handlePlayerAction} />
+      <TouchControls onAction={handlePlayerAction} /> {/* Will now be part of the flex flow */}
     </div>
   );
 }
-

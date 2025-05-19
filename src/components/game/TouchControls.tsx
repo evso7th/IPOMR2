@@ -31,7 +31,9 @@ export default function TouchControls({ onAction }: TouchControlsProps) {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-16 flex justify-around items-center px-4 sm:justify-center sm:gap-8 z-50 bg-accent/90 backdrop-blur-sm border-t border-border text-accent-foreground">
+    // Removed: fixed bottom-0 left-0 right-0 z-50
+    // Added: shrink-0
+    <div className="h-16 flex justify-around items-center px-4 sm:justify-center sm:gap-8 bg-accent/90 backdrop-blur-sm border-t border-border text-accent-foreground shrink-0">
       <div className="flex gap-4">
         <Button
           variant="outline"
