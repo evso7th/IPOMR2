@@ -146,13 +146,10 @@ function processRawLevelData(
     const p_ground_tile = processedTiles.find(tile => tile.id === 'p_ground');
     if (p_ground_tile && canvasWidth > 0 && canvasHeight > 0) {
         const p3_size = 48;
-        const p_ground_top_y = p_ground_tile.y; // Верхняя поверхность p_ground
+        const p_ground_top_y = p_ground_tile.y; 
         
-        // Центр P3 должен быть на p_ground_top_y - 300
-        // Значит верхний край P3 должен быть p_ground_top_y - 300 - (p3_size / 2) -- Ошибка, это для Y центра
-        // Верхний край P3 должен быть p_ground_top_y - 300 (как в ТЗ)
-        const p3_base_y = p_ground_top_y - 300; // Верхний край P3
-        const p3_base_x = (canvasWidth / 2) - (p3_size / 2); // Левый край P3
+        const p3_base_y = p_ground_top_y - 300; 
+        const p3_base_x = (canvasWidth / 2) - (p3_size / 2); 
                 
         p3BasePosRef.current = { x: p3_base_x, y: p3_base_y };
         p3InterestPointsRef.current = [
@@ -174,7 +171,7 @@ function processRawLevelData(
           width: p3_size,
           height: p3_size,
           type: 1, 
-          color: 'hsl(var(--secondary))', // Цвет для P3
+          color: 'hsl(var(--secondary))', 
           vx: 0, 
           direction: 0,
         };
@@ -325,7 +322,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     };
 
     const cImg = new Image();
-    cImg.src = `/assets/images/thankscoin.png`;
+    cImg.src = `/assets/Images/thankscoin.png`; // Corrected path
     cImg.setAttribute('data-ai-hint', 'collectible coin');
     cImg.onload = () => setAssets(prev => ({ ...prev, coinImage: cImg, coinImageLoaded: true }));
     cImg.onerror = () => { console.error("Failed to load coin image."); setAssets(prev => ({ ...prev, coinImageLoaded: true })); };
@@ -372,13 +369,13 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   
   useEffect(() => {
     if (!isClient || !levelPath) {
-      if (!isLoading) setIsLoading(true); // Ensure loading is true if not loading
+      if (!isLoading) setIsLoading(true); 
       return;
     }
-    // Reset relevant states when levelPath changes or on initial client load
+    
     setRawLevelData(null);
     setProcessedLevel(null); 
-    setActiveCoins([]); // Also reset coins and enemies for the new level
+    setActiveCoins([]); 
     setActiveEnemies([]);
     if (!isLoading) setIsLoading(true);
 
@@ -388,13 +385,13 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
           setRawLevelData(data);
         } else {
           toast({ title: "Error", description: `Failed to load level: ${levelPath}`, variant: "destructive" });
-          setRawLevelData(null); // Ensure rawLevelData is null on failure
+          setRawLevelData(null); 
         }
       })
       .catch(error => {
         console.error("Error in loadLevel promise chain:", error);
         toast({ title: "Error", description: "An unexpected error occurred loading level data.", variant: "destructive" });
-        setRawLevelData(null); // Ensure rawLevelData is null on error
+        setRawLevelData(null); 
       });
   }, [levelPath, isClient, toast, setIsLoading, setRawLevelData, setProcessedLevel, setActiveCoins, setActiveEnemies]);
 
@@ -405,7 +402,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       return;
     }
     
-    // Clear previous level objects explicitly before processing new level
+    
     setActiveCoins([]); 
     setActiveEnemies([]);
     
@@ -428,7 +425,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       };
       playerInstanceRef.current = newPlayer;
       if (parentPlayerRef) parentPlayerRef.current = newPlayer;
-      // Note: Spawning of coins/enemies will be handled by the next useEffect
+      
     } else {
       toast({ title: "Processing Error", description: "Failed to process level data.", variant: "destructive" });
       setProcessedLevel(null);
@@ -437,16 +434,14 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   }, [
     isClient, rawLevelData, canvasSize, assets.playerImageLoaded, assets.tileImageLoaded, assets.coinImageLoaded, 
     parentPlayerRef, toast, setIsLoading, setProcessedLevel, setActiveCoins, setActiveEnemies,
-    p3BasePosition, p3InterestPoints, p3CurrentTargetIndex, p3MovementState // Added missing p3 refs
+    p3BasePosition, p3InterestPoints, p3CurrentTargetIndex, p3MovementState 
   ]);
 
   useEffect(() => {
     if (!isClient || !processedLevel || canvasSize.width === 0 || canvasSize.height === 0) {
-      // Don't set isLoading to true here if it's already false,
-      // this hook is for spawning entities and setting isLoading to false *after* processedLevel is ready.
       return; 
     }
-    if (!isLoading) return; // Only run if currently loading and processedLevel is ready
+    if (!isLoading) return; 
 
     let coinsSpawnedOrAttempted = activeCoins.length > 0;
     if (!coinsSpawnedOrAttempted && processedLevel.tiles.length > 0) {
@@ -454,32 +449,30 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       if (newCoins.length > 0) setActiveCoins(newCoins);
       coinsSpawnedOrAttempted = true; 
     } else if (processedLevel.tiles.length === 0) {
-      coinsSpawnedOrAttempted = true; // No tiles, no coins to spawn based on them
+      coinsSpawnedOrAttempted = true; 
     }
 
 
     let enemiesSpawnedOrAttempted = activeEnemies.length > 0;
-    if (levelPath !== '/levels/level2.json') { // Only spawn enemies if not level 2
+    if (levelPath !== '/levels/level2.json') { 
       if (!enemiesSpawnedOrAttempted && processedLevel.tiles.length > 0) {
         const newEnemy = spawnSingleEnemy(processedLevel, canvasSize.width, canvasSize.height);
         if (newEnemy) setActiveEnemies([newEnemy]);
         enemiesSpawnedOrAttempted = true;
       } else if (processedLevel.tiles.length === 0) {
-        enemiesSpawnedOrAttempted = true; // No tiles, no enemies
+        enemiesSpawnedOrAttempted = true; 
       }
     } else {
-      enemiesSpawnedOrAttempted = true; // For level 2, consider enemies "handled" (i.e., not spawning)
+      enemiesSpawnedOrAttempted = true; 
     }
     
-    // Set isLoading to false only if the level is processed (even if empty)
-    // and all relevant entities have been at least attempted to spawn.
     if (processedLevel.tiles.length === 0 || (coinsSpawnedOrAttempted && enemiesSpawnedOrAttempted)) {
       setIsLoading(false);
     }
   }, [
     isClient, processedLevel, canvasSize, isLoading, levelPath, 
     activeCoins.length, activeEnemies.length, 
-    setActiveCoins, setActiveEnemies, setIsLoading // Added missing setters
+    setActiveCoins, setActiveEnemies, setIsLoading 
   ]);
 
 
@@ -502,7 +495,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
     const gameLoop = () => {
       const loopStartTime = Date.now(); const deltaTime = (loopStartTime - lastFrameTime.current); 
-      const deltaTimeFactor = deltaTime / (1000 / 60); // Normalize to 60 FPS baseline
+      const deltaTimeFactor = deltaTime / (1000 / 60); 
       lastFrameTime.current = loopStartTime;
 
       const player = playerInstanceRef.current; const currentLevel = processedLevel;
@@ -530,9 +523,9 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
         const elapsedTime = currentTime - startTime;
         const t = Math.min(1, elapsedTime / P3_MOVEMENT_DURATION);
         
-        // Ease in-out cubic
+        
         const eased_t = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-        // const eased_t = -(Math.cos(Math.PI * t) - 1) / 2; // Ease in-out sine
+        
 
         const oldP3X = p3Tile.x;
         const oldP3Y = p3Tile.y;
@@ -588,8 +581,8 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
       if (player.isOnGround && activePlatform) {
         if (activePlatform.id === 'p3') {
-            platformInducedMoveX = p3_delta_x; // Use delta calculated for p3
-            player.y += p3_delta_y; // Apply vertical delta if standing on p3
+            platformInducedMoveX = p3_delta_x; 
+            player.y += p3_delta_y; 
         } else if (activePlatform.vx !== undefined && activePlatform.direction !== undefined) {
             platformInducedMoveX = (activePlatform.vx * activePlatform.direction * deltaTimeFactor);
         }
@@ -610,7 +603,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       
       const groundPlatform = currentLevel.tiles.find(t => t.id === 'p_ground');
       if (groundPlatform && player.y + player.height > groundPlatform.y && player.vy >=0 && player.y < groundPlatform.y + groundPlatform.height) { 
-          if (player.y + player.height > groundPlatform.y + (groundPlatform.height / 2) ) { // More robust check
+          if (player.y + player.height > groundPlatform.y + (groundPlatform.height / 2) ) { 
              player.y = groundPlatform.y - player.height;
           }
           player.vy = 0;
@@ -637,7 +630,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
             newCoin.isVisuallyPresent = false; 
           }
         } else if (newCoin.isCollected && newCoin.isVisuallyPresent && newCoin.currentOpacity === 0 && newCoin.particles.length === 0) {
-            // This case might be redundant if particles handle setting isVisuallyPresent to false
+            
             newCoin.isVisuallyPresent = false; 
         }
 
@@ -651,8 +644,8 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
         if (!newCoin.isCollected && newCoin.isVisuallyPresent && newCoin.currentOpacity > 0.5 && checkCollision(playerRect, newCoin as Rect)) {
           newCoin.isCollected = true;
           newCoin.collectionTime = loopStartTime;
-          newCoin.currentOpacity = 0; // Make coin invisible immediately
-          newCoin.particles = []; // Clear any old particles, just in case
+          newCoin.currentOpacity = 0; 
+          newCoin.particles = []; 
           for (let i = 0; i < COIN_PARTICLE_COUNT; i++) {
             const angle = Math.random() * Math.PI * 2;
             const speed = Math.random() * COIN_PARTICLE_SPEED_MULTIPLIER + 0.5;
