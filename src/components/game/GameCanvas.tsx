@@ -147,11 +147,13 @@ function processRawLevelData(
     
     const p_ground_tile = processedTiles.find(tile => tile.id === 'p_ground');
     if (p_ground_tile && canvasWidth > 0 && canvasHeight > 0) {
-        const p3_size = 48;
+        const p3_width = 48;
+        const p3_height = 32; // Updated P3 height
         const p_ground_top_y = p_ground_tile.y; 
         
-        const p3_base_y = p_ground_top_y - 300; // Y for p3's top edge
-        const p3_base_x = (canvasWidth / 2) - (p3_size / 2); // Centered horizontally
+        // Position P3 so its top edge is 300px above p_ground's top edge
+        const p3_base_y = p_ground_top_y - 300; 
+        const p3_base_x = (canvasWidth / 2) - (p3_width / 2); // Centered horizontally
                         
         p3BasePosRef.current = { x: p3_base_x, y: p3_base_y };
         p3InterestPointsRef.current = [
@@ -170,8 +172,8 @@ function processRawLevelData(
           id: 'p3',
           x: p3_base_x + initialOffset.xOffset,
           y: p3_base_y + initialOffset.yOffset,
-          width: p3_size,
-          height: p3_size,
+          width: p3_width,
+          height: p3_height, // Updated P3 height
           type: 1, 
           color: 'hsl(var(--secondary))', 
           vx: 0, 
@@ -311,14 +313,14 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   useEffect(() => {
     setIsClient(true);
     const pImg = new Image();
-    pImg.src = `https://placehold.co/${PLAYER_WIDTH}x${PLAYER_HEIGHT}/FFA500/FFFFFF.png?text=H`;
-    pImg.setAttribute('data-ai-hint', 'character orange blue');
+    pImg.src = `/assets/images/hero_jeans3.png`;
+    pImg.setAttribute('data-ai-hint', 'character pixel art');
     pImg.onload = () => setAssets(prev => ({ ...prev, playerImage: pImg, playerImageLoaded: true }));
     pImg.onerror = () => { console.error("Failed to load player image."); setAssets(prev => ({ ...prev, playerImageLoaded: true })); };
 
     const tImg = new Image();
     tImg.src = `/assets/images/platform_grass.png`;
-    tImg.setAttribute('data-ai-hint', 'platform grass');
+    tImg.setAttribute('data-ai-hint', 'platform grass dirt');
     tImg.onload = () => setAssets(prev => ({...prev, tileImage: tImg, tileImageLoaded: true}));
     tImg.onerror = () => {
         console.error("Failed to load tile image.");
@@ -326,7 +328,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     };
 
     const cImg = new Image();
-    cImg.src = `/assets/images/thankscoin.png`;
+    cImg.src = `/assets/Images/thankscoin.png`; // Corrected path
     cImg.setAttribute('data-ai-hint', 'collectible coin gold');
     cImg.onload = () => setAssets(prev => ({ ...prev, coinImage: cImg, coinImageLoaded: true }));
     cImg.onerror = () => { console.error("Failed to load coin image."); setAssets(prev => ({ ...prev, coinImageLoaded: true })); };
@@ -378,9 +380,6 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     }
     
     setRawLevelData(null);
-    setProcessedLevel(null); 
-    setActiveCoins([]); 
-    setActiveEnemies([]);
     if (!isLoading) setIsLoading(true);
 
     loadLevel(levelPath)
@@ -397,7 +396,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
         toast({ title: "Error", description: "An unexpected error occurred loading level data.", variant: "destructive" });
         setRawLevelData(null); 
       });
-  }, [levelPath, isClient, toast, setIsLoading, setRawLevelData, setProcessedLevel, setActiveCoins, setActiveEnemies]);
+  }, [levelPath, isClient, toast, isLoading, setIsLoading, setRawLevelData]);
 
   useEffect(() => {
     if (!isClient || !rawLevelData || canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImageLoaded || !assets.tileImageLoaded || !assets.coinImageLoaded) {
@@ -436,7 +435,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     }
   }, [
     isClient, rawLevelData, canvasSize, assets.playerImageLoaded, assets.tileImageLoaded, assets.coinImageLoaded, 
-    parentPlayerRef, toast, setIsLoading, setProcessedLevel, setActiveCoins, setActiveEnemies,
+    parentPlayerRef, toast, isLoading, setIsLoading, setProcessedLevel, setActiveCoins, setActiveEnemies,
     p3BasePosition, p3InterestPoints, p3CurrentTargetIndex, p3MovementState 
   ]);
 
