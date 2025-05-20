@@ -1,3 +1,4 @@
+
 {
   "playerStart": {
     "platformId": "p2",
@@ -23,7 +24,7 @@
       "width": 120,
       "height": 32,
       "type": 1,
-      "color": "hsl(var(--primary))",
+      "color": "hsl(var(--secondary))",
       "vx": 0.9375,
       "direction": 1,
       "positioning": {
@@ -37,13 +38,25 @@
       "width": 120,
       "height": 32,
       "type": 1,
-      "color": "hsl(var(--primary))",
+      "color": "hsl(var(--secondary))",
       "vx": 0.9375,
       "direction": -1,
       "positioning": {
         "anchor": "bottom-right",
         "xOffsetPx": 50,
         "yOffsetPx": 135
+      }
+    },
+    {
+      "id": "bush1",
+      "width": 30,
+      "height": 20,
+      "type": 0,
+      "color": "hsl(120, 50%, 35%)",
+      "positioning": {
+        "anchor": "bottom-left",
+        "xOffsetPx": 80,
+        "yOffsetPx": 1 
       }
     }
   ]
