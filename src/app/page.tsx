@@ -11,7 +11,7 @@ import StartScreen from '@/components/game/screens/StartScreen';
 export default function PlatformerPage() {
   const playerRef = useRef<PlayerState | null>(null);
   const [executeAction, setExecuteAction] = useState<GameAction | null>(null);
-  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing'); 
+  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('startScreen'); 
 
   const handlePlayerAction = useCallback((action: GameAction) => {
     setExecuteAction(action);
@@ -64,12 +64,12 @@ export default function PlatformerPage() {
             backgroundImage: "url('/assets/images/level1_bkg.png')",
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'top right',
-            // backgroundSize: 'cover', // Add this if you want the image to cover the area
+            // backgroundSize: 'cover', 
           }}
           data-ai-hint="sky clouds"
         >
           <GameCanvas
-            levelPath="/levels/level2.json"
+            levelPath="/levels/level1.json"
             onPlayerAction={handlePlayerAction}
             playerRef={playerRef}
             executeAction={executeAction}
