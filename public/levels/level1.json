@@ -3,6 +3,7 @@
   "playerStart": {
     "platformId": "floating_platform_left",
     "horizontalAlign": "center",
+    "xOffsetPx": 0,
     "yOffsetPx": 0
   },
   "tiles": [
@@ -21,26 +22,26 @@
     },
     {
       "id": "floating_platform_left",
-      "width": 150,
+      "width": 120,
       "height": 32,
       "type": 1,
       "color": "hsl(var(--accent))",
-      "vx": 1.875,
+      "vx": 0.9375,
       "direction": 1,
       "positioning": {
         "anchor": "bottom-left",
         "xOffsetPx": 50,
-        "yOffsetPx": 250
+        "yOffsetPx": 300
       },
       "data-ai-hint": "platform grass floating"
     },
     {
       "id": "floating_platform_right",
-      "width": 150,
+      "width": 120,
       "height": 32,
       "type": 1,
       "color": "hsl(var(--accent))",
-      "vx": 1.875,
+      "vx": 0.9375,
       "direction": -1,
       "positioning": {
         "anchor": "bottom-right",
