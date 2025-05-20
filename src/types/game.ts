@@ -10,6 +10,7 @@ export interface PlayerState {
   isMovingLeft: boolean;
   isMovingRight: boolean;
   color: string;
+  facingDirection: 'left' | 'right'; // Added to track player's facing direction
   image?: HTMLImageElement;
 }
 
@@ -39,8 +40,8 @@ export interface CoinState {
   particles: Particle[]; 
   isVisuallyPresent: boolean; 
 
-  rotationAngle: number; // For 3D-like rotation effect
-  rotationSpeed: number; // Speed of rotation
+  rotationAngle: number; 
+  rotationSpeed: number; 
 }
 
 export interface EnemyState {
@@ -67,7 +68,7 @@ export interface TilePositioning {
 }
 
 export interface Tile {
-  id: string; // Ensure id is always present for ProcessedTile
+  id: string; 
   x: number;
   y: number;
   width: number;
@@ -79,7 +80,7 @@ export interface Tile {
 }
 
 export interface RawTileData {
-  id: string; // Make id mandatory for RawTileData as well
+  id: string; 
   width: number | string; 
   height: number | string; 
   type: number;
