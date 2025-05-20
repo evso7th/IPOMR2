@@ -11,7 +11,7 @@ import StartScreen from '@/components/game/screens/StartScreen';
 export default function PlatformerPage() {
   const playerRef = useRef<PlayerState | null>(null);
   const [executeAction, setExecuteAction] = useState<GameAction | null>(null);
-  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('startScreen'); 
+  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing'); 
 
   const handlePlayerAction = useCallback((action: GameAction) => {
     setExecuteAction(action);
@@ -69,7 +69,7 @@ export default function PlatformerPage() {
           data-ai-hint="sky clouds"
         >
           <GameCanvas
-            levelPath="/levels/level1.json"
+            levelPath="/levels/level2.json"
             onPlayerAction={handlePlayerAction}
             playerRef={playerRef}
             executeAction={executeAction}
@@ -81,3 +81,4 @@ export default function PlatformerPage() {
     </div>
   );
 }
+
