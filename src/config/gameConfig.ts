@@ -5,7 +5,7 @@ export const PLAYER_SPEED = 5; // pixels per frame
 export const PLATFORM_SPEED = (PLAYER_SPEED * 0.75) / 4; // pixels per frame for moving platforms
 export const MAX_JUMP_HEIGHT = 200; // pixels
 export const JUMP_STRENGTH = -14.14; // Approx. -Math.sqrt(200 * 2 * 0.5)
-export const PLAYER_WIDTH = 48; // pixels
+export const PLAYER_WIDTH = 42; // pixels
 export const PLAYER_HEIGHT = 75; // pixels
 
 export const PLAYER_COLOR = 'hsl(var(--primary))';
@@ -40,3 +40,4 @@ export const COIN_SHADOW_COLOR = 'rgba(0, 0, 0, 0.3)';
 export const ENEMY_RADIUS = 32; // pixels
 export const ENEMY_COLOR = 'red'; // color of the enemy
 export const ENEMY_SPEED_FACTOR = 0.5; // Factor of PLATFORM_SPEED
+
