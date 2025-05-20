@@ -531,11 +531,11 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
         !assets.flowerImageLoaded || !assets.treeImageLoaded || !assets.tree2ImageLoaded || 
         !assets.smallBushImageLoaded || !assets.largeBushImageLoaded || !assets.houseImageLoaded
     ) {
-      if (processedLevelRef.current !== null) { 
+      if (processedLevelRef.current !== null && (canvasSize.width === 0 || canvasSize.height === 0 || !rawLevelData)) { 
         setProcessedLevel(null);
       }
-      if (rawLevelData && (canvasSize.width === 0 || canvasSize.height === 0)) {
-         if (!isLoading) setIsLoading(true);
+      if (rawLevelData && (canvasSize.width === 0 || canvasSize.height === 0) && !isLoading) {
+         setIsLoading(true);
       }
       return;
     }
@@ -566,9 +566,9 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       if (!isLoading) setIsLoading(true);
     }
   }, [
-    isClient, rawLevelData, canvasSize, assets, levelPath, isLoading,
+    isClient, rawLevelData, canvasSize, assets, levelPath, 
     parentPlayerRef, p3BasePosition, p3InterestPoints, p3CurrentTargetIndex, p3MovementStateRef,
-    setProcessedLevel, setActiveCoins, setActiveEnemies, setIsLoading
+    setProcessedLevel, setActiveCoins, setActiveEnemies, setIsLoading, isLoading
   ]);
 
   // Effect 6: Spawn entities and finish loading
@@ -946,7 +946,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     processedLevel, 
     assets, executeAction, resetExecuteAction, levelPath, parentPlayerRef,
     p3BasePosition, p3InterestPoints, p3CurrentTargetIndex, p3MovementStateRef,
-    setActiveCoins, setActiveEnemies 
+    setActiveCoins, setActiveEnemies, activeCoins, activeEnemies 
   ]);
 
   // Effect 8: Game Loop Setup
@@ -1001,3 +1001,4 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     </div>
   );
 }
+
