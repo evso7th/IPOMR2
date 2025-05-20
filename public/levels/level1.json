@@ -1,54 +1,183 @@
 
 {
   "playerStart": {
-    "platformId": "p2",
-    "horizontalAlign": "left",
-    "xOffsetPx": 10,
+    "platformId": "floating_p1_lvl1",
+    "horizontalAlign": "center",
     "yOffsetPx": 0
   },
   "tiles": [
     {
-      "id": "p1",
-      "width": 120,
-      "height": 32,
-      "type": 1,
-      "color": "hsl(var(--accent))",
-      "vx": 0.46875,
-      "direction": 1,
-      "positioning": {
-        "anchor": "bottom-left",
-        "xOffsetPx": 50,
-        "yOffsetPx": 385
-      },
-      "data-ai-hint": "platform grass moving"
-    },
-    {
-      "id": "p2",
-      "width": 120,
-      "height": 32,
-      "type": 1,
-      "color": "hsl(var(--accent))",
-      "vx": 0.46875,
-      "direction": -1,
-      "positioning": {
-        "anchor": "bottom-right",
-        "xOffsetPx": 50,
-        "yOffsetPx": 135
-      },
-      "data-ai-hint": "platform grass moving"
-    },
-    {
-      "id": "p_ground",
+      "id": "p_ground_lvl1",
       "width": "100%",
-      "height": 1,
+      "height": 16,
       "type": 1,
-      "color": "hsl(var(--accent))",
+      "color": "hsl(var(--accent))", 
       "positioning": {
         "anchor": "bottom-left",
         "xOffsetPx": 0,
         "yOffsetPx": 0
       },
-      "data-ai-hint": "ground surface"
+      "data-ai-hint": "ground grass"
+    },
+    {
+      "id": "water_area_lvl1",
+      "width": "100%",
+      "height": 48,
+      "type": 0,
+      "color": "hsl(200, 70%, 60%)",
+      "positioning": {
+        "anchor": "bottom-left",
+        "xOffsetPx": 0,
+        "yOffsetPx": 16
+      },
+      "layer": "background",
+      "data-ai-hint": "water blue"
+    },
+    {
+      "id": "stone_l1_lvl1",
+      "width": 32,
+      "height": 32,
+      "type": 1,
+      "color": "hsl(210, 60%, 70%)",
+      "positioning": { "anchor": "bottom-left", "xOffsetPx": 60, "yOffsetPx": 16 },
+      "data-ai-hint": "stone block platform"
+    },
+    {
+      "id": "stone_l2_lvl1",
+      "width": 32,
+      "height": 32,
+      "type": 1,
+      "color": "hsl(210, 60%, 70%)",
+      "positioning": { "anchor": "bottom-left", "xOffsetPx": 92, "yOffsetPx": 16 },
+      "data-ai-hint": "stone block platform"
+    },
+    {
+      "id": "stone_l3_lvl1",
+      "width": 32,
+      "height": 32,
+      "type": 1,
+      "color": "hsl(210, 60%, 70%)",
+      "positioning": { "anchor": "bottom-left", "xOffsetPx": 92, "yOffsetPx": 48 },
+      "data-ai-hint": "stone block platform"
+    },
+    {
+      "id": "tree_on_stone_l_lvl1",
+      "width": 30,
+      "height": 50, 
+      "type": 0,
+      "color": "hsl(120, 60%, 25%)",
+      "layer": "background",
+      "positioning": { "anchor": "bottom-left", "xOffsetPx": 93, "yOffsetPx": 80 },
+      "data-ai-hint": "tree small foliage" 
+    },
+    {
+      "id": "bush_on_stone_l2_lvl1",
+      "width": 24,
+      "height": 24,
+      "type": 0,
+      "color": "hsl(280, 50%, 60%)",
+      "layer": "foreground",
+      "positioning": { "anchor": "bottom-left", "xOffsetPx": 96, "yOffsetPx": 48 },
+      "data-ai-hint": "bush flowers purple small"
+    },
+    {
+      "id": "boat1_lvl1",
+      "width": 80,
+      "height": 28,
+      "type": 1,
+      "color": "hsl(30, 40%, 30%)",
+      "vx": 0.5, 
+      "direction": 1,
+      "positioning": { "anchor": "bottom-center", "xOffsetPx": 0, "yOffsetPx": 20 },
+      "data-ai-hint": "boat wood water transportation"
+    },
+    {
+      "id": "stone_r1_lvl1",
+      "width": 32,
+      "height": 32,
+      "type": 1,
+      "color": "hsl(210, 60%, 70%)",
+      "positioning": { "anchor": "bottom-right", "xOffsetPx": 150, "yOffsetPx": 16 },
+      "data-ai-hint": "stone block platform"
+    },
+    {
+      "id": "stone_r2_lvl1",
+      "width": 32,
+      "height": 32,
+      "type": 1,
+      "color": "hsl(210, 60%, 70%)",
+      "positioning": { "anchor": "bottom-right", "xOffsetPx": 118, "yOffsetPx": 16 },
+      "data-ai-hint": "stone block platform"
+    },
+    {
+      "id": "stone_r3_lvl1",
+      "width": 32,
+      "height": 32,
+      "type": 1,
+      "color": "hsl(210, 60%, 70%)",
+      "positioning": { "anchor": "bottom-right", "xOffsetPx": 118, "yOffsetPx": 48 },
+      "data-ai-hint": "stone block platform"
+    },
+    {
+      "id": "stone_r4_lvl1",
+      "width": 32,
+      "height": 32,
+      "type": 1,
+      "color": "hsl(210, 60%, 70%)",
+      "positioning": { "anchor": "bottom-right", "xOffsetPx": 86, "yOffsetPx": 16 },
+      "data-ai-hint": "stone block platform"
+    },
+    {
+      "id": "tree_on_stone_r_lvl1",
+      "width": 30,
+      "height": 50,
+      "type": 0,
+      "color": "hsl(120, 60%, 25%)",
+      "layer": "background",
+      "positioning": { "anchor": "bottom-right", "xOffsetPx": 119, "yOffsetPx": 80 },
+      "data-ai-hint": "tree small foliage"
+    },
+    {
+      "id": "bush_on_stone_r1_lvl1",
+      "width": 24,
+      "height": 24,
+      "type": 0,
+      "color": "hsl(280, 50%, 60%)",
+      "layer": "foreground",
+      "positioning": { "anchor": "bottom-right", "xOffsetPx": 154, "yOffsetPx": 48 },
+      "data-ai-hint": "bush flowers purple small"
+    },
+    {
+      "id": "floating_p1_lvl1",
+      "width": 160,
+      "height": 32,
+      "type": 1,
+      "color": "hsl(var(--accent))",
+      "vx": 0,
+      "direction": 0,
+      "positioning": {
+        "anchor": "bottom-center",
+        "xOffsetPx": -200,
+        "yOffsetPx": 260 
+      },
+      "data-ai-hint": "platform grass floating"
+    },
+    {
+      "id": "floating_p2_lvl1",
+      "width": 160,
+      "height": 32,
+      "type": 1,
+      "color": "hsl(var(--accent))",
+      "vx": 0,
+      "direction": 0,
+      "positioning": {
+        "anchor": "bottom-center",
+        "xOffsetPx": 200,
+        "yOffsetPx": 190
+      },
+      "data-ai-hint": "platform grass floating"
     }
   ]
 }
+
+    
