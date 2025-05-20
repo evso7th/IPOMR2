@@ -3,7 +3,8 @@
   "playerStart": {
     "platformId": "p2",
     "horizontalAlign": "left",
-    "xOffsetPx": 10
+    "xOffsetPx": 10,
+    "yOffsetPx": 0
   },
   "tiles": [
     {
@@ -23,7 +24,7 @@
       "width": 120,
       "height": 32,
       "type": 1,
-      "color": "hsl(var(--secondary))",
+      "color": "hsl(var(--primary))",
       "vx": 0.9375,
       "direction": 1,
       "positioning": {
@@ -37,13 +38,13 @@
       "width": 120,
       "height": 32,
       "type": 1,
-      "color": "hsl(var(--secondary))",
+      "color": "hsl(var(--primary))",
       "vx": 0.9375,
       "direction": -1,
       "positioning": {
         "anchor": "bottom-right",
         "xOffsetPx": 50,
-        "yOffsetPx": 135 
+        "yOffsetPx": 135
       }
     },
     {
@@ -52,7 +53,7 @@
       "height": 20,
       "type": 0,
       "color": "hsl(120, 50%, 35%)",
-      "layer": "background", 
+      "layer": "foreground", 
       "positioning": {
         "anchor": "bottom-left",
         "xOffsetPx": 80,
@@ -64,12 +65,12 @@
       "width": 40,
       "height": 120,
       "type": 0,
-      "color": "hsl(30, 60%, 30%)", 
-      "layer": "foreground",    
+      "color": "hsl(30, 60%, 30%)",
+      "layer": "background",
       "positioning": {
         "anchor": "bottom-left",
         "xOffsetPx": 150,
-        "yOffsetPx": 1 
+        "yOffsetPx": 1
       }
     }
   ]
