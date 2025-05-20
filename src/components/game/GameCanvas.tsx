@@ -44,9 +44,10 @@ interface GameCanvasProps {
   resetExecuteAction: () => void;
 }
 
+const P3_SIZE = 32;
 const P3_DRIFT_RANGE = 32;
 const P3_MOVEMENT_DURATION = 3000;
-const P3_SIZE = 32; 
+
 
 function parseDimension(value: number | string, totalSize: number): number {
   if (typeof value === 'number') {
@@ -146,13 +147,12 @@ function processRawLevelData(
          console.warn(`Player start platform with id "${rawData.playerStart.platformId}" not found. Defaulting player position.`);
       }
     }
-
+    
     const p_ground_tile = processedTiles.find(tile => tile.id === 'p_ground');
     if (p_ground_tile && canvasWidth > 0 && canvasHeight > 0) {
         const p_ground_top_y = p_ground_tile.y;
         
         p3BasePosRef.current = { x: (canvasWidth / 2) - (P3_SIZE / 2), y: p_ground_top_y - 300 };
-
 
         p3InterestPointsRef.current = [
             { xOffset: 0, yOffset: 0 },
@@ -163,7 +163,6 @@ function processRawLevelData(
         ];
         p3CurrentTargetIndexRef.current = 0;
         p3MovementStateRef.current = null;
-
         
         if (p3BasePosRef.current){
             const initialOffset = p3InterestPointsRef.current[p3CurrentTargetIndexRef.current];
@@ -183,7 +182,6 @@ function processRawLevelData(
     } else if (canvasWidth > 0 && canvasHeight > 0) {
         console.warn("p_ground platform not found for P3 positioning. P3 will not be added.");
     }
-
 
     const newPlayer: PlayerState = {
         x: playerStartX, y: playerStartY,
@@ -351,18 +349,23 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     const observedElement = canvas.parentElement;
 
     const updateCanvasSizeState = () => {
-      let newWidth = 800;
-      let newHeight = 600;
-
-      if (observedElement.clientWidth > 0) newWidth = observedElement.clientWidth;
-      if (observedElement.clientHeight > 0) newHeight = observedElement.clientHeight;
-
-      setCanvasSize(currentSize => {
-        if (currentSize.width !== newWidth || currentSize.height !== newHeight) {
-          return { width: newWidth, height: newHeight };
+      if (canvasRef.current && canvasRef.current.parentElement) {
+        const parentElement = canvasRef.current.parentElement;
+        let newWidth = 0; 
+        let newHeight = 0;
+    
+        if (parentElement.clientWidth > 0 && parentElement.clientHeight > 0) {
+          newWidth = parentElement.clientWidth;
+          newHeight = parentElement.clientHeight;
         }
-        return currentSize;
-      });
+        
+        setCanvasSize(currentSize => {
+          if (currentSize.width !== newWidth || currentSize.height !== newHeight) {
+            return { width: newWidth, height: newHeight };
+          }
+          return currentSize;
+        });
+      }
     };
 
     updateCanvasSizeState(); 
@@ -403,6 +406,10 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     
     setIsLoading(true);
     setRawLevelData(null); 
+    setProcessedLevel(null);
+    setActiveCoins([]);
+    setActiveEnemies([]);
+
 
     loadLevel(levelPath)
       .then(data => {
@@ -411,28 +418,32 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
         } else {
           toast({ title: "Error", description: `Failed to load level: ${levelPath}`, variant: "destructive" });
           setRawLevelData(null);
+          setIsLoading(false); // Stop loading if level fetch fails
         }
       })
       .catch(error => {
         console.error("Error in loadLevel promise chain:", error);
         toast({ title: "Error", description: "An unexpected error occurred loading level data.", variant: "destructive" });
         setRawLevelData(null);
+        setIsLoading(false); // Stop loading on error
       });
-  }, [levelPath, isClient, toast, setIsLoading, setRawLevelData]);
+  }, [levelPath, isClient, toast, setIsLoading, setRawLevelData, setProcessedLevel, setActiveCoins, setActiveEnemies]);
 
   useEffect(() => {
     if (!isClient || !rawLevelData || canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImageLoaded || !assets.tileImageLoaded || !assets.coinImageLoaded) {
-      if (rawLevelData && (canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImageLoaded || !assets.tileImageLoaded || !assets.coinImageLoaded)) {
-           if (!isLoading) setIsLoading(true);
+      // If critical data for processing is missing, ensure isLoading remains true or becomes true
+      // This also handles the case where canvasSize might temporarily be 0x0 during resize.
+      if (isLoading === false && (canvasSize.width === 0 || canvasSize.height === 0 || !rawLevelData)) {
+        setIsLoading(true);
       }
+      if (processedLevel !== null) setProcessedLevel(null); // Clear old processed data
       return;
     }
 
-    if (!isLoading) setIsLoading(true); 
-
+    // Conditions met to process raw level data
     setActiveCoins([]);
     setActiveEnemies([]);
-
+    
     const { processedLevel: newProcessedLevel, player: newPlayer } = processRawLevelData(
         rawLevelData,
         canvasSize.width,
@@ -453,22 +464,21 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       setProcessedLevel(null);
       playerInstanceRef.current = null;
       if (parentPlayerRef) parentPlayerRef.current = null;
+      setIsLoading(false); // If processing fails, stop loading
     }
   }, [
     isClient, rawLevelData, canvasSize, assets,
     parentPlayerRef, toast, setIsLoading, setProcessedLevel, setActiveCoins, setActiveEnemies,
-    p3BasePosition, p3InterestPoints, p3CurrentTargetIndex, p3MovementState, isLoading 
+    p3BasePosition, p3InterestPoints, p3CurrentTargetIndex, p3MovementState, isLoading, processedLevel
   ]);
 
 
   useEffect(() => {
-    if (!isLoading || !isClient || !processedLevel || !processedLevel.tiles || canvasSize.width === 0 || canvasSize.height === 0) {
-        if (isLoading && processedLevel === null && rawLevelData !== null && canvasSize.width > 0 && canvasSize.height > 0) {
-            // Still waiting for processedLevel, keep isLoading true
-        } else if (!isLoading && (!processedLevel || canvasSize.width === 0 || canvasSize.height === 0)) {
-            // If not loading but critical data is missing, re-enter loading state
-            setIsLoading(true);
-        }
+    if (!isClient || !isLoading) return; // Only run if client-side and currently loading
+
+    if (!processedLevel || !processedLevel.tiles || canvasSize.width === 0 || canvasSize.height === 0) {
+        // If processedLevel is not ready, or canvas is not ready, we can't finalize loading.
+        // isLoading remains true.
         return;
     }
     
@@ -500,7 +510,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   }, [
     isClient, processedLevel, canvasSize, isLoading, levelPath,
     activeCoins.length, activeEnemies.length,
-    setActiveCoins, setActiveEnemies, setIsLoading, rawLevelData
+    setActiveCoins, setActiveEnemies, setIsLoading, toast
   ]);
 
 
@@ -565,8 +575,8 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
       if (executeAction) {
         switch (executeAction) {
-          case 'moveLeft': player.isMovingLeft = true; break;
-          case 'moveRight': player.isMovingRight = true; break;
+          case 'moveLeft': player.isMovingLeft = true; player.facingDirection = 'left'; break;
+          case 'moveRight': player.isMovingRight = true; player.facingDirection = 'right'; break;
           case 'stopMoveLeft': player.isMovingLeft = false; break;
           case 'stopMoveRight': player.isMovingRight = false; break;
           case 'jump': if (player.isOnGround) { player.vy = JUMP_STRENGTH; player.isOnGround = false; } break;
@@ -576,10 +586,8 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
       if (player.isMovingLeft) {
         player.vx = -PLAYER_SPEED;
-        player.facingDirection = 'left';
       } else if (player.isMovingRight) {
         player.vx = PLAYER_SPEED;
-        player.facingDirection = 'right';
       } else {
         player.vx = 0;
       }
@@ -743,7 +751,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   useEffect(() => {
     if (!isClient) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      const player = playerInstanceRef.current; if (!player) return;
+      // const player = playerInstanceRef.current; if (!player) return; // playerInstanceRef can be null
       if (e.key === 'ArrowLeft') onPlayerAction('moveLeft');
       if (e.key === 'ArrowRight') onPlayerAction('moveRight');
       if (e.key === 'ArrowUp' || e.key === ' ') onPlayerAction('jump');
@@ -771,3 +779,6 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     </div>
   );
 }
+
+
+    
