@@ -46,7 +46,7 @@ interface GameCanvasProps {
 
 const P3_DRIFT_RANGE = 32;
 const P3_MOVEMENT_DURATION = 3000;
-const P3_SIZE = 32; // P3 is 48x48, but let's make it 32x32 for consistency with old var name.
+const P3_SIZE = 32; 
 
 function parseDimension(value: number | string, totalSize: number): number {
   if (typeof value === 'number') {
@@ -150,10 +150,8 @@ function processRawLevelData(
     const p_ground_tile = processedTiles.find(tile => tile.id === 'p_ground');
     if (p_ground_tile && canvasWidth > 0 && canvasHeight > 0) {
         const p_ground_top_y = p_ground_tile.y;
-        const p3_current_size = 32; // P3 is 32x32 now
-
-        // p3BasePosRef.current = { x: (canvasWidth / 2) - (p3_current_size / 2), y: p_ground_top_y - 300 }; // P3 top is 300px above p_ground top
-        p3BasePosRef.current = { x: (canvasWidth / 2) - (p3_current_size / 2), y: p_ground_top_y - 300 };
+        
+        p3BasePosRef.current = { x: (canvasWidth / 2) - (P3_SIZE / 2), y: p_ground_top_y - 300 };
 
 
         p3InterestPointsRef.current = [
@@ -166,17 +164,15 @@ function processRawLevelData(
         p3CurrentTargetIndexRef.current = 0;
         p3MovementStateRef.current = null;
 
-        const initialTargetPoint = p3BasePosRef.current; 
-        const initialOffset = p3InterestPointsRef.current[p3CurrentTargetIndexRef.current];
-
-
+        
         if (p3BasePosRef.current){
+            const initialOffset = p3InterestPointsRef.current[p3CurrentTargetIndexRef.current];
             const p3TileToAdd: ProcessedTile = {
               id: 'p3',
               x: p3BasePosRef.current.x + initialOffset.xOffset,
               y: p3BasePosRef.current.y + initialOffset.yOffset,
-              width: p3_current_size,
-              height: p3_current_size,
+              width: P3_SIZE,
+              height: P3_SIZE,
               type: 1,
               color: 'hsl(var(--secondary))',
               vx: 0,
@@ -402,11 +398,11 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
   useEffect(() => {
     if (!isClient || !levelPath) {
-      if (!isLoading) setIsLoading(true);
-      return;
+      return; 
     }
+    
+    setIsLoading(true);
     setRawLevelData(null); 
-    if (!isLoading) setIsLoading(true); 
 
     loadLevel(levelPath)
       .then(data => {
@@ -422,11 +418,13 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
         toast({ title: "Error", description: "An unexpected error occurred loading level data.", variant: "destructive" });
         setRawLevelData(null);
       });
-  }, [levelPath, isClient, toast, setIsLoading, isLoading]);
+  }, [levelPath, isClient, toast, setIsLoading, setRawLevelData]);
 
   useEffect(() => {
     if (!isClient || !rawLevelData || canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImageLoaded || !assets.tileImageLoaded || !assets.coinImageLoaded) {
-       if (!isLoading && (rawLevelData || canvasSize.width === 0 || canvasSize.height === 0)) setIsLoading(true);
+      if (rawLevelData && (canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImageLoaded || !assets.tileImageLoaded || !assets.coinImageLoaded)) {
+           if (!isLoading) setIsLoading(true);
+      }
       return;
     }
 
@@ -455,44 +453,49 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       setProcessedLevel(null);
       playerInstanceRef.current = null;
       if (parentPlayerRef) parentPlayerRef.current = null;
-      if (!isLoading) setIsLoading(true); 
     }
   }, [
     isClient, rawLevelData, canvasSize, assets,
     parentPlayerRef, toast, setIsLoading, setProcessedLevel, setActiveCoins, setActiveEnemies,
-    p3BasePosition, p3InterestPoints, p3CurrentTargetIndex, p3MovementState, isLoading
+    p3BasePosition, p3InterestPoints, p3CurrentTargetIndex, p3MovementState, isLoading 
   ]);
 
 
   useEffect(() => {
-    if (isLoading && isClient && processedLevel && processedLevel.tiles && canvasSize.width > 0 && canvasSize.height > 0) {
-        let coinsSpawnedOrAttempted = activeCoins.length > 0;
-        if (!coinsSpawnedOrAttempted && processedLevel.tiles.length > 0) {
-            const newCoins = spawnNewCoinPair(processedLevel, canvasSize.width, canvasSize.height);
-            if (newCoins.length > 0) setActiveCoins(newCoins);
-            coinsSpawnedOrAttempted = true;
-        } else if (processedLevel.tiles.length === 0){
-             coinsSpawnedOrAttempted = true; 
+    if (!isLoading || !isClient || !processedLevel || !processedLevel.tiles || canvasSize.width === 0 || canvasSize.height === 0) {
+        if (isLoading && processedLevel === null && rawLevelData !== null && canvasSize.width > 0 && canvasSize.height > 0) {
+            // Still waiting for processedLevel, keep isLoading true
+        } else if (!isLoading && (!processedLevel || canvasSize.width === 0 || canvasSize.height === 0)) {
+            // If not loading but critical data is missing, re-enter loading state
+            setIsLoading(true);
         }
+        return;
+    }
+    
+    let coinsSpawnedOrAttempted = activeCoins.length > 0;
+    if (!coinsSpawnedOrAttempted && processedLevel.tiles.length > 0) {
+        const newCoins = spawnNewCoinPair(processedLevel, canvasSize.width, canvasSize.height);
+        if (newCoins.length > 0) setActiveCoins(newCoins);
+        coinsSpawnedOrAttempted = true;
+    } else if (processedLevel.tiles.length === 0){
+         coinsSpawnedOrAttempted = true; 
+    }
 
-        let enemiesSpawnedOrAttempted = activeEnemies.length > 0;
-        if (levelPath !== '/levels/level2.json') { 
-            if (!enemiesSpawnedOrAttempted && processedLevel.tiles.length > 0 && processedLevel.tiles.find(t => t.id === 'p1') && processedLevel.tiles.find(t => t.id === 'p2')) {
-                const newEnemy = spawnSingleEnemy(processedLevel, canvasSize.width);
-                if (newEnemy) setActiveEnemies([newEnemy]);
-                enemiesSpawnedOrAttempted = true;
-            } else if (processedLevel.tiles.length === 0 || !processedLevel.tiles.find(t => t.id === 'p1') || !processedLevel.tiles.find(t => t.id === 'p2')){
-                 enemiesSpawnedOrAttempted = true; 
-            }
-        } else {
-            enemiesSpawnedOrAttempted = true; 
+    let enemiesSpawnedOrAttempted = activeEnemies.length > 0;
+    if (levelPath !== '/levels/level2.json') { 
+        if (!enemiesSpawnedOrAttempted && processedLevel.tiles.length > 0 && processedLevel.tiles.find(t => t.id === 'p1') && processedLevel.tiles.find(t => t.id === 'p2')) {
+            const newEnemy = spawnSingleEnemy(processedLevel, canvasSize.width);
+            if (newEnemy) setActiveEnemies([newEnemy]);
+            enemiesSpawnedOrAttempted = true;
+        } else if (processedLevel.tiles.length === 0 || !processedLevel.tiles.find(t => t.id === 'p1') || !processedLevel.tiles.find(t => t.id === 'p2')){
+             enemiesSpawnedOrAttempted = true; 
         }
+    } else {
+        enemiesSpawnedOrAttempted = true; 
+    }
 
-        if ((processedLevel.tiles.length === 0) || (coinsSpawnedOrAttempted && enemiesSpawnedOrAttempted)) {
-            setIsLoading(false);
-        }
-    } else if (isLoading && processedLevel === null && canvasSize.width > 0 && canvasSize.height > 0 && rawLevelData !== null) {
-       // Keep loading if processedLevel is not ready but raw data and canvas size are there
+    if ((processedLevel.tiles.length === 0) || (coinsSpawnedOrAttempted && enemiesSpawnedOrAttempted)) {
+        setIsLoading(false);
     }
   }, [
     isClient, processedLevel, canvasSize, isLoading, levelPath,
@@ -768,6 +771,3 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     </div>
   );
 }
-
-    
-
