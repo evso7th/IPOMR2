@@ -9,8 +9,8 @@ export const PLAYER_WIDTH = 42; // pixels
 export const PLAYER_HEIGHT = 75; // pixels
 
 export const PLAYER_COLOR = 'hsl(var(--primary))';
-export const TILE_COLOR_GROUND = 'hsl(var(--accent))'; // This seems unused, platforms get color from JSON
-export const TILE_COLOR_EMPTY = 'rgba(0,0,0,0)'; // Unused
+// export const TILE_COLOR_GROUND = 'hsl(var(--accent))'; // This seems unused, platforms get color from JSON
+// export const TILE_COLOR_EMPTY = 'rgba(0,0,0,0)'; // Unused
 
 // Coin Configuration
 export const COIN_SIZE = 20; 
@@ -41,3 +41,8 @@ export const ENEMY_RADIUS = 32; // pixels
 export const ENEMY_COLOR = 'red'; // color of the enemy
 export const ENEMY_SPEED_FACTOR = 0.5; // Factor of PLATFORM_SPEED
 
+// P3 Platform Configuration (for level 2's drifting platform)
+export const P3_SIZE_W = 64; // Width of P3
+export const P3_SIZE_H = 32; // Height of P3
+export const P3_DRIFT_RANGE = 20; // Max drift in pixels from base position (X and Y)
+export const P3_MOVEMENT_DURATION = 3000; // ms to move to a new interest point
