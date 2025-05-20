@@ -1,4 +1,3 @@
-
 {
   "playerStart": {
     "platformId": "p2",
@@ -24,13 +23,13 @@
       "width": 120,
       "height": 32,
       "type": 1,
-      "color": "hsl(var(--primary))",
+      "color": "hsl(var(--secondary))",
       "vx": 0.9375,
       "direction": 1,
       "positioning": {
         "anchor": "bottom-left",
         "xOffsetPx": 50,
-        "yOffsetPx": 385 
+        "yOffsetPx": 385
       }
     },
     {
@@ -38,7 +37,7 @@
       "width": 120,
       "height": 32,
       "type": 1,
-      "color": "hsl(var(--primary))",
+      "color": "hsl(var(--secondary))",
       "vx": 0.9375,
       "direction": -1,
       "positioning": {
@@ -53,12 +52,13 @@
       "height": 20,
       "type": 0,
       "color": "hsl(120, 50%, 35%)",
-      "layer": "foreground", 
+      "layer": "foreground",
       "positioning": {
         "anchor": "bottom-left",
         "xOffsetPx": 80,
         "yOffsetPx": 1
-      }
+      },
+      "data-ai-hint": "flowers colorful"
     },
     {
       "id": "tree1",
@@ -71,7 +71,8 @@
         "anchor": "bottom-left",
         "xOffsetPx": 150,
         "yOffsetPx": 1
-      }
+      },
+      "data-ai-hint": "tree green"
     }
   ]
 }
