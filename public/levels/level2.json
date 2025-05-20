@@ -25,7 +25,7 @@
       "height": 32,
       "type": 1,
       "color": "hsl(var(--secondary))",
-      "vx": 0.9375,
+      "vx": 0.234375,
       "direction": 1,
       "positioning": {
         "anchor": "bottom-left",
@@ -39,7 +39,7 @@
       "height": 32,
       "type": 1,
       "color": "hsl(var(--secondary))",
-      "vx": 0.9375,
+      "vx": 0.234375,
       "direction": -1,
       "positioning": {
         "anchor": "bottom-right",
@@ -80,7 +80,7 @@
       "type": 0,
       "color": "hsl(30, 60%, 30%)",
       "layer": "background",
-      "data-ai-hint": "tree nature",
+      "data-ai-hint": "tree green",
       "positioning": {
         "anchor": "bottom-center",
         "xOffsetPx": -60,
@@ -98,6 +98,62 @@
       "positioning": {
         "anchor": "bottom-center",
         "xOffsetPx": -130,
+        "yOffsetPx": 1
+      }
+    },
+    {
+      "id": "bush_left_1",
+      "width": 20,
+      "height": 15,
+      "type": 0,
+      "color": "hsl(120, 40%, 40%)",
+      "layer": "foreground",
+      "data-ai-hint": "bush plant",
+      "positioning": {
+        "anchor": "bottom-left",
+        "xOffsetPx": 10,
+        "yOffsetPx": 1
+      }
+    },
+    {
+      "id": "bush_left_2",
+      "width": 25,
+      "height": 18,
+      "type": 0,
+      "color": "hsl(120, 45%, 35%)",
+      "layer": "foreground",
+      "data-ai-hint": "bush plant",
+      "positioning": {
+        "anchor": "bottom-left",
+        "xOffsetPx": 35, 
+        "yOffsetPx": 1
+      }
+    },
+    {
+      "id": "bush_right_1",
+      "width": 20,
+      "height": 15,
+      "type": 0,
+      "color": "hsl(120, 40%, 40%)",
+      "layer": "foreground",
+      "data-ai-hint": "bush plant",
+      "positioning": {
+        "anchor": "bottom-right",
+        "xOffsetPx": 10,
+        "yOffsetPx": 1
+      }
+    },
+    {
+      "id": "bush_right_2",
+      "width": 25,
+      "height": 18,
+      "type": 0,
+      "color": "hsl(120, 45%, 35%)",
+      "layer": "foreground",
+      "data-ai-hint": "bush plant",
+      "positioning": {
+        "anchor": "bottom-right",
+        "xOffsetPx": 35,
         "yOffsetPx": 1
       }
     }
