@@ -1,183 +1,202 @@
-
 {
   "playerStart": {
-    "platformId": "floating_p1_lvl1",
+    "platformId": "floating_platform_left",
     "horizontalAlign": "center",
+    "xOffsetPx": 0,
     "yOffsetPx": 0
   },
   "tiles": [
     {
-      "id": "p_ground_lvl1",
+      "id": "water_area",
       "width": "100%",
-      "height": 16,
-      "type": 1,
-      "color": "hsl(var(--accent))", 
+      "height": 32,
+      "type": 0,
+      "color": "hsl(200, 70%, 50%)",
       "positioning": {
         "anchor": "bottom-left",
         "xOffsetPx": 0,
         "yOffsetPx": 0
       },
-      "data-ai-hint": "ground grass"
-    },
-    {
-      "id": "water_area_lvl1",
-      "width": "100%",
-      "height": 48,
-      "type": 0,
-      "color": "hsl(200, 70%, 60%)",
-      "positioning": {
-        "anchor": "bottom-left",
-        "xOffsetPx": 0,
-        "yOffsetPx": 16
-      },
       "layer": "background",
       "data-ai-hint": "water blue"
     },
     {
-      "id": "stone_l1_lvl1",
+      "id": "p_ground",
+      "width": "100%",
+      "height": 20,
+      "type": 1,
+      "color": "hsl(120, 60%, 40%)",
+      "positioning": {
+        "anchor": "bottom-left",
+        "xOffsetPx": 0,
+        "yOffsetPx": 32 
+      },
+      "data-ai-hint": "ground grass"
+    },
+    {
+      "id": "stone_left_1",
       "width": 32,
       "height": 32,
       "type": 1,
-      "color": "hsl(210, 60%, 70%)",
-      "positioning": { "anchor": "bottom-left", "xOffsetPx": 60, "yOffsetPx": 16 },
-      "data-ai-hint": "stone block platform"
+      "color": "hsl(210, 20%, 50%)",
+      "positioning": {
+        "anchor": "bottom-left",
+        "xOffsetPx": 80,
+        "yOffsetPx": 32 
+      },
+      "data-ai-hint": "stone rock"
     },
     {
-      "id": "stone_l2_lvl1",
+      "id": "stone_left_2",
       "width": 32,
       "height": 32,
       "type": 1,
-      "color": "hsl(210, 60%, 70%)",
-      "positioning": { "anchor": "bottom-left", "xOffsetPx": 92, "yOffsetPx": 16 },
-      "data-ai-hint": "stone block platform"
+      "color": "hsl(210, 20%, 50%)",
+      "positioning": {
+        "anchor": "bottom-left",
+        "xOffsetPx": 112, 
+        "yOffsetPx": 32
+      },
+      "data-ai-hint": "stone rock"
     },
     {
-      "id": "stone_l3_lvl1",
+      "id": "stone_left_3",
       "width": 32,
       "height": 32,
       "type": 1,
-      "color": "hsl(210, 60%, 70%)",
-      "positioning": { "anchor": "bottom-left", "xOffsetPx": 92, "yOffsetPx": 48 },
-      "data-ai-hint": "stone block platform"
+      "color": "hsl(210, 20%, 50%)",
+      "positioning": {
+        "anchor": "bottom-left",
+        "xOffsetPx": 144, 
+        "yOffsetPx": 32
+      },
+      "data-ai-hint": "stone rock"
     },
     {
-      "id": "tree_on_stone_l_lvl1",
+      "id": "stone_right_1",
+      "width": 32,
+      "height": 32,
+      "type": 1,
+      "color": "hsl(210, 20%, 50%)",
+      "positioning": {
+        "anchor": "bottom-right",
+        "xOffsetPx": 144, 
+        "yOffsetPx": 32
+      },
+      "data-ai-hint": "stone rock"
+    },
+    {
+      "id": "stone_right_2",
+      "width": 32,
+      "height": 32,
+      "type": 1,
+      "color": "hsl(210, 20%, 50%)",
+      "positioning": {
+        "anchor": "bottom-right",
+        "xOffsetPx": 112, 
+        "yOffsetPx": 32
+      },
+      "data-ai-hint": "stone rock"
+    },
+    {
+      "id": "stone_right_3",
+      "width": 32,
+      "height": 32,
+      "type": 1,
+      "color": "hsl(210, 20%, 50%)",
+      "positioning": {
+        "anchor": "bottom-right",
+        "xOffsetPx": 80,
+        "yOffsetPx": 32
+      },
+      "data-ai-hint": "stone rock"
+    },
+    {
+      "id": "tree_on_stone_left",
       "width": 30,
-      "height": 50, 
+      "height": 80,
       "type": 0,
       "color": "hsl(120, 60%, 25%)",
+      "positioning": {
+        "anchor": "bottom-left",
+        "xOffsetPx": 81, 
+        "yOffsetPx": 64 
+      },
       "layer": "background",
-      "positioning": { "anchor": "bottom-left", "xOffsetPx": 93, "yOffsetPx": 80 },
-      "data-ai-hint": "tree small foliage" 
+      "data-ai-hint": "tree nature"
     },
     {
-      "id": "bush_on_stone_l2_lvl1",
-      "width": 24,
-      "height": 24,
+      "id": "bush_on_stone_left",
+      "width": 20,
+      "height": 15,
       "type": 0,
-      "color": "hsl(280, 50%, 60%)",
+      "color": "hsl(100, 50%, 40%)",
+      "positioning": {
+        "anchor": "bottom-left",
+        "xOffsetPx": 149, 
+        "yOffsetPx": 64
+      },
       "layer": "foreground",
-      "positioning": { "anchor": "bottom-left", "xOffsetPx": 96, "yOffsetPx": 48 },
-      "data-ai-hint": "bush flowers purple small"
+      "data-ai-hint": "bush small"
+    },
+     {
+      "id": "tree_on_stone_right",
+      "width": 30,
+      "height": 80,
+      "type": 0,
+      "color": "hsl(120, 60%, 25%)",
+      "positioning": {
+        "anchor": "bottom-right",
+        "xOffsetPx": 81, 
+        "yOffsetPx": 64 
+      },
+      "layer": "background",
+      "data-ai-hint": "tree nature"
     },
     {
-      "id": "boat1_lvl1",
+      "id": "boat1",
       "width": 80,
-      "height": 28,
+      "height": 20,
       "type": 1,
-      "color": "hsl(30, 40%, 30%)",
-      "vx": 0.5, 
+      "color": "hsl(30, 40%, 30%)", 
+      "vx": 0.4, 
       "direction": 1,
-      "positioning": { "anchor": "bottom-center", "xOffsetPx": 0, "yOffsetPx": 20 },
-      "data-ai-hint": "boat wood water transportation"
+      "positioning": {
+        "anchor": "bottom-center",
+        "xOffsetPx": 0,
+        "yOffsetPx": 32 
+      },
+      "data-ai-hint": "boat wood"
     },
     {
-      "id": "stone_r1_lvl1",
-      "width": 32,
+      "id": "floating_platform_left",
+      "width": 100,
       "height": 32,
       "type": 1,
-      "color": "hsl(210, 60%, 70%)",
-      "positioning": { "anchor": "bottom-right", "xOffsetPx": 150, "yOffsetPx": 16 },
-      "data-ai-hint": "stone block platform"
-    },
-    {
-      "id": "stone_r2_lvl1",
-      "width": 32,
-      "height": 32,
-      "type": 1,
-      "color": "hsl(210, 60%, 70%)",
-      "positioning": { "anchor": "bottom-right", "xOffsetPx": 118, "yOffsetPx": 16 },
-      "data-ai-hint": "stone block platform"
-    },
-    {
-      "id": "stone_r3_lvl1",
-      "width": 32,
-      "height": 32,
-      "type": 1,
-      "color": "hsl(210, 60%, 70%)",
-      "positioning": { "anchor": "bottom-right", "xOffsetPx": 118, "yOffsetPx": 48 },
-      "data-ai-hint": "stone block platform"
-    },
-    {
-      "id": "stone_r4_lvl1",
-      "width": 32,
-      "height": 32,
-      "type": 1,
-      "color": "hsl(210, 60%, 70%)",
-      "positioning": { "anchor": "bottom-right", "xOffsetPx": 86, "yOffsetPx": 16 },
-      "data-ai-hint": "stone block platform"
-    },
-    {
-      "id": "tree_on_stone_r_lvl1",
-      "width": 30,
-      "height": 50,
-      "type": 0,
-      "color": "hsl(120, 60%, 25%)",
-      "layer": "background",
-      "positioning": { "anchor": "bottom-right", "xOffsetPx": 119, "yOffsetPx": 80 },
-      "data-ai-hint": "tree small foliage"
-    },
-    {
-      "id": "bush_on_stone_r1_lvl1",
-      "width": 24,
-      "height": 24,
-      "type": 0,
-      "color": "hsl(280, 50%, 60%)",
-      "layer": "foreground",
-      "positioning": { "anchor": "bottom-right", "xOffsetPx": 154, "yOffsetPx": 48 },
-      "data-ai-hint": "bush flowers purple small"
-    },
-    {
-      "id": "floating_p1_lvl1",
-      "width": 160,
-      "height": 32,
-      "type": 1,
-      "color": "hsl(var(--accent))",
+      "color": "hsl(120, 40%, 60%)",
       "vx": 0,
       "direction": 0,
       "positioning": {
         "anchor": "bottom-center",
-        "xOffsetPx": -200,
-        "yOffsetPx": 260 
+        "xOffsetPx": -150,
+        "yOffsetPx": 180 
       },
       "data-ai-hint": "platform grass floating"
     },
     {
-      "id": "floating_p2_lvl1",
-      "width": 160,
+      "id": "floating_platform_right",
+      "width": 100,
       "height": 32,
       "type": 1,
-      "color": "hsl(var(--accent))",
+      "color": "hsl(120, 40%, 60%)",
       "vx": 0,
       "direction": 0,
       "positioning": {
         "anchor": "bottom-center",
-        "xOffsetPx": 200,
-        "yOffsetPx": 190
+        "xOffsetPx": 150,
+        "yOffsetPx": 200 
       },
       "data-ai-hint": "platform grass floating"
     }
   ]
 }
-
-    
