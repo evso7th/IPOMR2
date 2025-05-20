@@ -1,10 +1,9 @@
-
 {
   "playerStart": {
     "platformId": "p2",
     "horizontalAlign": "left",
     "xOffsetPx": 10,
-    "yOffsetPx": 0
+    "yOffsetPx": 0 
   },
   "tiles": [
     {
@@ -25,13 +24,14 @@
       "height": 32,
       "type": 1,
       "color": "hsl(var(--secondary))",
-      "vx": 0.234375,
+      "vx": 0.9375,
       "direction": 1,
       "positioning": {
         "anchor": "bottom-left",
         "xOffsetPx": 50,
         "yOffsetPx": 385
-      }
+      },
+      "data-ai-hint": "platform grass"
     },
     {
       "id": "p2",
@@ -39,27 +39,28 @@
       "height": 32,
       "type": 1,
       "color": "hsl(var(--secondary))",
-      "vx": 0.234375,
+      "vx": 0.9375,
       "direction": -1,
       "positioning": {
         "anchor": "bottom-right",
         "xOffsetPx": 50,
         "yOffsetPx": 135
-      }
+      },
+      "data-ai-hint": "platform grass"
     },
     {
       "id": "house1",
       "width": 100,
       "height": 80,
       "type": 0,
-      "color": "hsl(30, 50%, 70%)",
+      "color": "hsl(30, 50%, 70%)", 
       "layer": "background",
-      "data-ai-hint": "house building",
       "positioning": {
         "anchor": "bottom-center",
-        "xOffsetPx": 40,
+        "xOffsetPx": 40, 
         "yOffsetPx": 1
-      }
+      },
+      "data-ai-hint": "house building"
     },
     {
       "id": "house_roof_platform",
@@ -70,8 +71,9 @@
       "positioning": {
         "anchor": "bottom-center",
         "xOffsetPx": 40,
-        "yOffsetPx": 81
-      }
+        "yOffsetPx": 81 
+      },
+      "data-ai-hint": "platform transparent"
     },
     {
       "id": "tree1",
@@ -80,12 +82,12 @@
       "type": 0,
       "color": "hsl(30, 60%, 30%)",
       "layer": "background",
-      "data-ai-hint": "tree green",
       "positioning": {
         "anchor": "bottom-center",
         "xOffsetPx": -60,
         "yOffsetPx": 1
-      }
+      },
+      "data-ai-hint": "tree green"
     },
     {
       "id": "tree2",
@@ -94,68 +96,68 @@
       "type": 0,
       "color": "hsl(30, 55%, 35%)",
       "layer": "background",
-      "data-ai-hint": "tree nature",
       "positioning": {
         "anchor": "bottom-center",
         "xOffsetPx": -130,
         "yOffsetPx": 1
-      }
+      },
+      "data-ai-hint": "tree nature"
     },
     {
       "id": "bush_left_1",
-      "width": 20,
-      "height": 15,
+      "width": 40,
+      "height": 30,
       "type": 0,
-      "color": "hsl(120, 40%, 40%)",
+      "color": "hsl(120, 60%, 30%)",
       "layer": "foreground",
-      "data-ai-hint": "bush plant",
       "positioning": {
         "anchor": "bottom-left",
-        "xOffsetPx": 10,
+        "xOffsetPx": 20,
         "yOffsetPx": 1
-      }
+      },
+      "data-ai-hint": "flowers small"
     },
     {
       "id": "bush_left_2",
-      "width": 25,
-      "height": 18,
+      "width": 50,
+      "height": 35,
       "type": 0,
-      "color": "hsl(120, 45%, 35%)",
+      "color": "hsl(120, 55%, 25%)",
       "layer": "foreground",
-      "data-ai-hint": "bush plant",
       "positioning": {
         "anchor": "bottom-left",
-        "xOffsetPx": 35, 
+        "xOffsetPx": 70,
         "yOffsetPx": 1
-      }
+      },
+      "data-ai-hint": "bush large"
     },
     {
       "id": "bush_right_1",
-      "width": 20,
-      "height": 15,
+      "width": 40,
+      "height": 30,
       "type": 0,
-      "color": "hsl(120, 40%, 40%)",
+      "color": "hsl(120, 60%, 30%)",
       "layer": "foreground",
-      "data-ai-hint": "bush plant",
       "positioning": {
         "anchor": "bottom-right",
-        "xOffsetPx": 10,
+        "xOffsetPx": 20,
         "yOffsetPx": 1
-      }
+      },
+      "data-ai-hint": "flowers small"
     },
     {
       "id": "bush_right_2",
-      "width": 25,
-      "height": 18,
+      "width": 50,
+      "height": 35,
       "type": 0,
-      "color": "hsl(120, 45%, 35%)",
+      "color": "hsl(120, 55%, 25%)",
       "layer": "foreground",
-      "data-ai-hint": "bush plant",
       "positioning": {
         "anchor": "bottom-right",
-        "xOffsetPx": 35,
+        "xOffsetPx": 70,
         "yOffsetPx": 1
-      }
+      },
+      "data-ai-hint": "bush large"
     }
   ]
 }

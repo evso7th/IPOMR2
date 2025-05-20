@@ -155,10 +155,12 @@ function processRawLevelData(
     const p_ground_tile = processedTiles.find(tile => tile.id === 'p_ground');
     if (p_ground_tile && canvasWidth > 0 && canvasHeight > 0) {
         const p_ground_top_y = p_ground_tile.y;
+        const p3_size_w_local = P3_SIZE_W;
+        const p3_size_h_local = P3_SIZE_H;
         
         p3BasePosRef.current = { 
-            x: (canvasWidth / 2) - (P3_SIZE_W / 2), 
-            y: p_ground_top_y - 300 
+            x: (canvasWidth / 2) - (p3_size_w_local / 2), 
+            y: p_ground_top_y - 300 // Base Y for p3 (top edge)
         };
 
         p3InterestPointsRef.current = [
@@ -177,13 +179,13 @@ function processRawLevelData(
               id: 'p3',
               x: p3BasePosRef.current.x + initialOffset.xOffset,
               y: p3BasePosRef.current.y + initialOffset.yOffset,
-              width: P3_SIZE_W,
-              height: P3_SIZE_H, 
+              width: p3_size_w_local,
+              height: p3_size_h_local, 
               type: 1, 
               color: 'hsl(var(--secondary))', 
               vx: 0, 
               direction: 0,
-              layer: 'background',
+              layer: 'background', // p3 should be a background element for collision but can be visually prominent
             };
             processedTiles.push(p3TileToAdd);
         }
@@ -331,14 +333,24 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     coinImage: HTMLImageElement | null;
     flowerImage: HTMLImageElement | null;
     treeImage: HTMLImageElement | null;
+    tree2Image: HTMLImageElement | null;
+    smallBushImage: HTMLImageElement | null;
+    largeBushImage: HTMLImageElement | null;
+    houseImage: HTMLImageElement | null;
     playerImageLoaded: boolean; 
     tileImageLoaded: boolean; 
     coinImageLoaded: boolean;
     flowerImageLoaded: boolean;
     treeImageLoaded: boolean;
+    tree2ImageLoaded: boolean;
+    smallBushImageLoaded: boolean;
+    largeBushImageLoaded: boolean;
+    houseImageLoaded: boolean;
   }>({ 
     playerImage: null, tileImage: null, coinImage: null, flowerImage: null, treeImage: null,
-    playerImageLoaded: false, tileImageLoaded: false, coinImageLoaded: false, flowerImageLoaded: false, treeImageLoaded: false
+    tree2Image: null, smallBushImage: null, largeBushImage: null, houseImage: null,
+    playerImageLoaded: false, tileImageLoaded: false, coinImageLoaded: false, flowerImageLoaded: false, treeImageLoaded: false,
+    tree2ImageLoaded: false, smallBushImageLoaded: false, largeBushImageLoaded: false, houseImageLoaded: false
   });
 
   useEffect(() => {
@@ -364,17 +376,36 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     cImg.onload = () => setAssets(prev => ({ ...prev, coinImage: cImg, coinImageLoaded: true }));
     cImg.onerror = () => { console.error("Failed to load coin image."); setAssets(prev => ({ ...prev, coinImageLoaded: true })); };
   
-    const flowerImg = new Image();
-    flowerImg.src = '/assets/images/flowers.png';
-    flowerImg.setAttribute('data-ai-hint', 'flowers colorful');
-    flowerImg.onload = () => setAssets(prev => ({ ...prev, flowerImage: flowerImg, flowerImageLoaded: true }));
-    flowerImg.onerror = () => { console.error("Failed to load flower image."); setAssets(prev => ({ ...prev, flowerImageLoaded: true})); };
+    const flowerImg = new Image(); // This was for the original "bush1" which is now house1. 
+                                  // This variable name should be updated or used for small bushes.
+    flowerImg.src = '/assets/images/flowers.png'; 
+    flowerImg.setAttribute('data-ai-hint', 'flowers small'); // Original hint: flowers colorful
+    flowerImg.onload = () => setAssets(prev => ({ ...prev, smallBushImage: flowerImg, smallBushImageLoaded: true }));
+    flowerImg.onerror = () => { console.error("Failed to load small bush (flowers.png) image."); setAssets(prev => ({ ...prev, smallBushImageLoaded: true})); };
 
-    const treeImg = new Image();
-    treeImg.src = '/assets/images/tree1.png';
-    treeImg.setAttribute('data-ai-hint', 'tree green');
-    treeImg.onload = () => setAssets(prev => ({ ...prev, treeImage: treeImg, treeImageLoaded: true }));
-    treeImg.onerror = () => { console.error("Failed to load tree image."); setAssets(prev => ({ ...prev, treeImageLoaded: true})); };
+    const tree1Img = new Image();
+    tree1Img.src = '/assets/images/tree1.png';
+    tree1Img.setAttribute('data-ai-hint', 'tree green');
+    tree1Img.onload = () => setAssets(prev => ({ ...prev, treeImage: tree1Img, treeImageLoaded: true }));
+    tree1Img.onerror = () => { console.error("Failed to load tree1 image."); setAssets(prev => ({ ...prev, treeImageLoaded: true})); };
+    
+    const tree2Img = new Image();
+    tree2Img.src = '/assets/images/tree2.png';
+    tree2Img.setAttribute('data-ai-hint', 'tree nature');
+    tree2Img.onload = () => setAssets(prev => ({ ...prev, tree2Image: tree2Img, tree2ImageLoaded: true }));
+    tree2Img.onerror = () => { console.error("Failed to load tree2 image."); setAssets(prev => ({ ...prev, tree2ImageLoaded: true})); };
+
+    const largeBushImg = new Image();
+    largeBushImg.src = '/assets/images/bush1.png';
+    largeBushImg.setAttribute('data-ai-hint', 'bush large');
+    largeBushImg.onload = () => setAssets(prev => ({ ...prev, largeBushImage: largeBushImg, largeBushImageLoaded: true }));
+    largeBushImg.onerror = () => { console.error("Failed to load large bush (bush1.png) image."); setAssets(prev => ({ ...prev, largeBushImageLoaded: true})); };
+    
+    const houseImg = new Image();
+    houseImg.src = '/assets/images/house1.png';
+    houseImg.setAttribute('data-ai-hint', 'house building');
+    houseImg.onload = () => setAssets(prev => ({ ...prev, houseImage: houseImg, houseImageLoaded: true }));
+    houseImg.onerror = () => { console.error("Failed to load house image."); setAssets(prev => ({ ...prev, houseImageLoaded: true})); };
 
   }, []);
 
@@ -436,12 +467,12 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   }, [isClient]); 
 
 
-  useEffect(() => {
+  useEffect(() => { // Effect 4: Load raw level data
     if (!isClient || !levelPath) {
       return;
     }
-    setIsLoading(true); 
     setRawLevelData(null); 
+    setIsLoading(true); 
 
     loadLevel(levelPath)
       .then(data => {
@@ -460,12 +491,13 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   }, [levelPath, isClient, toast, setIsLoading, setRawLevelData]);
 
 
-  useEffect(() => {
+  useEffect(() => { // Effect 5: Process raw level data when assets are loaded and canvas size is known
     if (!isClient || canvasSize.width === 0 || canvasSize.height === 0 || 
         !assets.playerImageLoaded || !assets.tileImageLoaded || !assets.coinImageLoaded ||
-        !assets.flowerImageLoaded || !assets.treeImageLoaded
+        !assets.smallBushImageLoaded || !assets.treeImageLoaded || // treeImage is for tree1
+        !assets.tree2ImageLoaded || !assets.largeBushImageLoaded || !assets.houseImageLoaded
     ) {
-      if (processedLevel !== null) setProcessedLevel(null);
+      if (processedLevel !== null) setProcessedLevel(null); // Clear processed level if dependencies are not met
       return;
     }
     
@@ -504,11 +536,13 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   ]);
 
 
-  useEffect(() => {
-    if (!isClient || !processedLevel || !processedLevel.tiles || canvasSize.width === 0 || canvasSize.height === 0 || !isLoading) {
+  useEffect(() => { // Effect 6: Spawn entities and finalize loading state
+    if (!isClient || !processedLevel || !processedLevel.tiles || canvasSize.width === 0 || canvasSize.height === 0) {
+        if (isLoading) setIsLoading(true); // Keep loading if basic conditions not met
         return;
     }
-    
+    if (!isLoading) return; // Only run this logic if we are currently in a loading state
+
     let coinsSpawnedOrAttempted = activeCoins.length > 0;
     if (!coinsSpawnedOrAttempted && processedLevel.tiles.length > 0) {
         const newCoins = spawnNewCoinPair(processedLevel, canvasSize.width, canvasSize.height);
@@ -530,9 +564,11 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     } else {
         enemiesSpawnedOrAttempted = true; 
     }
-
+    
     if ((processedLevel.tiles.length === 0) || (coinsSpawnedOrAttempted && enemiesSpawnedOrAttempted)) {
         setIsLoading(false);
+    } else if (isLoading) { // If still loading but conditions for false not met, ensure it stays true
+        setIsLoading(true);
     }
   }, [
     isClient, processedLevel, canvasSize, isLoading, levelPath,
@@ -768,17 +804,24 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
       currentLevel.tiles.forEach(tile => {
-        if (tile.type === 1 || (tile.type !== 1 && tile.layer !== 'foreground')) {
+        if (tile.type === 1 || (tile.type !== 1 && tile.layer !== 'foreground')) { // Platforms and background decor
+          let drawnWithImage = false;
           if (assets.tileImage?.complete && tile.type === 1 && assets.tileImage.src) {
             ctx.drawImage(assets.tileImage, tile.x, tile.y, tile.width, tile.height);
-          } else if (tile.type !== 1) { 
+            drawnWithImage = true;
+          } else if (tile.type !== 1) { // Decorative background elements
             if (tile.id === "tree1" && assets.treeImage?.complete && assets.treeImage.src) {
               ctx.drawImage(assets.treeImage, tile.x, tile.y, tile.width, tile.height);
-            } else {
-              ctx.fillStyle = tile.color;
-              ctx.fillRect(tile.x, tile.y, tile.width, tile.height);
+              drawnWithImage = true;
+            } else if (tile.id === "tree2" && assets.tree2Image?.complete && assets.tree2Image.src) {
+              ctx.drawImage(assets.tree2Image, tile.x, tile.y, tile.width, tile.height);
+              drawnWithImage = true;
+            } else if (tile.id === "house1" && assets.houseImage?.complete && assets.houseImage.src) {
+              ctx.drawImage(assets.houseImage, tile.x, tile.y, tile.width, tile.height);
+              drawnWithImage = true;
             }
-          } else { 
+          }
+          if (!drawnWithImage) { 
              ctx.fillStyle = tile.color;
              ctx.fillRect(tile.x, tile.y, tile.width, tile.height);
           }
@@ -791,10 +834,19 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       renderPlayer(ctx, player, assets.playerImage);
 
       currentLevel.tiles.forEach(tile => {
-        if (tile.type !== 1 && tile.layer === 'foreground') {
-          if (tile.id === "bush1" && assets.flowerImage?.complete && assets.flowerImage.src) {
-            ctx.drawImage(assets.flowerImage, tile.x, tile.y, tile.width, tile.height);
-          } else {
+        if (tile.type !== 1 && tile.layer === 'foreground') { // Foreground decor
+          let drawnWithImage = false;
+          if ((tile.id === "bush_left_1" || tile.id === "bush_right_1") && assets.smallBushImage?.complete && assets.smallBushImage.src) {
+            ctx.drawImage(assets.smallBushImage, tile.x, tile.y, tile.width, tile.height);
+            drawnWithImage = true;
+          } else if ((tile.id === "bush_left_2" || tile.id === "bush_right_2") && assets.largeBushImage?.complete && assets.largeBushImage.src) {
+            ctx.drawImage(assets.largeBushImage, tile.x, tile.y, tile.width, tile.height);
+            drawnWithImage = true;
+          }
+          // Note: The original logic had a `bush1` with flowerImage. This is now handled by smallBushImage and largeBushImage.
+          // Ensure no old `bush1` ID specific logic remains unless intended.
+          
+          if (!drawnWithImage) {
             ctx.fillStyle = tile.color;
             ctx.fillRect(tile.x, tile.y, tile.width, tile.height);
           }
