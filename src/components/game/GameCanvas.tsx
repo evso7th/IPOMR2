@@ -47,9 +47,9 @@ interface GameCanvasProps {
   resetExecuteAction: () => void;
 }
 
-const P3_SIZE_W = 48;
+const P3_SIZE_W = 64; // Updated width
 const P3_SIZE_H = 32;
-const P3_DRIFT_RANGE = 32;
+const P3_DRIFT_RANGE = 20; // Updated drift range
 const P3_MOVEMENT_DURATION = 3000;
 
 
@@ -160,11 +160,11 @@ function processRawLevelData(
         
         p3BasePosRef.current = { 
             x: (canvasWidth / 2) - (p3_size_w_local / 2), 
-            y: p_ground_top_y - 300 // Base Y for p3 (top edge)
+            y: p_ground_top_y - 300 - p3_size_h_local / 2 // Base Y for p3 (center)
         };
 
         p3InterestPointsRef.current = [
-            { xOffset: 0, yOffset: 0 },
+            { xOffset: 0, yOffset: 0 }, // Center
             { xOffset: P3_DRIFT_RANGE * 0.8, yOffset: -P3_DRIFT_RANGE * 0.6 },
             { xOffset: -P3_DRIFT_RANGE * 0.7, yOffset: P3_DRIFT_RANGE * 0.9 },
             { xOffset: 0, yOffset: -P3_DRIFT_RANGE * 0.8 },
@@ -185,7 +185,7 @@ function processRawLevelData(
               color: 'hsl(var(--secondary))', 
               vx: 0, 
               direction: 0,
-              layer: 'background', // p3 should be a background element for collision but can be visually prominent
+              layer: 'background', 
             };
             processedTiles.push(p3TileToAdd);
         }
@@ -288,7 +288,7 @@ const spawnSingleEnemy = (
   const p1 = processedLevel.tiles.find(tile => tile.id === 'p1');
   const p2 = processedLevel.tiles.find(tile => tile.id === 'p2');
   if (!p1 || !p2) {
-    console.warn("Enemy spawn: P1 or P2 not found.");
+    console.warn("Enemy spawn: P1 or P2 not found for enemy positioning.");
     return null;
   }
 
@@ -376,10 +376,9 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     cImg.onload = () => setAssets(prev => ({ ...prev, coinImage: cImg, coinImageLoaded: true }));
     cImg.onerror = () => { console.error("Failed to load coin image."); setAssets(prev => ({ ...prev, coinImageLoaded: true })); };
   
-    const flowerImg = new Image(); // This was for the original "bush1" which is now house1. 
-                                  // This variable name should be updated or used for small bushes.
+    const flowerImg = new Image(); 
     flowerImg.src = '/assets/images/flowers.png'; 
-    flowerImg.setAttribute('data-ai-hint', 'flowers small'); // Original hint: flowers colorful
+    flowerImg.setAttribute('data-ai-hint', 'flowers small'); 
     flowerImg.onload = () => setAssets(prev => ({ ...prev, smallBushImage: flowerImg, smallBushImageLoaded: true }));
     flowerImg.onerror = () => { console.error("Failed to load small bush (flowers.png) image."); setAssets(prev => ({ ...prev, smallBushImageLoaded: true})); };
 
@@ -467,12 +466,12 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   }, [isClient]); 
 
 
-  useEffect(() => { // Effect 4: Load raw level data
+  useEffect(() => { 
     if (!isClient || !levelPath) {
       return;
     }
     setRawLevelData(null); 
-    setIsLoading(true); 
+    if (!isLoading) setIsLoading(true); 
 
     loadLevel(levelPath)
       .then(data => {
@@ -491,21 +490,24 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   }, [levelPath, isClient, toast, setIsLoading, setRawLevelData]);
 
 
-  useEffect(() => { // Effect 5: Process raw level data when assets are loaded and canvas size is known
+  useEffect(() => { 
     if (!isClient || canvasSize.width === 0 || canvasSize.height === 0 || 
         !assets.playerImageLoaded || !assets.tileImageLoaded || !assets.coinImageLoaded ||
-        !assets.smallBushImageLoaded || !assets.treeImageLoaded || // treeImage is for tree1
+        !assets.smallBushImageLoaded || !assets.treeImageLoaded || 
         !assets.tree2ImageLoaded || !assets.largeBushImageLoaded || !assets.houseImageLoaded
     ) {
-      if (processedLevel !== null) setProcessedLevel(null); // Clear processed level if dependencies are not met
+      if (processedLevel !== null) setProcessedLevel(null);
+      if (!isLoading) setIsLoading(true); // Keep loading if fundamental assets/size not ready
       return;
     }
     
     if (!rawLevelData) { 
       if (processedLevel !== null) setProcessedLevel(null);
+      if (!isLoading) setIsLoading(true); // Keep loading if raw data not ready
       return;
     }
     
+    // Reset dynamic entities if raw data or canvas size changes fundamentally
     setActiveCoins([]); 
     setActiveEnemies([]); 
     
@@ -528,20 +530,22 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       setProcessedLevel(null); 
       playerInstanceRef.current = null;
       if (parentPlayerRef) parentPlayerRef.current = null;
+      if (!isLoading) setIsLoading(true); // If processing failed, keep loading
     }
   }, [
     isClient, rawLevelData, canvasSize, assets, 
     parentPlayerRef, setProcessedLevel, setActiveCoins, setActiveEnemies, 
+    isLoading, setIsLoading, // Added isLoading and setIsLoading
     p3BasePosition, p3InterestPoints, p3CurrentTargetIndex, p3MovementStateRef
   ]);
 
 
-  useEffect(() => { // Effect 6: Spawn entities and finalize loading state
+  useEffect(() => { 
     if (!isClient || !processedLevel || !processedLevel.tiles || canvasSize.width === 0 || canvasSize.height === 0) {
-        if (isLoading) setIsLoading(true); // Keep loading if basic conditions not met
+        if (isLoading) setIsLoading(true); 
         return;
     }
-    if (!isLoading) return; // Only run this logic if we are currently in a loading state
+    if (!isLoading) return; 
 
     let coinsSpawnedOrAttempted = activeCoins.length > 0;
     if (!coinsSpawnedOrAttempted && processedLevel.tiles.length > 0) {
@@ -567,7 +571,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     
     if ((processedLevel.tiles.length === 0) || (coinsSpawnedOrAttempted && enemiesSpawnedOrAttempted)) {
         setIsLoading(false);
-    } else if (isLoading) { // If still loading but conditions for false not met, ensure it stays true
+    } else if (isLoading) { 
         setIsLoading(true);
     }
   }, [
@@ -843,8 +847,6 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
             ctx.drawImage(assets.largeBushImage, tile.x, tile.y, tile.width, tile.height);
             drawnWithImage = true;
           }
-          // Note: The original logic had a `bush1` with flowerImage. This is now handled by smallBushImage and largeBushImage.
-          // Ensure no old `bush1` ID specific logic remains unless intended.
           
           if (!drawnWithImage) {
             ctx.fillStyle = tile.color;
