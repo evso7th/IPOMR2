@@ -11,7 +11,7 @@ import StartScreen from '@/components/game/screens/StartScreen';
 export default function PlatformerPage() {
   const playerRef = useRef<PlayerState | null>(null);
   const [executeAction, setExecuteAction] = useState<GameAction | null>(null);
-  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing'); // Изменено начальное состояние
+  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing'); 
 
   const handlePlayerAction = useCallback((action: GameAction) => {
     setExecuteAction(action);
@@ -36,7 +36,6 @@ export default function PlatformerPage() {
     }
   };
 
-  // Эта функция больше не будет вызываться автоматически при запуске, если gameState сразу 'playing'
   const handleStartGame = () => { 
     requestFullscreen();
     setGameState('playing');
@@ -54,10 +53,21 @@ export default function PlatformerPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
+    <div 
+      className="flex flex-col h-screen bg-background text-foreground overflow-hidden"
+    >
       <GameHeader onExitToStart={handleExitToStart} />
       <main className="flex-1 w-full overflow-hidden flex flex-col">
-        <div className="relative w-full h-full">
+        <div 
+          className="relative w-full h-full"
+          style={{
+            backgroundImage: "url('/assets/images/level1_bkg.png')",
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'top right',
+            // backgroundSize: 'cover', // Add this if you want the image to cover the area
+          }}
+          data-ai-hint="sky clouds"
+        >
           <GameCanvas
             levelPath="/levels/level2.json"
             onPlayerAction={handlePlayerAction}
