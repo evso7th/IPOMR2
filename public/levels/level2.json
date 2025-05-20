@@ -1,3 +1,4 @@
+
 {
   "playerStart": {
     "platformId": "p2",
@@ -47,18 +48,30 @@
       }
     },
     {
-      "id": "bush1",
-      "width": 30,
-      "height": 20,
+      "id": "house1",
+      "width": 100,
+      "height": 80,
       "type": 0,
-      "color": "hsl(120, 50%, 35%)",
-      "layer": "foreground",
+      "color": "hsl(30, 50%, 70%)",
+      "layer": "background",
+      "data-ai-hint": "house building",
       "positioning": {
-        "anchor": "bottom-left",
-        "xOffsetPx": 80,
+        "anchor": "bottom-center",
+        "xOffsetPx": 40,
         "yOffsetPx": 1
-      },
-      "data-ai-hint": "flowers colorful"
+      }
+    },
+    {
+      "id": "house_roof_platform",
+      "width": 100,
+      "height": 1,
+      "type": 1,
+      "color": "rgba(100, 100, 100, 0.3)",
+      "positioning": {
+        "anchor": "bottom-center",
+        "xOffsetPx": 40,
+        "yOffsetPx": 81
+      }
     },
     {
       "id": "tree1",
@@ -67,12 +80,26 @@
       "type": 0,
       "color": "hsl(30, 60%, 30%)",
       "layer": "background",
+      "data-ai-hint": "tree nature",
       "positioning": {
-        "anchor": "bottom-left",
-        "xOffsetPx": 150,
+        "anchor": "bottom-center",
+        "xOffsetPx": -60,
         "yOffsetPx": 1
-      },
-      "data-ai-hint": "tree green"
+      }
+    },
+    {
+      "id": "tree2",
+      "width": 35,
+      "height": 100,
+      "type": 0,
+      "color": "hsl(30, 55%, 35%)",
+      "layer": "background",
+      "data-ai-hint": "tree nature",
+      "positioning": {
+        "anchor": "bottom-center",
+        "xOffsetPx": -130,
+        "yOffsetPx": 1
+      }
     }
   ]
 }
