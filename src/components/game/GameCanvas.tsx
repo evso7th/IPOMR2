@@ -93,7 +93,7 @@ function processRawLevelData(
   currentLevelPath: string
 ): { processedLevel: ProcessedLevelData | null; player: PlayerState | null } {
   if (!rawData || canvasWidth <= 0 || canvasHeight <= 0) {
-    console.error("processRawLevelData: Invalid input data, or canvas dimensions are zero.", { rawData, canvasWidth, canvasHeight });
+    // console.error("processRawLevelData: Invalid input data, or canvas dimensions are zero.", { rawData, canvasWidth, canvasHeight });
     return { processedLevel: null, player: null };
   }
   try {
@@ -160,7 +160,7 @@ function processRawLevelData(
       playerStartY = startPlatform.y - PLAYER_HEIGHT - playerYOffset;
     } else {
       if (canvasWidth > 0 && canvasHeight > 0) {
-         console.warn(`Player start platform with id "${rawData.playerStart.platformId}" not found. Defaulting player position.`);
+         // console.warn(`Player start platform with id "${rawData.playerStart.platformId}" not found. Defaulting player position.`);
       }
     }
 
@@ -203,7 +203,7 @@ function processRawLevelData(
                 processedTiles.push(p3TileToAdd);
             }
         } else if (canvasWidth > 0 && canvasHeight > 0 && currentLevelPath === '/levels/level2.json') {
-            console.warn("p_ground platform not found for P3 positioning on level 2. P3 will not be added.");
+            // console.warn("p_ground platform not found for P3 positioning on level 2. P3 will not be added.");
         }
     }
 
@@ -222,7 +222,7 @@ function processRawLevelData(
       player: newPlayer,
     };
   } catch (error) {
-    console.error("Error in processRawLevelData:", error);
+    // console.error("Error in processRawLevelData:", error);
     return { processedLevel: null, player: null };
   }
 }
@@ -237,7 +237,7 @@ const spawnNewCoinPair = (
   const p_ground = processedLevel.tiles.find(tile => tile.id === 'p_ground');
   if (!p_ground) {
     if (canvasWidth > 0 && canvasHeight > 0) {
-        console.warn(`Coin spawn: Ground platform 'p_ground' not found. No coins will be generated.`);
+        // console.warn(`Coin spawn: Ground platform 'p_ground' not found. No coins will be generated.`);
     }
     return [];
   }
@@ -258,7 +258,7 @@ const spawnNewCoinPair = (
 
   if (ySpawnZoneTopCoinTopEdge >= ySpawnZoneBottomCoinTopEdge) {
      if (canvasWidth > 0 && canvasHeight > 0) {
-        console.warn(`Coin spawn: Invalid spawn zone. Top edge (${ySpawnZoneTopCoinTopEdge}) is above or at bottom edge (${ySpawnZoneBottomCoinTopEdge}). No coins spawned.`);
+        // console.warn(`Coin spawn: Invalid spawn zone. Top edge (${ySpawnZoneTopCoinTopEdge}) is above or at bottom edge (${ySpawnZoneBottomCoinTopEdge}). No coins spawned.`);
      }
     return [];
   }
@@ -306,7 +306,7 @@ const spawnSingleEnemy = (
 
   if (!p1 || !p2) {
      if (canvasWidth > 0 ) {
-        console.warn("Enemy spawn: P1/floating_platform_left or P2/floating_platform_right not found for enemy positioning.");
+        // console.warn("Enemy spawn: P1/floating_platform_left or P2/floating_platform_right not found for enemy positioning.");
      }
     return null;
   }
@@ -349,13 +349,103 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   const p3CurrentTargetIndex = useRef<number>(-1);
   const p3MovementStateRef = useRef<{startTime: number, startX: number, startY: number, targetX: number, targetY: number} | null>(null);
 
-  const executeActionRef = useRef<GameAction | null>(executeAction);
+  const executeActionRef = useRef<GameAction | null>(null);
 
+  // Effect 1: Set isClient and load assets
   useEffect(() => {
-    executeActionRef.current = executeAction;
-  }, [executeAction]);
+    setIsClient(true);
+    const pImg = new Image();
+    pImg.src = `/assets/images/hero_jeans3.png`;
+    pImg.setAttribute('data-ai-hint', 'character orange blue');
+    pImg.onload = () => setAssets(prev => ({ ...prev, playerImage: pImg, playerImageLoaded: true }));
+    pImg.onerror = () => { 
+        // console.error("Failed to load player image."); 
+        setAssets(prev => ({ ...prev, playerImageLoaded: true })); 
+    };
 
+    const tImg = new Image();
+    tImg.src = `/assets/images/platform_grass.png`;
+    tImg.setAttribute('data-ai-hint', 'platform grass dirt');
+    tImg.onload = () => setAssets(prev => ({...prev, tileImage: tImg, tileImageLoaded: true}));
+    tImg.onerror = () => { 
+        // console.error("Failed to load tile image."); 
+        setAssets(prev => ({...prev, tileImageLoaded: true}));
+    };
 
+    const cImg = new Image();
+    cImg.src = `/assets/images/thankscoin.png`;
+    cImg.setAttribute('data-ai-hint', 'collectible coin gold');
+    cImg.onload = () => setAssets(prev => ({ ...prev, coinImage: cImg, coinImageLoaded: true }));
+    cImg.onerror = () => { 
+        // console.error("Failed to load coin image."); 
+        setAssets(prev => ({ ...prev, coinImageLoaded: true })); 
+    };
+
+    const sImg = new Image();
+    sImg.src = `/assets/images/stone1.jpg`;
+    sImg.setAttribute('data-ai-hint', 'stone rock');
+    sImg.onload = () => setAssets(prev => ({ ...prev, stoneImage: sImg, stoneImageLoaded: true }));
+    sImg.onerror = () => { 
+        // console.error("Failed to load stone image."); 
+        setAssets(prev => ({ ...prev, stoneImageLoaded: true })); 
+    };
+    
+    const flowerImg = new Image();
+    flowerImg.src = '/assets/images/flowers.png';
+    flowerImg.setAttribute('data-ai-hint', 'flowers small');
+    flowerImg.onload = () => setAssets(prev => ({ ...prev, flowerImage: flowerImg, flowerImageLoaded: true }));
+    flowerImg.onerror = () => { 
+        // console.error("Failed to load flowers image."); 
+        setAssets(prev => ({ ...prev, flowerImageLoaded: true})); 
+    };
+
+    const tree1Img = new Image();
+    tree1Img.src = '/assets/images/tree1.png';
+    tree1Img.setAttribute('data-ai-hint', 'tree green');
+    tree1Img.onload = () => setAssets(prev => ({ ...prev, treeImage: tree1Img, treeImageLoaded: true }));
+    tree1Img.onerror = () => { 
+        // console.error("Failed to load tree1.png image."); 
+        setAssets(prev => ({ ...prev, treeImageLoaded: true})); 
+    };
+
+    const tree2Img = new Image();
+    tree2Img.src = '/assets/images/tree2.png';
+    tree2Img.setAttribute('data-ai-hint', 'tree nature');
+    tree2Img.onload = () => setAssets(prev => ({ ...prev, tree2Image: tree2Img, tree2ImageLoaded: true }));
+    tree2Img.onerror = () => { 
+        // console.error("Failed to load tree2.png image."); 
+        setAssets(prev => ({ ...prev, tree2ImageLoaded: true})); 
+    };
+
+    const smallBushImg = new Image();
+    smallBushImg.src = '/assets/images/flowers.png'; 
+    smallBushImg.setAttribute('data-ai-hint', 'bush small flowers');
+    smallBushImg.onload = () => setAssets(prev => ({ ...prev, smallBushImage: smallBushImg, smallBushImageLoaded: true }));
+    smallBushImg.onerror = () => { 
+        // console.error("Failed to load small bush (flowers.png) image."); 
+        setAssets(prev => ({ ...prev, smallBushImageLoaded: true})); 
+    };
+
+    const largeBushImg = new Image();
+    largeBushImg.src = '/assets/images/bush1.png';
+    largeBushImg.setAttribute('data-ai-hint', 'bush large');
+    largeBushImg.onload = () => setAssets(prev => ({ ...prev, largeBushImage: largeBushImg, largeBushImageLoaded: true }));
+    largeBushImg.onerror = () => { 
+        // console.error("Failed to load large bush (bush1.png) image."); 
+        setAssets(prev => ({ ...prev, largeBushImageLoaded: true})); 
+    };
+
+    const houseImg = new Image();
+    houseImg.src = '/assets/images/house1.png';
+    houseImg.setAttribute('data-ai-hint', 'house building');
+    houseImg.onload = () => setAssets(prev => ({ ...prev, houseImage: houseImg, houseImageLoaded: true }));
+    houseImg.onerror = () => { 
+        // console.error("Failed to load house image."); 
+        setAssets(prev => ({ ...prev, houseImageLoaded: true})); 
+    };
+
+  }, []);
+  
   const [assets, setAssets] = useState<{
     playerImage: HTMLImageElement | null;
     tileImage: HTMLImageElement | null;
@@ -383,71 +473,6 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     playerImageLoaded: false, tileImageLoaded: false, coinImageLoaded: false, stoneImageLoaded: false, flowerImageLoaded: false, treeImageLoaded: false,
     tree2ImageLoaded: false, smallBushImageLoaded: false, largeBushImageLoaded: false, houseImageLoaded: false
   });
-
-  // Effect 1: Set isClient and load assets
-  useEffect(() => {
-    setIsClient(true);
-    const pImg = new Image();
-    pImg.src = `/assets/images/hero_jeans3.png`;
-    pImg.setAttribute('data-ai-hint', 'character orange blue');
-    pImg.onload = () => setAssets(prev => ({ ...prev, playerImage: pImg, playerImageLoaded: true }));
-    pImg.onerror = () => { console.error("Failed to load player image."); setAssets(prev => ({ ...prev, playerImageLoaded: true })); };
-
-    const tImg = new Image();
-    tImg.src = `/assets/images/platform_grass.png`;
-    tImg.setAttribute('data-ai-hint', 'platform grass dirt');
-    tImg.onload = () => setAssets(prev => ({...prev, tileImage: tImg, tileImageLoaded: true}));
-    tImg.onerror = () => { console.error("Failed to load tile image."); setAssets(prev => ({...prev, tileImageLoaded: true}));};
-
-    const cImg = new Image();
-    cImg.src = `/assets/images/thankscoin.png`;
-    cImg.setAttribute('data-ai-hint', 'collectible coin gold');
-    cImg.onload = () => setAssets(prev => ({ ...prev, coinImage: cImg, coinImageLoaded: true }));
-    cImg.onerror = () => { console.error("Failed to load coin image."); setAssets(prev => ({ ...prev, coinImageLoaded: true })); };
-
-    const sImg = new Image();
-    sImg.src = `/assets/images/stone1.jpg`;
-    sImg.setAttribute('data-ai-hint', 'stone rock');
-    sImg.onload = () => setAssets(prev => ({ ...prev, stoneImage: sImg, stoneImageLoaded: true }));
-    sImg.onerror = () => { console.error("Failed to load stone image."); setAssets(prev => ({ ...prev, stoneImageLoaded: true })); };
-
-    const flowerImg = new Image();
-    flowerImg.src = '/assets/images/flowers.png';
-    flowerImg.setAttribute('data-ai-hint', 'flowers small');
-    flowerImg.onload = () => setAssets(prev => ({ ...prev, flowerImage: flowerImg, flowerImageLoaded: true }));
-    flowerImg.onerror = () => { console.error("Failed to load flowers image."); setAssets(prev => ({ ...prev, flowerImageLoaded: true})); };
-
-    const tree1Img = new Image();
-    tree1Img.src = '/assets/images/tree1.png';
-    tree1Img.setAttribute('data-ai-hint', 'tree green');
-    tree1Img.onload = () => setAssets(prev => ({ ...prev, treeImage: tree1Img, treeImageLoaded: true }));
-    tree1Img.onerror = () => { console.error("Failed to load tree1.png image."); setAssets(prev => ({ ...prev, treeImageLoaded: true})); };
-
-    const tree2Img = new Image();
-    tree2Img.src = '/assets/images/tree2.png';
-    tree2Img.setAttribute('data-ai-hint', 'tree nature');
-    tree2Img.onload = () => setAssets(prev => ({ ...prev, tree2Image: tree2Img, tree2ImageLoaded: true }));
-    tree2Img.onerror = () => { console.error("Failed to load tree2.png image."); setAssets(prev => ({ ...prev, tree2ImageLoaded: true})); };
-
-    const smallBushImg = new Image();
-    smallBushImg.src = '/assets/images/flowers.png'; // Assuming flowers.png is used for small bushes
-    smallBushImg.setAttribute('data-ai-hint', 'bush small flowers');
-    smallBushImg.onload = () => setAssets(prev => ({ ...prev, smallBushImage: smallBushImg, smallBushImageLoaded: true }));
-    smallBushImg.onerror = () => { console.error("Failed to load small bush (flowers.png) image."); setAssets(prev => ({ ...prev, smallBushImageLoaded: true})); };
-
-    const largeBushImg = new Image();
-    largeBushImg.src = '/assets/images/bush1.png';
-    largeBushImg.setAttribute('data-ai-hint', 'bush large');
-    largeBushImg.onload = () => setAssets(prev => ({ ...prev, largeBushImage: largeBushImg, largeBushImageLoaded: true }));
-    largeBushImg.onerror = () => { console.error("Failed to load large bush (bush1.png) image."); setAssets(prev => ({ ...prev, largeBushImageLoaded: true})); };
-
-    const houseImg = new Image();
-    houseImg.src = '/assets/images/house1.png';
-    houseImg.setAttribute('data-ai-hint', 'house building');
-    houseImg.onload = () => setAssets(prev => ({ ...prev, houseImage: houseImg, houseImageLoaded: true }));
-    houseImg.onerror = () => { console.error("Failed to load house image."); setAssets(prev => ({ ...prev, houseImageLoaded: true})); };
-
-  }, []);
 
   // Effect 2: Apply canvasSize to canvas element
   useEffect(() => {
@@ -526,7 +551,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
         }
       })
       .catch(error => {
-        console.error("Error in loadLevel promise chain:", error);
+        // console.error("Error in loadLevel promise chain:", error);
         setRawLevelData(null); 
       });
   }, [levelPath, isClient, setIsLoading, setRawLevelData]); 
@@ -544,6 +569,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       if (processedLevelRef.current !== null) { 
         setProcessedLevel(null);
       }
+      if (isLoading) setIsLoading(true); // Keep loading if prerequisites not met
       return;
     }
     
@@ -570,11 +596,12 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       setProcessedLevel(null); 
       playerInstanceRef.current = null;
       if (parentPlayerRef) parentPlayerRef.current = null;
+      if (isLoading) setIsLoading(true); // if processing failed, remain loading
     }
   }, [
-    isClient, rawLevelData, canvasSize.width, canvasSize.height, assets, levelPath,
+    isClient, rawLevelData, canvasSize, assets, levelPath,
     parentPlayerRef, p3BasePosition, p3InterestPoints, p3CurrentTargetIndex, p3MovementStateRef,
-    setProcessedLevel, setActiveCoins, setActiveEnemies
+    setProcessedLevel, setActiveCoins, setActiveEnemies, setIsLoading, isLoading
   ]);
 
 
@@ -592,12 +619,12 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
         }
         coinsSpawned = true;
     } else if (activeCoins.length > 0) {
-        coinsSpawned = true; // Already have coins
+        coinsSpawned = true; 
     }
 
 
     let enemiesSpawnedOrNotNeeded = false;
-    if (levelPath !== '/levels/level2.json') {
+    if (levelPath !== '/levels/level2.json' && levelPath !== '/levels/level1.json') { 
         if (activeEnemies.length === 0 && processedLevel.tiles.length > 0) {
             const p1 = processedLevel.tiles.find(t => t.id === 'floating_platform_left' || t.id === 'floating_platform_1' || t.id === 'p1');
             const p2 = processedLevel.tiles.find(t => t.id === 'floating_platform_right' || t.id === 'floating_platform_2' || t.id === 'p2');
@@ -607,12 +634,12 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
                     setActiveEnemies([newEnemy]);
                 }
             } else if (canvasSize.width > 0) {
-                 console.warn("Enemy spawn: P1/floating_platform_left or P2/floating_platform_right not found. No enemy spawned.");
+                 // console.warn("Enemy spawn: P1/floating_platform_left or P2/floating_platform_right not found. No enemy spawned.");
             }
         }
-        enemiesSpawnedOrNotNeeded = true; // Attempted or already have enemies
+        enemiesSpawnedOrNotNeeded = true; 
     } else {
-        enemiesSpawnedOrNotNeeded = true; // Enemies not needed for level 2
+        enemiesSpawnedOrNotNeeded = true; 
     }
     
     if ((coinsSpawned || processedLevel.tiles.length === 0) && enemiesSpawnedOrNotNeeded) {
@@ -621,12 +648,11 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   }, [
     isClient,
     processedLevel, 
-    canvasSize.width, 
-    canvasSize.height,
+    canvasSize,
     isLoading,      
     levelPath,      
-    // activeCoins.length, // Removed
-    // activeEnemies.length, // Removed
+    activeCoins.length, 
+    activeEnemies.length, 
     setActiveCoins, 
     setActiveEnemies,
     setIsLoading
@@ -642,8 +668,12 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
        const newCoins = spawnNewCoinPair(processedLevel, canvasSize.width, canvasSize.height);
        setActiveCoins(newCoins);
     }
-  }, [activeCoins, isClient, isLoading, processedLevel, canvasSize.width, canvasSize.height, setActiveCoins]); 
+  }, [activeCoins, isClient, isLoading, processedLevel, canvasSize, setActiveCoins]); 
 
+  // Effect to keep executeActionRef.current updated with the executeAction prop
+  useEffect(() => {
+    executeActionRef.current = executeAction;
+  }, [executeAction]);
 
   const gameLoop = useCallback(() => {
     processedLevelRef.current = processedLevel;
@@ -974,19 +1004,18 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
   }, [
     isClient, 
     assets, 
-    resetExecuteAction, // Stable callback
+    resetExecuteAction, 
     levelPath, 
-    parentPlayerRef, // Stable ref
-    p3BasePosition, // Stable ref
-    p3InterestPoints, // Stable ref
-    p3CurrentTargetIndex, // Stable ref
-    p3MovementStateRef, // Stable ref
-    setActiveCoins, // Stable setter
-    setActiveEnemies, // Stable setter
-    canvasSize.width, 
-    canvasSize.height,
-    processedLevel, // Read from state, used by processedLevelRef.current
-    // toast // commented out
+    parentPlayerRef, 
+    p3BasePosition, 
+    p3InterestPoints, 
+    p3CurrentTargetIndex, 
+    p3MovementStateRef, 
+    setActiveCoins, 
+    setActiveEnemies, 
+    canvasSize, 
+    processedLevel, 
+    // toast // is commented out
   ]);
 
   // Effect 8: Game Loop Setup
@@ -1001,7 +1030,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [isClient, isLoading, canvasSize.width, canvasSize.height, gameLoop, processedLevel]);
+  }, [isClient, isLoading, canvasSize, gameLoop, processedLevel]);
 
 
   // Effect 9: Keyboard input
