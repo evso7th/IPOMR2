@@ -1,4 +1,3 @@
-
 {
   "playerStart": {
     "platformId": "floating_platform_left",
@@ -23,9 +22,9 @@
     {
       "id": "floating_platform_left",
       "width": 150,
-      "height": 16,
+      "height": 32,
       "type": 1,
-      "color": "hsl(var(--accent))",
+      "color": "hsl(var(--secondary))",
       "vx": 0.9375,
       "direction": 1,
       "positioning": {
@@ -33,22 +32,22 @@
         "xOffsetPx": 50,
         "yOffsetPx": 150
       },
-      "data-ai-hint": "platform grass"
+      "data-ai-hint": "platform grass floating"
     },
     {
       "id": "floating_platform_right",
       "width": 150,
-      "height": 16,
+      "height": 32,
       "type": 1,
-      "color": "hsl(var(--accent))",
+      "color": "hsl(var(--secondary))",
       "vx": 0.9375,
       "direction": -1,
       "positioning": {
         "anchor": "bottom-right",
         "xOffsetPx": 50,
-        "yOffsetPx": 300
+        "yOffsetPx": 250
       },
-      "data-ai-hint": "platform grass"
+      "data-ai-hint": "platform grass floating"
     }
   ]
 }
