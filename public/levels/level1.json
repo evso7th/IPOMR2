@@ -10,7 +10,7 @@
     {
       "id": "water_area",
       "width": "100%",
-      "height": 80,
+      "height": 60,
       "type": 0,
       "color": "hsl(200, 70%, 50%)",
       "layer": "background",
@@ -19,65 +19,64 @@
         "xOffsetPx": 0,
         "yOffsetPx": 0
       },
-      "data-ai-hint": "water surface"
+      "data-ai-hint": "water blue"
     },
     {
       "id": "p_ground",
       "width": "100%",
       "height": 20,
       "type": 1,
-      "color": "hsl(30, 40%, 60%)", 
-      "layer": "background",
+      "color": "hsl(120, 40%, 40%)", 
       "positioning": {
         "anchor": "bottom-left",
         "xOffsetPx": 0,
-        "yOffsetPx": 80 
+        "yOffsetPx": 60
       },
-      "data-ai-hint": "ground grass dirt"
+      "data-ai-hint": "ground grass"
     },
     {
-      "id": "boat1",
-      "width": 100,
-      "height": 20,
-      "type": 1,
-      "color": "hsl(30, 40%, 30%)",
-      "vx": 0.46875, 
-      "direction": 1,
-      "positioning": {
-        "anchor": "bottom-left",
-        "xOffsetPx": 100,
-        "yOffsetPx": 80 
-      },
-      "data-ai-hint": "boat wood"
-    },
-    {
-      "id": "tree_level1_1",
-      "width": 40,
-      "height": 120,
+      "id": "tall_green_post",
+      "width": 30,
+      "height": 100,
       "type": 0,
-      "color": "hsl(120, 60%, 30%)",
+      "color": "hsl(120, 60%, 25%)",
       "layer": "background",
       "positioning": {
-        "anchor": "bottom-left",
-        "xOffsetPx": 200,
-        "yOffsetPx": 100 
+        "anchor": "bottom-center",
+        "xOffsetPx": -80,
+        "yOffsetPx": 80 
       },
-      "data-ai-hint": "tree nature"
+      "data-ai-hint": "tree trunk pillar"
     },
     {
-      "id": "floating_p1",
-      "width": 120,
-      "height": 16,
+      "id": "floating_platform_1",
+      "width": 160,
+      "height": 32,
       "type": 1,
-      "color": "hsl(var(--secondary))",
-      "vx": 0.9375,
-      "direction": 1,
+      "color": "hsl(120, 40%, 40%)",
+      "vx": 0,
+      "direction": 0,
       "positioning": {
-        "anchor": "center",
-        "xOffsetPx": 0,
-        "yOffsetPx": -150 
+        "anchor": "bottom-center",
+        "xOffsetPx": -150,
+        "yOffsetPx": 250
       },
-      "data-ai-hint": "platform stone"
+      "data-ai-hint": "platform grass floating"
+    },
+    {
+      "id": "floating_platform_2",
+      "width": 120,
+      "height": 32,
+      "type": 1,
+      "color": "hsl(120, 40%, 40%)",
+      "vx": 0,
+      "direction": 0,
+      "positioning": {
+        "anchor": "bottom-center",
+        "xOffsetPx": 100,
+        "yOffsetPx": 310
+      },
+      "data-ai-hint": "platform grass floating"
     }
   ]
 }
