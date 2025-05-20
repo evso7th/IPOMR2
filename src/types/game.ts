@@ -10,7 +10,7 @@ export interface PlayerState {
   isMovingLeft: boolean;
   isMovingRight: boolean;
   color: string;
-  facingDirection: 'left' | 'right'; // Added to track player's facing direction
+  facingDirection: 'left' | 'right';
   image?: HTMLImageElement;
 }
 
@@ -73,10 +73,11 @@ export interface Tile {
   y: number;
   width: number;
   height: number;
-  type: number;
+  type: number; // 1 for collidable platform, 0 for decor, etc.
   color: string;
   vx?: number;
   direction?: number;
+  layer?: 'background' | 'foreground'; // Added for layering
 }
 
 export interface RawTileData {
@@ -87,6 +88,7 @@ export interface RawTileData {
   color: string;
   vx?: number;
   direction?: number;
+  layer?: 'background' | 'foreground'; // Added for layering
   positioning: TilePositioning;
 }
 

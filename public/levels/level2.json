@@ -3,8 +3,7 @@
   "playerStart": {
     "platformId": "p2",
     "horizontalAlign": "left",
-    "xOffsetPx": 10,
-    "yOffsetPx": 0
+    "xOffsetPx": 10
   },
   "tiles": [
     {
@@ -30,7 +29,7 @@
       "positioning": {
         "anchor": "bottom-left",
         "xOffsetPx": 50,
-        "yOffsetPx": 385
+        "yOffsetPx": 385 
       }
     },
     {
@@ -44,7 +43,7 @@
       "positioning": {
         "anchor": "bottom-right",
         "xOffsetPx": 50,
-        "yOffsetPx": 135
+        "yOffsetPx": 135 
       }
     },
     {
@@ -53,9 +52,23 @@
       "height": 20,
       "type": 0,
       "color": "hsl(120, 50%, 35%)",
+      "layer": "background", 
       "positioning": {
         "anchor": "bottom-left",
         "xOffsetPx": 80,
+        "yOffsetPx": 1
+      }
+    },
+    {
+      "id": "tree1",
+      "width": 40,
+      "height": 120,
+      "type": 0,
+      "color": "hsl(30, 60%, 30%)", 
+      "layer": "foreground",    
+      "positioning": {
+        "anchor": "bottom-left",
+        "xOffsetPx": 150,
         "yOffsetPx": 1 
       }
     }
