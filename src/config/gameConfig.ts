@@ -9,8 +9,6 @@ export const PLAYER_WIDTH = 42; // pixels
 export const PLAYER_HEIGHT = 75; // pixels
 
 export const PLAYER_COLOR = 'hsl(var(--primary))';
-// export const TILE_COLOR_GROUND = 'hsl(var(--accent))'; // This seems unused, platforms get color from JSON
-// export const TILE_COLOR_EMPTY = 'rgba(0,0,0,0)'; // Unused
 
 // Coin Configuration
 export const COIN_SIZE = 20; 
@@ -28,8 +26,8 @@ export const COIN_PARTICLE_SPEED_MULTIPLIER = 1.5;
 export const COIN_PARTICLE_GRAVITY_FACTOR = 0.2; 
 
 // Coin Rotation and Shadow Configuration
-export const COIN_ROTATION_SPEED_MIN = 0.01; // radians per frame
-export const COIN_ROTATION_SPEED_MAX = 0.03; // radians per frame
+export const COIN_ROTATION_SPEED_MIN = 0; // radians per frame - SET TO 0 FOR NO ROTATION
+export const COIN_ROTATION_SPEED_MAX = 0; // radians per frame - SET TO 0 FOR NO ROTATION
 export const COIN_SHADOW_OFFSET_X = 2; // pixels
 export const COIN_SHADOW_OFFSET_Y = 2; // pixels
 export const COIN_SHADOW_BLUR = 4; // pixels
