@@ -46,7 +46,7 @@ interface GameCanvasProps {
 
 const P3_DRIFT_RANGE = 32;
 const P3_MOVEMENT_DURATION = 3000;
-const P3_SIZE = 32;
+const P3_SIZE = 32; // P3 is 48x48, but let's make it 32x32 for consistency with old var name.
 
 function parseDimension(value: number | string, totalSize: number): number {
   if (typeof value === 'number') {
@@ -150,8 +150,12 @@ function processRawLevelData(
     const p_ground_tile = processedTiles.find(tile => tile.id === 'p_ground');
     if (p_ground_tile && canvasWidth > 0 && canvasHeight > 0) {
         const p_ground_top_y = p_ground_tile.y;
+        const p3_current_size = 32; // P3 is 32x32 now
 
-        p3BasePosRef.current = { x: (canvasWidth / 2) - (P3_SIZE / 2), y: p_ground_top_y - 300 };
+        // p3BasePosRef.current = { x: (canvasWidth / 2) - (p3_current_size / 2), y: p_ground_top_y - 300 }; // P3 top is 300px above p_ground top
+        p3BasePosRef.current = { x: (canvasWidth / 2) - (p3_current_size / 2), y: p_ground_top_y - 300 };
+
+
         p3InterestPointsRef.current = [
             { xOffset: 0, yOffset: 0 },
             { xOffset: P3_DRIFT_RANGE * 0.8, yOffset: -P3_DRIFT_RANGE * 0.6 },
@@ -162,7 +166,7 @@ function processRawLevelData(
         p3CurrentTargetIndexRef.current = 0;
         p3MovementStateRef.current = null;
 
-        const initialTargetPoint = p3BasePosRef.current; // Start at base position initially
+        const initialTargetPoint = p3BasePosRef.current; 
         const initialOffset = p3InterestPointsRef.current[p3CurrentTargetIndexRef.current];
 
 
@@ -171,8 +175,8 @@ function processRawLevelData(
               id: 'p3',
               x: p3BasePosRef.current.x + initialOffset.xOffset,
               y: p3BasePosRef.current.y + initialOffset.yOffset,
-              width: P3_SIZE,
-              height: P3_SIZE,
+              width: p3_current_size,
+              height: p3_current_size,
               type: 1,
               color: 'hsl(var(--secondary))',
               vx: 0,
@@ -180,8 +184,6 @@ function processRawLevelData(
             };
             processedTiles.push(p3TileToAdd);
         }
-
-
     } else if (canvasWidth > 0 && canvasHeight > 0) {
         console.warn("p_ground platform not found for P3 positioning. P3 will not be added.");
     }
@@ -367,12 +369,11 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       });
     };
 
-    updateCanvasSizeState(); // Initial call to set size
+    updateCanvasSizeState(); 
 
     const observer = new ResizeObserver(updateCanvasSizeState);
     observer.observe(observedElement);
 
-    // Fallback for browsers that don't support ResizeObserver
     let usingWindowListener = false;
     if (typeof ResizeObserver === 'undefined') {
         window.addEventListener('resize', updateCanvasSizeState);
@@ -385,7 +386,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
         window.removeEventListener('resize', updateCanvasSizeState);
       }
     };
-  }, [isClient]); // setCanvasSize is stable
+  }, [isClient]);
 
   useEffect(() => {
     if (!isClient || !canvasRef.current) return;
@@ -404,8 +405,8 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       if (!isLoading) setIsLoading(true);
       return;
     }
-    setRawLevelData(null); // Reset raw data when levelPath changes
-    if (!isLoading) setIsLoading(true); // Ensure loading is true for new level
+    setRawLevelData(null); 
+    if (!isLoading) setIsLoading(true); 
 
     loadLevel(levelPath)
       .then(data => {
@@ -421,7 +422,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
         toast({ title: "Error", description: "An unexpected error occurred loading level data.", variant: "destructive" });
         setRawLevelData(null);
       });
-  }, [levelPath, isClient, toast, setIsLoading]);
+  }, [levelPath, isClient, toast, setIsLoading, isLoading]);
 
   useEffect(() => {
     if (!isClient || !rawLevelData || canvasSize.width === 0 || canvasSize.height === 0 || !assets.playerImageLoaded || !assets.tileImageLoaded || !assets.coinImageLoaded) {
@@ -429,9 +430,8 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       return;
     }
 
-    if (!isLoading) setIsLoading(true); // Set loading before processing
+    if (!isLoading) setIsLoading(true); 
 
-    // Reset dynamic game objects when level changes or canvas resizes significantly
     setActiveCoins([]);
     setActiveEnemies([]);
 
@@ -455,7 +455,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
       setProcessedLevel(null);
       playerInstanceRef.current = null;
       if (parentPlayerRef) parentPlayerRef.current = null;
-      if (!isLoading) setIsLoading(true);
+      if (!isLoading) setIsLoading(true); 
     }
   }, [
     isClient, rawLevelData, canvasSize, assets,
@@ -472,29 +472,27 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
             if (newCoins.length > 0) setActiveCoins(newCoins);
             coinsSpawnedOrAttempted = true;
         } else if (processedLevel.tiles.length === 0){
-             coinsSpawnedOrAttempted = true; // No tiles, so no coins to spawn, consider attempt done
+             coinsSpawnedOrAttempted = true; 
         }
 
         let enemiesSpawnedOrAttempted = activeEnemies.length > 0;
-        if (levelPath !== '/levels/level2.json') { // Only spawn enemies if not on level 2
+        if (levelPath !== '/levels/level2.json') { 
             if (!enemiesSpawnedOrAttempted && processedLevel.tiles.length > 0 && processedLevel.tiles.find(t => t.id === 'p1') && processedLevel.tiles.find(t => t.id === 'p2')) {
                 const newEnemy = spawnSingleEnemy(processedLevel, canvasSize.width);
                 if (newEnemy) setActiveEnemies([newEnemy]);
                 enemiesSpawnedOrAttempted = true;
             } else if (processedLevel.tiles.length === 0 || !processedLevel.tiles.find(t => t.id === 'p1') || !processedLevel.tiles.find(t => t.id === 'p2')){
-                 enemiesSpawnedOrAttempted = true; // No tiles or required platforms, consider attempt done
+                 enemiesSpawnedOrAttempted = true; 
             }
         } else {
-            enemiesSpawnedOrAttempted = true; // On level 2, enemies are not spawned, consider attempt done
+            enemiesSpawnedOrAttempted = true; 
         }
 
         if ((processedLevel.tiles.length === 0) || (coinsSpawnedOrAttempted && enemiesSpawnedOrAttempted)) {
             setIsLoading(false);
         }
     } else if (isLoading && processedLevel === null && canvasSize.width > 0 && canvasSize.height > 0 && rawLevelData !== null) {
-        // This case might indicate an issue with processRawLevelData not returning a level
-        // or assets not being fully loaded yet. Keep loading.
-        // If rawLevelData is null, it's handled by the level loading effect.
+       // Keep loading if processedLevel is not ready but raw data and canvas size are there
     }
   }, [
     isClient, processedLevel, canvasSize, isLoading, levelPath,
@@ -522,7 +520,7 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
     const gameLoop = () => {
       const loopStartTime = Date.now(); const deltaTime = (loopStartTime - lastFrameTime.current);
-      const deltaTimeFactor = deltaTime / (1000 / 60); // Assuming 60 FPS as baseline
+      const deltaTimeFactor = deltaTime / (1000 / 60); 
       lastFrameTime.current = loopStartTime;
 
       const player = playerInstanceRef.current; const currentLevel = processedLevel;
@@ -614,8 +612,8 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 
       if (player.isOnGround && activePlatform) {
         if (activePlatform.id === 'p3') {
-            platformInducedMoveX = p3_delta_x; // Use delta directly as it's per frame
-            player.y += p3_delta_y; // Apply vertical delta for P3
+            platformInducedMoveX = p3_delta_x; 
+            player.y += p3_delta_y; 
         } else if (activePlatform.vx !== undefined && activePlatform.direction !== undefined) {
             platformInducedMoveX = (activePlatform.vx * activePlatform.direction * deltaTimeFactor);
         }
@@ -772,3 +770,4 @@ export default function GameCanvas({ levelPath, onPlayerAction, playerRef: paren
 }
 
     
+
