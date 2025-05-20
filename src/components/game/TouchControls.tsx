@@ -31,12 +31,20 @@ export default function TouchControls({ onAction }: TouchControlsProps) {
   };
 
   return (
-    <div className="h-16 flex justify-around items-center px-4 sm:justify-center sm:gap-8 bg-emerald-700 border-t border-border text-accent-foreground shrink-0">
+    <div 
+      className="h-16 flex justify-around items-center px-4 sm:justify-center sm:gap-8 border-t border-border text-accent-foreground shrink-0"
+      style={{ 
+        backgroundImage: "url('/assets/images/groundfloor.png')", 
+        backgroundSize: 'cover', 
+        backgroundPosition: 'center' 
+      }}
+      data-ai-hint="ground texture"
+    >
       <div className="flex gap-4">
         <Button
           variant="outline"
           size="lg"
-          className="p-3 rounded-full aspect-square bg-[#fdc400] text-black hover:bg-[#fdc400]/90 active:bg-[#fdc400]/80 border-black/20"
+          className="p-3 rounded-full aspect-square bg-[#ff6600] text-white hover:bg-[#ff6600]/90 active:bg-[#ff6600]/80 border-black/20"
           onTouchStart={(e) => handleTouchStart('moveLeft', e)}
           onTouchEnd={(e) => handleTouchEnd('moveLeft', e)}
           onMouseDown={() => handleMouseDown('moveLeft')}
@@ -48,7 +56,7 @@ export default function TouchControls({ onAction }: TouchControlsProps) {
         <Button
           variant="outline"
           size="lg"
-          className="p-3 rounded-full aspect-square bg-[#fdc400] text-black hover:bg-[#fdc400]/90 active:bg-[#fdc400]/80 border-black/20"
+          className="p-3 rounded-full aspect-square bg-[#ff6600] text-white hover:bg-[#ff6600]/90 active:bg-[#ff6600]/80 border-black/20"
           onTouchStart={(e) => handleTouchStart('moveRight', e)}
           onTouchEnd={(e) => handleTouchEnd('moveRight', e)}
           onMouseDown={() => handleMouseDown('moveRight')}
@@ -61,7 +69,7 @@ export default function TouchControls({ onAction }: TouchControlsProps) {
       <Button
         variant="outline"
         size="lg"
-        className="p-3 rounded-full aspect-square bg-[#fdc400] text-black hover:bg-[#fdc400]/90 active:bg-[#fdc400]/80 border-black/20 sm:ml-16"
+        className="p-3 rounded-full aspect-square bg-[#ff6600] text-white hover:bg-[#ff6600]/90 active:bg-[#ff6600]/80 border-black/20 sm:ml-16"
         onTouchStart={(e) => handleTouchStart('jump', e)}
         onMouseDown={() => handleMouseDown('jump')}
         aria-label="Jump"
@@ -71,3 +79,4 @@ export default function TouchControls({ onAction }: TouchControlsProps) {
     </div>
   );
 }
+
