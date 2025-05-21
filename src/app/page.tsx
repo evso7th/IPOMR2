@@ -14,7 +14,7 @@ const DynamicGameCanvas = dynamic(() => import('@/components/game/GameCanvas'), 
 
 const DynamicTouchControls = dynamic(() => import('@/components/game/TouchControls'), {
   ssr: false,
-  loading: () => null, // Or a more specific loading component if desired
+  loading: () => null,
 });
 
 
@@ -22,7 +22,8 @@ export default function PlatformerPage() {
   console.log("[PlatformerPage] Component body START");
   const playerRef = useRef<PlayerState | null>(null);
   const [executeAction, setExecuteAction] = useState<GameAction | null>(null);
-  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing'); // Start in game
+  // Start directly in game for debugging, switch back to 'startScreen' for normal flow
+  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing'); 
 
   const handlePlayerAction = useCallback((action: GameAction) => {
     console.log("[PlatformerPage] handlePlayerAction called with:", action);
@@ -63,6 +64,13 @@ export default function PlatformerPage() {
     setGameState('startScreen');
   };
 
+  useEffect(() => {
+    console.log("[PlatformerPage] Mounted or gameState changed. Current gameState:", gameState);
+    if (gameState === 'playing' && !document.fullscreenElement && window.innerWidth < 768) { // Attempt fullscreen if playing and not already fullscreen on mobile-like widths
+        // requestFullscreen(); // Temporarily disable auto-fullscreen on playing for easier debugging
+    }
+  }, [gameState]);
+
   console.log("[PlatformerPage] Before return, gameState:", gameState);
 
   if (gameState === 'startScreen') {
@@ -76,20 +84,20 @@ export default function PlatformerPage() {
       className="flex flex-col h-screen bg-background text-foreground overflow-hidden"
     >
       <GameHeader onExitToStart={handleExitToStart} />
-      <main className="flex-1 w-full overflow-hidden flex flex-col">
+      <main className="flex-1 w-full"> {/* Removed overflow-hidden and flex flex-col */}
         <div
           className="relative w-full h-full"
           style={{
             backgroundImage: "url('/assets/images/level1_bkg.png')",
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'top right',
-            // backgroundSize: 'cover',
+            // backgroundSize: 'cover', // Keep commented or set explicitly if needed
           }}
           data-ai-hint="sky clouds"
         >
           {console.log("[PlatformerPage] About to render DynamicGameCanvas")}
           <DynamicGameCanvas
-            levelPath="/levels/level2.json"
+            levelPath="/levels/level2.json" // Ensure this is the level you want to test
             onPlayerAction={handlePlayerAction}
             playerRef={playerRef}
             executeAction={executeAction}
