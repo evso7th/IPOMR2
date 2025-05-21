@@ -28,7 +28,6 @@ interface GameCanvasProps {
   resetExecuteAction?: () => void;
 }
 
-// Helper function to parse dimension strings (like "100%" or "50px")
 const parseDimension = (value: string | number, totalSize: number): number => {
   if (typeof value === 'number') {
     return value;
@@ -41,10 +40,8 @@ const parseDimension = (value: string | number, totalSize: number): number => {
       return parseFloat(value);
     }
   }
-  console.warn(`[parseDimension] Invalid dimension value: ${value}, returning 0.`);
   return 0;
 };
-
 
 export default function GameCanvas({
   levelPath,
@@ -52,20 +49,21 @@ export default function GameCanvas({
   executeAction,
   resetExecuteAction,
 }: GameCanvasProps) {
-  console.log("[GameCanvas] Component body. levelPath:", levelPath);
+  // console.log(`[GameCanvas] Component body. levelPath: ${levelPath}`);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isClient, setIsClient] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
   const [assets, setAssets] = useState({
     playerImage: null as HTMLImageElement | null,
     tileImage: null as HTMLImageElement | null,
     coinImage: null as HTMLImageElement | null,
     stoneImage: null as HTMLImageElement | null,
-    tree1Image: null as HTMLImageElement | null,
-    tree2Image: null as HTMLImageElement | null,
-    smallBushImage: null as HTMLImageElement | null,
-    largeBushImage: null as HTMLImageElement | null,
-    houseImage: null as HTMLImageElement | null,
+    tree1Image: null as HTMLImageElement | null, // For tree1 on level 2
+    tree2Image: null as HTMLImageElement | null, // For tree2.png (level 1 and 2)
+    smallBushImage: null as HTMLImageElement | null, // For flowers.png
+    largeBushImage: null as HTMLImageElement | null, // For bush1.png
+    houseImage: null as HTMLImageElement | null, // For house1.png
     boatImage: null as HTMLImageElement | null,
     playerImageLoaded: false,
     tileImageLoaded: false,
@@ -78,13 +76,14 @@ export default function GameCanvas({
     houseImageLoaded: false,
     boatImageLoaded: false,
   });
+
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [rawLevelData, setRawLevelData] = useState<RawLevelData | null>(null);
   const [processedLevel, setProcessedLevel] = useState<ProcessedLevelData | null>(null);
   const playerInstanceRef = useRef<PlayerState | null>(null);
   const [activeCoins, setActiveCoins] = useState<CoinState[]>([]);
   const [activeEnemies, setActiveEnemies] = useState<EnemyState[]>([]);
-
+  
   const p3BasePositionRef = useRef<{ x: number; y: number } | null>(null);
   const p3InterestPointsRef = useRef<Array<{ x: number; y: number }>>([]);
   const p3CurrentTargetIndexRef = useRef<number>(0);
@@ -99,23 +98,20 @@ export default function GameCanvas({
   const lastFrameTime = useRef<number>(Date.now());
   const executeActionRef = useRef<GameAction | null>(executeAction || null);
   const processedLevelRef = useRef<ProcessedLevelData | null>(null);
-  // const { toast } = useToast();
-
 
   // Effect 0: Update executeActionRef when prop changes
   useEffect(() => {
     executeActionRef.current = executeAction;
   }, [executeAction]);
 
-
   const processRawLevelData = useCallback((
     currentRawLevelData: RawLevelData | null, 
     currentCanvasWidth: number, 
     currentCanvasHeight: number
   ): ProcessedLevelData | null => {
-    console.log(`[GameCanvas processRawLevelData] Called with canvasSize W: ${currentCanvasWidth} H: ${currentCanvasHeight} for level: ${levelPath}`);
+    // console.log(`[GameCanvas processRawLevelData] Called with canvasSize W: ${currentCanvasWidth} H: ${currentCanvasHeight} for level: ${levelPath}`);
     if (!currentRawLevelData || currentCanvasWidth <= 0 || currentCanvasHeight <= 0) {
-      console.warn("[GameCanvas processRawLevelData] No raw data or invalid canvas size, returning null.");
+      // console.warn("[GameCanvas processRawLevelData] No raw data or invalid canvas size, returning null.");
       return null;
     }
 
@@ -128,46 +124,16 @@ export default function GameCanvas({
       let tileY = 0;
 
       switch (rawTile.positioning.anchor) {
-        case 'top-left':
-          tileX = xOffset;
-          tileY = yOffset;
-          break;
-        case 'top-center':
-          tileX = (currentCanvasWidth / 2) - (tileWidth / 2) + xOffset;
-          tileY = yOffset;
-          break;
-        case 'top-right':
-          tileX = currentCanvasWidth - tileWidth - xOffset;
-          tileY = yOffset;
-          break;
-        case 'center-left':
-          tileX = xOffset;
-          tileY = (currentCanvasHeight / 2) - (tileHeight / 2) + yOffset;
-          break;
-        case 'center':
-          tileX = (currentCanvasWidth / 2) - (tileWidth / 2) + xOffset;
-          tileY = (currentCanvasHeight / 2) - (tileHeight / 2) + yOffset;
-          break;
-        case 'center-right':
-          tileX = currentCanvasWidth - tileWidth - xOffset;
-          tileY = (currentCanvasHeight / 2) - (tileHeight / 2) + yOffset;
-          break;
-        case 'bottom-left':
-          tileX = xOffset;
-          tileY = currentCanvasHeight - tileHeight - yOffset;
-          break;
-        case 'bottom-center':
-          tileX = (currentCanvasWidth / 2) - (tileWidth / 2) + xOffset;
-          tileY = currentCanvasHeight - tileHeight - yOffset;
-          break;
-        case 'bottom-right':
-          tileX = currentCanvasWidth - tileWidth - xOffset;
-          tileY = currentCanvasHeight - tileHeight - yOffset;
-          break;
-        default:
-          console.warn(`[processRawLevelData] Unknown anchor: ${rawTile.positioning.anchor} for tile ${rawTile.id}. Defaulting to top-left with offset.`);
-          tileX = xOffset;
-          tileY = yOffset;
+        case 'top-left': tileX = xOffset; tileY = yOffset; break;
+        case 'top-center': tileX = (currentCanvasWidth / 2) - (tileWidth / 2) + xOffset; tileY = yOffset; break;
+        case 'top-right': tileX = currentCanvasWidth - tileWidth - xOffset; tileY = yOffset; break;
+        case 'center-left': tileX = xOffset; tileY = (currentCanvasHeight / 2) - (tileHeight / 2) + yOffset; break;
+        case 'center': tileX = (currentCanvasWidth / 2) - (tileWidth / 2) + xOffset; tileY = (currentCanvasHeight / 2) - (tileHeight / 2) + yOffset; break;
+        case 'center-right': tileX = currentCanvasWidth - tileWidth - xOffset; tileY = (currentCanvasHeight / 2) - (tileHeight / 2) + yOffset; break;
+        case 'bottom-left': tileX = xOffset; tileY = currentCanvasHeight - tileHeight - yOffset; break;
+        case 'bottom-center': tileX = (currentCanvasWidth / 2) - (tileWidth / 2) + xOffset; tileY = currentCanvasHeight - tileHeight - yOffset; break;
+        case 'bottom-right': tileX = currentCanvasWidth - tileWidth - xOffset; tileY = currentCanvasHeight - tileHeight - yOffset; break;
+        default: tileX = xOffset; tileY = yOffset;
       }
       return {
         ...rawTile,
@@ -182,45 +148,42 @@ export default function GameCanvas({
     });
     
     const p_ground_tile = processedTiles.find(tile => tile.id === 'p_ground');
-    if (!p_ground_tile) {
-      console.error("[processRawLevelData] CRITICAL: p_ground tile not found. Level setup might be incorrect.");
-    }
     const p_ground_top_y = p_ground_tile ? p_ground_tile.y : currentCanvasHeight - 1;
 
     if (levelPath === '/levels/level2.json') {
-        const p3_size_w = P3_SIZE_W; 
-        const p3_size_h = P3_SIZE_H;
-        
         p3BasePositionRef.current = {
-            x: (currentCanvasWidth / 2) - (p3_size_w / 2),
+            x: (currentCanvasWidth / 2) - (P3_SIZE_W / 2),
             y: p_ground_top_y - 300, 
         };
-        console.log("[processRawLevelData] Level 2: p_ground_top_y:", p_ground_top_y, "p3BasePosRef.current:", p3BasePositionRef.current);
+        // console.log("[processRawLevelData] Level 2: p_ground_top_y:", p_ground_top_y, "p3BasePosRef.current:", p3BasePositionRef.current);
 
         p3InterestPointsRef.current = [
-            { x: 0, y: 0 },
-            { x: P3_DRIFT_RANGE, y: P3_DRIFT_RANGE },
-            { x: -P3_DRIFT_RANGE, y: 0 },
-            { x: 0, y: -P3_DRIFT_RANGE },
-        ];
+            { x: 0, y: 0 }, { x: P3_DRIFT_RANGE, y: 0 }, { x: 0, y: P3_DRIFT_RANGE },
+            { x: -P3_DRIFT_RANGE, y: 0 }, { x: 0, y: -P3_DRIFT_RANGE },
+            { x: P3_DRIFT_RANGE, y: -P3_DRIFT_RANGE}, { x: -P3_DRIFT_RANGE, y: P3_DRIFT_RANGE}
+        ].map(p => ({ x: p.x, y: p.y }));
+
         p3CurrentTargetIndexRef.current = 0;
-        p3MovementStateRef.current = null;
+        p3MovementStateRef.current = null; 
+        
+        const newP3TileX = p3BasePositionRef.current.x + p3InterestPointsRef.current[0].x;
+        const newP3TileY = p3BasePositionRef.current.y + p3InterestPointsRef.current[0].y;
 
         const p3Tile: ProcessedTile = {
             id: 'p3',
-            x: p3BasePositionRef.current.x,
-            y: p3BasePositionRef.current.y,
-            width: p3_size_w,
-            height: p3_size_h,
-            type: 1,
-            color: 'hsl(var(--muted))', // Example color
-            vx: 0, 
-            direction: 0,
-            layer: 'background',
-            positioning: { anchor: 'top-left' }
+            x: newP3TileX, y: newP3TileY,
+            width: P3_SIZE_W, height: P3_SIZE_H,
+            type: 1, color: 'hsl(var(--muted))',
+            vx: 0, direction: 0, layer: 'background',
+            positioning: { anchor: 'top-left' } 
         };
         processedTiles.push(p3Tile);
-        console.log("[processRawLevelData] Level 2: Added p3Tile:", p3Tile);
+        // console.log("[processRawLevelData] Level 2: Added p3Tile:", p3Tile);
+         p3MovementStateRef.current = {
+            startTime: Date.now(),
+            startX: newP3TileX, startY: newP3TileY,
+            targetX: newP3TileX, targetY: newP3TileY, // Start at the first point
+        };
     }
 
 
@@ -231,71 +194,90 @@ export default function GameCanvas({
     if (playerStartPlatform) {
       playerY = playerStartPlatform.y - PLAYER_HEIGHT - (currentRawLevelData.playerStart.yOffsetPx || 0);
       switch (currentRawLevelData.playerStart.horizontalAlign) {
-        case 'left':
-          playerX = playerStartPlatform.x + (currentRawLevelData.playerStart.xOffsetPx || 0);
-          break;
-        case 'center':
-          playerX = playerStartPlatform.x + (playerStartPlatform.width / 2) - (PLAYER_WIDTH / 2) + (currentRawLevelData.playerStart.xOffsetPx || 0);
-          break;
-        case 'right':
-          playerX = playerStartPlatform.x + playerStartPlatform.width - PLAYER_WIDTH - (currentRawLevelData.playerStart.xOffsetPx || 0);
-          break;
+        case 'left': playerX = playerStartPlatform.x + (currentRawLevelData.playerStart.xOffsetPx || 0); break;
+        case 'center': playerX = playerStartPlatform.x + (playerStartPlatform.width / 2) - (PLAYER_WIDTH / 2) + (currentRawLevelData.playerStart.xOffsetPx || 0); break;
+        case 'right': playerX = playerStartPlatform.x + playerStartPlatform.width - PLAYER_WIDTH - (currentRawLevelData.playerStart.xOffsetPx || 0); break;
       }
     } else {
-      console.warn(`[processRawLevelData] Player start platform with id "${currentRawLevelData.playerStart.platformId}" not found! Defaulting player to 0,0.`);
-      playerX = 0;
-      playerY = 0;
+      // console.warn(`[processRawLevelData] Player start platform with id "${currentRawLevelData.playerStart.platformId}" not found! Defaulting player to 0,0.`);
     }
     
     const newPlayer: PlayerState = {
-      x: playerX,
-      y: playerY,
-      width: PLAYER_WIDTH,
-      height: PLAYER_HEIGHT,
-      vx: 0,
-      vy: 0,
-      isOnGround: false,
-      isMovingLeft: false,
-      isMovingRight: false,
-      color: PLAYER_COLOR,
-      image: assets.playerImage || undefined,
-      facingDirection: 'right',
-      activePlatformId: null,
+      x: playerX, y: playerY,
+      width: PLAYER_WIDTH, height: PLAYER_HEIGHT,
+      vx: 0, vy: 0,
+      isOnGround: false, isMovingLeft: false, isMovingRight: false,
+      color: PLAYER_COLOR, image: assets.playerImage || undefined,
+      facingDirection: 'right', activePlatformId: null,
     };
 
     playerInstanceRef.current = newPlayer;
     if (parentPlayerRef) {
       parentPlayerRef.current = newPlayer;
     }
-    console.log(`[processRawLevelData] Successfully processed. Player:`, newPlayer, "Number of tiles:", processedTiles.length);
+    // console.log(`[processRawLevelData] Successfully processed. Player:`, newPlayer, "Number of tiles:", processedTiles.length);
     return { playerStart: { xPx: playerX, yPx: playerY }, tiles: processedTiles };
-  }, [assets.playerImage, parentPlayerRef, levelPath, p3BasePositionRef, p3InterestPointsRef, p3CurrentTargetIndexRef, p3MovementStateRef]);
+  }, [assets.playerImage, parentPlayerRef, levelPath, P3_SIZE_W, P3_SIZE_H, P3_DRIFT_RANGE]);
 
 
   const spawnNewCoinPair = useCallback((currentProcessedLevel: ProcessedLevelData | null, currentCanvasWidth: number, currentCanvasHeight: number): CoinState[] => {
-    console.log(`[spawnNewCoinPair] DIAGNOSTIC SPAWN Called. Canvas W:${currentCanvasWidth}, H:${currentCanvasHeight}. ProcessedLevel exists: ${!!currentProcessedLevel}`);
+    // console.log(`[spawnNewCoinPair] Called. Canvas W:${currentCanvasWidth}, H:${currentCanvasHeight}. ProcessedLevel exists: ${!!currentProcessedLevel}`);
     if (!currentProcessedLevel || currentCanvasWidth <= 0 || currentCanvasHeight <= 0) {
-      console.warn("[spawnNewCoinPair] Pre-conditions not met (no processed level or invalid canvas size). No coins spawned.");
+      // console.warn("[spawnNewCoinPair] Pre-conditions not met. No coins spawned.");
       return [];
     }
-    // Simplified: Create 1 diagnostic coin
-    const testCoin: CoinState = {
-        id: `test-coin-${Date.now()}`,
-        x: currentCanvasWidth / 2 - COIN_SIZE / 2,
-        y: currentCanvasHeight / 2 - COIN_SIZE / 2,
-        width: COIN_SIZE,
-        height: COIN_SIZE,
+  
+    const p_ground = currentProcessedLevel.tiles.find(tile => tile.id === 'p_ground');
+    if (!p_ground) {
+      // console.warn("[spawnNewCoinPair] 'p_ground' tile not found. Cannot determine spawn zone. No coins spawned.");
+      return [];
+    }
+    const p_groundTopY = p_ground.y;
+  
+    const gamePlatforms = currentProcessedLevel.tiles.filter(tile => tile.type === 1 && tile.id !== 'p_ground');
+    const actualHighestPlatformTopY = gamePlatforms.length > 0
+      ? Math.min(...gamePlatforms.map(p => p.y))
+      : p_groundTopY; 
+  
+    const ySpawnZoneBottomCoinTopEdge = p_groundTopY - COIN_VERTICAL_SPAWN_BOTTOM_OFFSET - COIN_SIZE;
+    const ySpawnZoneTopCoinTopEdge = actualHighestPlatformTopY - MAX_JUMP_HEIGHT - COIN_SPAWN_TOP_MARGIN - COIN_SIZE;
+    
+    // console.log(`[spawnNewCoinPair] p_groundTopY: ${p_groundTopY}, actualHighestPlatformTopY: ${actualHighestPlatformTopY}`);
+    // console.log(`[spawnNewCoinPair] ySpawnZoneBottomCoinTopEdge: ${ySpawnZoneBottomCoinTopEdge}, ySpawnZoneTopCoinTopEdge: ${ySpawnZoneTopCoinTopEdge}`);
+
+    if (ySpawnZoneTopCoinTopEdge >= ySpawnZoneBottomCoinTopEdge) {
+      // console.warn(`[spawnNewCoinPair] Invalid spawn zone: Top (${ySpawnZoneTopCoinTopEdge}) is above or equal to Bottom (${ySpawnZoneBottomCoinTopEdge}). No coins spawned.`);
+      return [];
+    }
+  
+    const newCoins: CoinState[] = [];
+    const numberOfCoinsToSpawn = 10; // Spawn 10 coins
+  
+    for (let i = 0; i < numberOfCoinsToSpawn; i++) {
+      const randomY = Math.random() * (ySpawnZoneBottomCoinTopEdge - ySpawnZoneTopCoinTopEdge) + ySpawnZoneTopCoinTopEdge;
+      let randomX;
+      if (i < numberOfCoinsToSpawn / 2) { // First half on the left
+        randomX = Math.random() * (currentCanvasWidth / 2 - COIN_SIZE);
+      } else { // Second half on the right
+        randomX = Math.random() * (currentCanvasWidth / 2 - COIN_SIZE) + currentCanvasWidth / 2;
+      }
+  
+      newCoins.push({
+        id: `coin-${Date.now()}-${i}`,
+        x: randomX, y: randomY,
+        width: COIN_SIZE, height: COIN_SIZE,
         isCollected: false,
-        targetSpawnTime: Date.now(),
-        currentOpacity: 1, // Fully visible for test
+        targetSpawnTime: Date.now() + i * (COIN_SPAWN_STAGGER_DELAY / 2), // Stagger slightly more
+        currentOpacity: 0,
         particles: [],
         isVisuallyPresent: true,
-        rotationAngle: 0,
-        rotationSpeed: 0, // No rotation for test
-    };
-    console.log("[spawnNewCoinPair] DIAGNOSTIC SPAWN: Created 1 test coin:", testCoin);
-    return [testCoin];
-  }, []);
+        rotationAngle: Math.random() * Math.PI * 2,
+        rotationSpeed: (Math.random() * (COIN_ROTATION_SPEED_MAX - COIN_ROTATION_SPEED_MIN) + COIN_ROTATION_SPEED_MIN) * (Math.random() < 0.5 ? 1 : -1),
+      });
+    }
+    // console.log(`[spawnNewCoinPair] Created ${newCoins.length} coins.`);
+    return newCoins;
+  }, [MAX_JUMP_HEIGHT, COIN_VERTICAL_SPAWN_BOTTOM_OFFSET, COIN_SPAWN_TOP_MARGIN, COIN_SIZE, COIN_SPAWN_STAGGER_DELAY, COIN_ROTATION_SPEED_MIN, COIN_ROTATION_SPEED_MAX]);
 
   const spawnSingleEnemy = useCallback((currentProcessedLevel: ProcessedLevelData | null, currentCanvasWidth: number): EnemyState | null => {
     if (!currentProcessedLevel) return null;
@@ -304,25 +286,17 @@ export default function GameCanvas({
     if (!p1 || !p2) return null;
 
     const enemyY = (p1.y + p1.height / 2 + p2.y + p2.height / 2) / 2 - ENEMY_RADIUS;
-    const newEnemy: EnemyState = {
-      id: `enemy-${Date.now()}`,
-      x: 0,
-      y: enemyY,
-      radius: ENEMY_RADIUS,
-      width: ENEMY_RADIUS * 2,
-      height: ENEMY_RADIUS * 2,
-      vx: PLATFORM_SPEED * ENEMY_SPEED_FACTOR,
-      direction: 1,
-      color: ENEMY_COLOR,
+    return {
+      id: `enemy-${Date.now()}`, x: 0, y: enemyY,
+      radius: ENEMY_RADIUS, width: ENEMY_RADIUS * 2, height: ENEMY_RADIUS * 2,
+      vx: PLATFORM_SPEED * ENEMY_SPEED_FACTOR, direction: 1, color: ENEMY_COLOR,
     };
-    return newEnemy;
-  }, []);
+  }, [ENEMY_RADIUS, PLATFORM_SPEED, ENEMY_SPEED_FACTOR, ENEMY_COLOR]);
 
   // Effect 1: Set isClient and load assets
   useEffect(() => {
-    console.log("[GameCanvas Effect 1] Running: Set isClient, Load Assets. Current isClient state:", isClient);
+    // console.log("[GameCanvas Effect 1] Running: Set isClient, Load Assets. Current isClient state:", isClient);
     if (!isClient) setIsClient(true);
-
     const pImg = new Image(); pImg.src = '/assets/images/hero_jeans3.png'; pImg.setAttribute('data-ai-hint', 'character orange blue');
     pImg.onload = () => setAssets(prev => ({ ...prev, playerImage: pImg, playerImageLoaded: true }));
     pImg.onerror = () => { console.error("Failed to load player image."); setAssets(prev => ({ ...prev, playerImageLoaded: true })); };
@@ -368,7 +342,7 @@ export default function GameCanvas({
 
   // Effect 2: Apply canvasSize to canvas attributes
   useEffect(() => {
-    console.log("[GameCanvas Effect 2] Running: Apply canvasSize to attributes. Current canvasSize:", canvasSize);
+    // console.log("[GameCanvas Effect 2] Running: Apply canvasSize to attributes. Current canvasSize:", canvasSize);
     if (isClient && canvasRef.current && canvasSize.width > 0 && canvasSize.height > 0) {
       canvasRef.current.width = canvasSize.width;
       canvasRef.current.height = canvasSize.height;
@@ -377,7 +351,7 @@ export default function GameCanvas({
 
   // Effect 3: Observe parent size
   useEffect(() => {
-    console.log("[GameCanvas Effect 3] Running: Observe parent size");
+    // console.log("[GameCanvas Effect 3] Running: Observe parent size");
     if (!isClient || !canvasRef.current) return;
     const canvas = canvasRef.current;
     const parentElement = canvas.parentElement;
@@ -386,6 +360,7 @@ export default function GameCanvas({
     const updateCanvasSizeState = (newWidth: number, newHeight: number) => {
       setCanvasSize(currentSize => {
         if (currentSize.width !== newWidth || currentSize.height !== newHeight) {
+          // console.log(`[GameCanvas Effect 3 updateCanvasSizeState] Updating canvasSize from W:${currentSize.width} H:${currentSize.height} to W:${newWidth} H:${newHeight}`);
           return { width: newWidth, height: newHeight };
         }
         return currentSize;
@@ -421,147 +396,144 @@ export default function GameCanvas({
 
   // Effect 4: Load raw level data
   useEffect(() => {
-    console.log(`[GameCanvas Effect 4] Running: Load raw level data for levelPath: ${levelPath}. isClient: ${isClient}`);
+    // console.log(`[GameCanvas Effect 4] Running: Load raw level data for levelPath: ${levelPath}. isClient: ${isClient}`);
     if (!isClient || !levelPath) {
-      console.log("[GameCanvas Effect 4] Not client or no levelPath, returning.");
+      // console.log("[GameCanvas Effect 4] Not client or no levelPath, returning.");
       return;
     }
     setRawLevelData(null); 
-    if (!isLoading) setIsLoading(true);
+    setIsLoading(true); // Always set to loading when levelPath changes
 
     loadLevel(levelPath)
       .then(data => {
-        if (data) {
-          setRawLevelData(data);
-        } else {
-          setRawLevelData(null); 
-        }
+        // console.log(`[GameCanvas Effect 4] ${data ? 'Successfully loaded' : 'Failed to load'} rawLevelData for ${levelPath}`);
+        setRawLevelData(data); 
       })
       .catch(() => {
+        // console.error(`[GameCanvas Effect 4] Error in loadLevel promise for ${levelPath}`);
         setRawLevelData(null);
       });
-  }, [isClient, levelPath, isLoading, setIsLoading]); // Added isLoading & setIsLoading
+  }, [isClient, levelPath]); 
 
 
   // Effect 5: Process raw level data
   useEffect(() => {
-    console.log(`[GameCanvas Effect 5] Running: Process raw level data. isClient: ${isClient}, rawLevelData: ${!!rawLevelData}, canvasSize: W${canvasSize.width}xH${canvasSize.height}, allAssetsLoaded: ${Object.values(assets).every(v => typeof v === 'boolean' ? v : !!v)}`);
+    // console.log(`[GameCanvas Effect 5] Running: Process raw level data. isClient: ${isClient}, rawLevelData: ${!!rawLevelData}, canvasSize: W${canvasSize.width}xH${canvasSize.height}, allAssetsLoaded: ${Object.values(assets).every(v => typeof v === 'boolean' ? v : !!v)}`);
     const allAssetsLoaded = assets.playerImageLoaded && assets.tileImageLoaded && assets.coinImageLoaded &&
                             assets.stoneImageLoaded && assets.tree1ImageLoaded && assets.tree2ImageLoaded &&
                             assets.smallBushImageLoaded && assets.largeBushImageLoaded && assets.houseImageLoaded && assets.boatImageLoaded;
 
     if (!isClient || !rawLevelData || canvasSize.width === 0 || canvasSize.height === 0 || !allAssetsLoaded) {
       if (processedLevel !== null) {
-        console.log("[GameCanvas Effect 5] Critical data missing or changed, clearing processedLevel.");
+        // console.log("[GameCanvas Effect 5] Critical data missing or changed, clearing processedLevel.");
         setProcessedLevel(null);
-        setActiveCoins([]);
-        setActiveEnemies([]);
       }
-      if (!allAssetsLoaded) console.log("[GameCanvas Effect 5] Waiting for all assets to load...");
-      else if (!rawLevelData) console.log("[GameCanvas Effect 5] Waiting for rawLevelData...");
-      else if (canvasSize.width === 0 || canvasSize.height === 0) console.log("[GameCanvas Effect 5] Waiting for canvasSize...");
+      // if (!allAssetsLoaded) console.log("[GameCanvas Effect 5] Waiting for all assets to load...");
+      // else if (!rawLevelData) console.log("[GameCanvas Effect 5] Waiting for rawLevelData...");
+      // else if (canvasSize.width === 0 || canvasSize.height === 0) console.log("[GameCanvas Effect 5] Waiting for canvasSize...");
       
-      // Ensure isLoading is true if we can't process
       if (isLoading === false && (!rawLevelData || !allAssetsLoaded || canvasSize.width === 0 || canvasSize.height === 0)) {
-          console.log("[GameCanvas Effect 5] Critical data missing, ensuring isLoading is true.");
+          // console.log("[GameCanvas Effect 5] Critical data missing, ensuring isLoading is true.");
           setIsLoading(true);
       }
       return;
     }
     
+    // console.log("[GameCanvas Effect 5] Conditions met, processing rawLevelData...");
     const newProcessedLevel = processRawLevelData(rawLevelData, canvasSize.width, canvasSize.height);
     if (newProcessedLevel) {
+      // console.log("[GameCanvas Effect 5] Successfully processed level. Setting newProcessedLevel and newPlayer.");
       setProcessedLevel(newProcessedLevel);
     } else {
+      // console.warn("[GameCanvas Effect 5] Processing rawLevelData failed. Setting processedLevel to null.");
       setProcessedLevel(null);
-      if(isLoading === false) setIsLoading(true); // If processing failed, stay in loading state
+      if(isLoading === false) setIsLoading(true); 
     }
   }, [
     isClient, rawLevelData, canvasSize, assets, processRawLevelData, 
-    setProcessedLevel, setIsLoading, isLoading, // Added isLoading & setIsLoading
-    parentPlayerRef, playerInstanceRef, 
-    p3BasePositionRef, p3InterestPointsRef, p3CurrentTargetIndexRef, p3MovementStateRef
+    setProcessedLevel, setIsLoading, isLoading, parentPlayerRef
   ]);
 
 
   // Effect 6: Update processedLevelRef.current when processedLevel state changes
   useEffect(() => {
     processedLevelRef.current = processedLevel;
-    console.log("[GameCanvas Effect 6] processedLevelRef.current updated:", processedLevelRef.current ? "Exists" : "null");
+    // console.log("[GameCanvas Effect 6] processedLevelRef.current updated:", processedLevelRef.current ? "Exists" : "null");
   }, [processedLevel]);
 
 
   // Effect 7: Spawn entities and finish loading
   useEffect(() => {
-    console.log(`[GameCanvas Effect 7] Running. isLoading: ${isLoading}, isClient: ${isClient}, processedLevel: ${!!processedLevel}, canvasSize W:${canvasSize.width}H:${canvasSize.height}, levelPath: ${levelPath}, activeCoins.length: ${activeCoins.length}`);
-
-    if (!isClient || !processedLevel || canvasSize.width === 0 || canvasSize.height === 0) {
-        console.log("[GameCanvas Effect 7] Pre-conditions (isClient, processedLevel, canvasSize) not met for entity spawn, returning.");
-        return;
-    }
+    // console.log(`[GameCanvas Effect 7] Running. isLoading: ${isLoading}, isClient: ${isClient}, processedLevel: ${!!processedLevel}, canvasSize W:${canvasSize.width}H:${canvasSize.height}, levelPath: ${levelPath}, activeCoins.length: ${activeCoins.length}`);
 
     if (!isLoading) {
-        console.log("[GameCanvas Effect 7] isLoading is false, skipping spawn logic (already loaded or loading finished).");
+        // console.log("[GameCanvas Effect 7] isLoading is false, skipping spawn logic (already loaded or loading finished).");
+        return; 
+    }
+
+    if (!isClient || canvasSize.width === 0 || canvasSize.height === 0) {
+        // console.log("[GameCanvas Effect 7] Pre-conditions (isClient, canvasSize) not met for entity spawn/loading completion, returning.");
+        return;
+    }
+    
+    // If processedLevel is null (e.g., level failed to load/process), we should still exit loading state.
+    if (!processedLevel) {
+        // console.warn("[GameCanvas Effect 7] processedLevel is null. Setting isLoading to false. Game may not display level elements.");
+        setActiveCoins([]);
+        setActiveEnemies([]);
+        setIsLoading(false);
         return;
     }
 
-    let coinsAttempted = false;
-    if (activeCoins.length === 0 && processedLevel.tiles.length > 0) {
-        console.log(`[GameCanvas Effect 7] Spawning new coin pair for level ${levelPath}`);
+    let coinsAttempted = activeCoins.length > 0;
+    if (!coinsAttempted && processedLevel.tiles.length > 0) {
         const newCoins = spawnNewCoinPair(processedLevel, canvasSize.width, canvasSize.height);
-        console.log(`[GameCanvas Effect 7] spawnNewCoinPair returned ${newCoins.length} coins. Setting activeCoins.`);
-        setActiveCoins(newCoins);
+        setActiveCoins(newCoins); 
+        // console.log(`[GameCanvas Effect 7] spawnNewCoinPair returned ${newCoins.length} coins. Setting activeCoins.`);
         coinsAttempted = true;
     } else if (processedLevel.tiles.length === 0) {
-        console.log("[GameCanvas Effect 7] No tiles, no coins needed.");
         coinsAttempted = true; // No coins needed if level is empty
-    } else {
-        console.log("[GameCanvas Effect 7] Coins already exist or no tiles, coin spawn attempt considered done.");
-        coinsAttempted = true; // Coins already exist or not needed
     }
 
-    let enemiesAttempted = false;
-    const noEnemiesOnLevel1And2 = levelPath === '/levels/level1.json' || levelPath === '/levels/level2.json';
-    if (noEnemiesOnLevel1And2) {
-        console.log(`[GameCanvas Effect 7] Enemies not spawned for level: ${levelPath}`);
-        enemiesAttempted = true; // Enemies not needed for these levels
-    } else if (activeEnemies.length === 0 && processedLevel.tiles.length > 0) {
-        console.log(`[GameCanvas Effect 7] Spawning enemy for level ${levelPath}`);
-        const newEnemy = spawnSingleEnemy(processedLevel, canvasSize.width);
-        if (newEnemy) {
-            setActiveEnemies([newEnemy]);
+    let enemiesAttempted = activeEnemies.length > 0;
+    const noEnemiesOnThisLevel = levelPath === '/levels/level1.json' || levelPath === '/levels/level2.json';
+
+    if (!noEnemiesOnThisLevel) {
+        if (!enemiesAttempted && processedLevel.tiles.length > 0) {
+            const newEnemy = spawnSingleEnemy(processedLevel, canvasSize.width);
+            if (newEnemy) {
+                setActiveEnemies([newEnemy]);
+            }
+            enemiesAttempted = true;
+        } else if (processedLevel.tiles.length === 0) {
+             enemiesAttempted = true;
         }
-        enemiesAttempted = true;
-    } else if (processedLevel.tiles.length === 0) {
-        console.log("[GameCanvas Effect 7] No tiles, no enemies needed.");
-        enemiesAttempted = true;
     } else {
-        console.log("[GameCanvas Effect 7] Enemies already exist or no tiles or not needed for this level, enemy spawn attempt considered done.");
-        enemiesAttempted = true;
+        // console.log(`[GameCanvas Effect 7] Enemies not spawned for level: ${levelPath}`);
+        enemiesAttempted = true; 
     }
     
     if (coinsAttempted && enemiesAttempted) {
-        console.log("[GameCanvas Effect 7] All entities attempted or not needed, setting isLoading to false.");
+        // console.log("[GameCanvas Effect 7] All entities attempted or not needed, setting isLoading to false.");
         setIsLoading(false);
-    } else {
-        console.log(`[GameCanvas Effect 7] Entities not fully attempted. coinsAttempted: ${coinsAttempted}, enemiesAttempted: ${enemiesAttempted}. isLoading remains true.`);
     }
   }, [
-    isClient, isLoading, processedLevel, canvasSize, levelPath, 
-    spawnNewCoinPair, spawnSingleEnemy, setActiveCoins, setActiveEnemies, setIsLoading, 
-    activeCoins.length, activeEnemies.length // Keep these to re-evaluate if needed
+      isClient, isLoading, processedLevel, canvasSize, levelPath, 
+      spawnNewCoinPair, spawnSingleEnemy, 
+      setActiveCoins, setActiveEnemies, setIsLoading,
+      activeCoins.length, activeEnemies.length // Added back to re-evaluate if entities are missing
   ]);
 
 
   // Effect 8: Check coin respawn logic
   useEffect(() => {
-    console.log(`[GameCanvas Effect 8] Running: Check coin respawn. isLoading: ${isLoading}, processedLevel: ${!!processedLevelRef.current}`);
+    // console.log(`[GameCanvas Effect 8] Running: Check coin respawn. isLoading: ${isLoading}, processedLevel: ${!!processedLevelRef.current}`);
     if (isLoading || !isClient || !canvasRef.current || !processedLevelRef.current || canvasSize.width === 0 || canvasSize.height === 0) {
       return;
     }
     const allCollectedAndParticlesGone = activeCoins.length > 0 && activeCoins.every(c => c.isCollected && c.particles.length === 0 && !c.isVisuallyPresent);
     if (allCollectedAndParticlesGone) {
-      console.log("[GameCanvas Effect 8] All coins collected and particles gone, spawning new pair.");
+      // console.log("[GameCanvas Effect 8] All coins collected and particles gone, spawning new pair.");
       setActiveCoins(spawnNewCoinPair(processedLevelRef.current, canvasSize.width, canvasSize.height));
     }
   }, [activeCoins, isClient, isLoading, canvasSize, spawnNewCoinPair, setActiveCoins]);
@@ -569,7 +541,7 @@ export default function GameCanvas({
 
   const gameLoop = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !playerInstanceRef.current || !processedLevelRef.current) {
+    if (!canvas || !playerInstanceRef.current) { // Removed processedLevelRef.current check here
       requestAnimationFrame(gameLoop);
       return;
     }
@@ -581,7 +553,7 @@ export default function GameCanvas({
 
     const loopStartTime = Date.now();
     let deltaTime = loopStartTime - lastFrameTime.current;
-    const MAX_DELTA_TIME_MS = 100;
+    const MAX_DELTA_TIME_MS = 100; 
     if (deltaTime > MAX_DELTA_TIME_MS) deltaTime = MAX_DELTA_TIME_MS;
     
     const deltaTimeFactor = Math.max(0.1, Math.min(2, deltaTime / (1000 / 60)));
@@ -589,44 +561,71 @@ export default function GameCanvas({
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const currentLevel = processedLevelRef.current;
+    const currentLevel = processedLevelRef.current; // Use the ref here
+
+    if (!currentLevel) {
+      ctx.fillStyle = 'white';
+      ctx.font = '20px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText("Failed to load level data.", canvas.width / 2, canvas.height / 2 - 20);
+      ctx.fillText("Please check server and file path.", canvas.width / 2, canvas.height / 2 + 10);
+      requestAnimationFrame(gameLoop);
+      return;
+    }
+    
     const player = playerInstanceRef.current;
 
-    // Update and Render Tiles (Platforms & Decor)
-    // Background elements & Platforms
+    // Update and Render Tiles
     currentLevel.tiles.forEach(tile => {
       if (tile.vx && tile.direction) {
-        tile.x += tile.vx * tile.direction * deltaTimeFactor;
-        if (tile.x + tile.width > canvas.width && tile.direction === 1) {
-          tile.x = canvas.width - tile.width;
-          tile.direction = -1;
-        } else if (tile.x < 0 && tile.direction === -1) {
-          tile.x = 0;
-          tile.direction = 1;
+        const waterPit = tile.id === 'boat1' ? currentLevel.tiles.find(t => t.id === 'water_pit') : null;
+        let newX = tile.x + (tile.vx * tile.direction * deltaTimeFactor);
+        if (waterPit) {
+            if (newX + tile.width > waterPit.x + waterPit.width && tile.direction === 1) {
+                newX = waterPit.x + waterPit.width - tile.width;
+                tile.direction = -1;
+            } else if (newX < waterPit.x && tile.direction === -1) {
+                newX = waterPit.x;
+                tile.direction = 1;
+            }
+        } else {
+            if (newX + tile.width > canvas.width && tile.direction === 1) {
+                newX = canvas.width - tile.width;
+                tile.direction = -1;
+            } else if (newX < 0 && tile.direction === -1) {
+                newX = 0;
+                tile.direction = 1;
+            }
         }
-      }
-      if (tile.id === 'p3' && p3BasePositionRef.current && p3MovementStateRef.current) {
-        const p3State = p3MovementStateRef.current;
-        const elapsed = loopStartTime - p3State.startTime;
-        const progress = Math.min(elapsed / P3_MOVEMENT_DURATION, 1);
-        
-        const newX = p3State.startX + (p3State.targetX - p3State.startX) * progress;
-        const newY = p3State.startY + (p3State.targetY - p3State.startY) * progress;
-        
         tile.x = newX;
-        tile.y = newY;
+      }
+      if (tile.id === 'p3' && p3BasePositionRef.current && levelPath === '/levels/level2.json') {
+          if (!p3MovementStateRef.current) { // Initialize movement if not already
+              const initialTargetPoint = p3InterestPointsRef.current[p3CurrentTargetIndexRef.current];
+              p3MovementStateRef.current = {
+                  startTime: loopStartTime,
+                  startX: tile.x, startY: tile.y,
+                  targetX: p3BasePositionRef.current.x + initialTargetPoint.x,
+                  targetY: p3BasePositionRef.current.y + initialTargetPoint.y,
+              };
+          }
+          const p3State = p3MovementStateRef.current;
+          const elapsed = loopStartTime - p3State.startTime;
+          const progress = Math.min(elapsed / P3_MOVEMENT_DURATION, 1);
+          
+          tile.x = p3State.startX + (p3State.targetX - p3State.startX) * progress;
+          tile.y = p3State.startY + (p3State.targetY - p3State.startY) * progress;
 
-        if (progress >= 1) {
-          p3CurrentTargetIndex.current = (p3CurrentTargetIndex.current + 1) % p3InterestPointsRef.current.length;
-          const nextTargetPoint = p3InterestPointsRef.current[p3CurrentTargetIndex.current];
-          p3MovementStateRef.current = {
-            startTime: loopStartTime,
-            startX: tile.x,
-            startY: tile.y,
-            targetX: p3BasePositionRef.current.x + nextTargetPoint.x,
-            targetY: p3BasePositionRef.current.y + nextTargetPoint.y,
-          };
-        }
+          if (progress >= 1) {
+              p3CurrentTargetIndexRef.current = (p3CurrentTargetIndexRef.current + 1) % p3InterestPointsRef.current.length;
+              const nextTargetPoint = p3InterestPointsRef.current[p3CurrentTargetIndexRef.current];
+              p3MovementStateRef.current = {
+                  startTime: loopStartTime,
+                  startX: tile.x, startY: tile.y,
+                  targetX: p3BasePositionRef.current.x + nextTargetPoint.x,
+                  targetY: p3BasePositionRef.current.y + nextTargetPoint.y,
+              };
+          }
       }
 
       if (tile.layer !== 'foreground') {
@@ -635,6 +634,8 @@ export default function GameCanvas({
                  ctx.drawImage(assets.stoneImage, tile.x, tile.y, tile.width, tile.height);
             } else if (tile.id === "boat1" && assets.boatImage?.complete) {
                  ctx.drawImage(assets.boatImage, tile.x, tile.y, tile.width, tile.height);
+            } else if (tile.id === "p3" && levelPath === "/levels/level2.json" && assets.tileImage?.complete) { // p3 uses tileImage
+                 ctx.drawImage(assets.tileImage, tile.x, tile.y, tile.width, tile.height);
             } else if (assets.tileImage?.complete) {
                  ctx.drawImage(assets.tileImage, tile.x, tile.y, tile.width, tile.height);
             } else {
@@ -642,9 +643,11 @@ export default function GameCanvas({
                  ctx.fillRect(tile.x, tile.y, tile.width, tile.height);
             }
         } else { // Decorative background
-            if (tile.id === "tree1" && assets.tree1Image?.complete) {
+            if (tile.id === "tree1" && assets.tree1Image?.complete) { // Level 2 tree1
                  ctx.drawImage(assets.tree1Image, tile.x, tile.y, tile.width, tile.height);
-            } else if (tile.id === "tree2" && assets.tree2Image?.complete) {
+            } else if (tile.id === "tree2" && assets.tree2Image?.complete) { // Generic tree2
+                 ctx.drawImage(assets.tree2Image, tile.x, tile.y, tile.width, tile.height);
+            } else if (tile.id.startsWith("tree_level1") && assets.tree2Image?.complete) { // Level 1 trees
                  ctx.drawImage(assets.tree2Image, tile.x, tile.y, tile.width, tile.height);
             } else if (tile.id === "house1" && assets.houseImage?.complete) {
                  ctx.drawImage(assets.houseImage, tile.x, tile.y, tile.width, tile.height);
@@ -656,117 +659,195 @@ export default function GameCanvas({
       }
     });
     
-    // Update and Render Coins (currently not rendered)
-    // renderCoins(ctx, activeCoins, assets.coinImage);
+    // Update and Render Coins
+    setActiveCoins(prevCoins => prevCoins.map(coin => {
+        let newCoin = { ...coin };
+        if (!newCoin.isCollected && Date.now() >= newCoin.targetSpawnTime && newCoin.currentOpacity < 1) {
+            const opacityIncrease = deltaTime / COIN_FADE_IN_DURATION;
+            newCoin.currentOpacity = Math.min(1, newCoin.currentOpacity + opacityIncrease);
+        }
+        if (newCoin.isCollected && newCoin.particles.length > 0) {
+            newCoin.particles = newCoin.particles.map(p => ({
+                ...p,
+                x: p.x + p.vx * COIN_PARTICLE_SPEED_MULTIPLIER * deltaTimeFactor,
+                y: p.y + p.vy * COIN_PARTICLE_SPEED_MULTIPLIER * deltaTimeFactor + (GRAVITY * COIN_PARTICLE_GRAVITY_FACTOR * deltaTimeFactor),
+                life: p.life - deltaTime,
+                opacity: Math.max(0, (p.life - deltaTime) / COIN_PARTICLE_LIFESPAN),
+            })).filter(p => p.life > 0);
+
+            if (newCoin.particles.length === 0) {
+                newCoin.isVisuallyPresent = false;
+            }
+        }
+        if (newCoin.rotationSpeed !== 0) {
+            newCoin.rotationAngle = (newCoin.rotationAngle + newCoin.rotationSpeed * deltaTimeFactor) % (Math.PI * 2);
+        }
+        return newCoin;
+    }));
+    renderCoins(ctx, activeCoins, assets.coinImage);
     
-    // Update and Render Enemies (currently not rendered)
-    // renderEnemies(ctx, activeEnemies);
+    // Update and Render Enemies
+    setActiveEnemies(prevEnemies => prevEnemies.map(enemy => {
+        let newEnemy = { ...enemy };
+        newEnemy.x += newEnemy.vx * newEnemy.direction * deltaTimeFactor;
+        if (newEnemy.x + newEnemy.radius * 2 > canvas.width && newEnemy.direction === 1) {
+            newEnemy.x = canvas.width - newEnemy.radius * 2;
+            newEnemy.direction = -1;
+        } else if (newEnemy.x < 0 && newEnemy.direction === -1) {
+            newEnemy.x = 0;
+            newEnemy.direction = 1;
+        }
+        if (player && checkCollision(player, newEnemy)) {
+            // console.log("Collision with enemy!");
+            const p_ground = currentLevel.tiles.find(t => t.id === 'p_ground');
+            if (p_ground) {
+                player.x = canvas.width / 2 - player.width / 2;
+                player.y = p_ground.y - player.height;
+            } else { // Fallback if p_ground not found
+                player.x = canvas.width / 2 - player.width / 2;
+                player.y = canvas.height - player.height;
+            }
+            player.vx = 0; player.vy = 0; player.isOnGround = true;
+            // toast({ title: "Ouch!", description: "Hit by an enemy!", variant: "destructive" });
+        }
+        return newEnemy;
+    }));
+    renderEnemies(ctx, activeEnemies);
 
     // Player Update Logic
-    const currentAction = executeActionRef.current;
-    if (currentAction) {
-        switch (currentAction) {
-            case 'moveLeft': player.isMovingLeft = true; break;
-            case 'moveRight': player.isMovingRight = true; break;
-            case 'stopMoveLeft': player.isMovingLeft = false; break;
-            case 'stopMoveRight': player.isMovingRight = false; break;
-            case 'jump':
-                if (player.isOnGround) {
-                    player.vy = JUMP_STRENGTH;
-                    player.isOnGround = false;
-                }
-                break;
-        }
-        if (resetExecuteAction) resetExecuteAction();
-        executeActionRef.current = null;
-    }
-
-    player.vy += GRAVITY * deltaTimeFactor;
-    if (player.isMovingLeft) player.vx = -PLAYER_SPEED;
-    else if (player.isMovingRight) player.vx = PLAYER_SPEED;
-    else player.vx = 0;
-
-    let nextPlayerX = player.x + player.vx * deltaTimeFactor;
-    let nextPlayerY = player.y + player.vy * deltaTimeFactor;
-    
-    player.isOnGround = false;
-    let activePlatformThisFrame: ProcessedTile | null = null;
-    let platformInducedMoveX = 0;
-
-    currentLevel.tiles.forEach(tile => {
-        if (tile.type !== 1) return;
-        const tileRect: Rect = { x: tile.x, y: tile.y, width: tile.width, height: tile.height };
-        let hadHorizontalCollisionWithThisTile = false;
-
-        const playerHorizontalRect: Rect = { x: nextPlayerX, y: player.y, width: player.width, height: player.height };
-        if (checkCollision(playerHorizontalRect, tileRect)) {
-            const playerCenter_X = nextPlayerX + player.width / 2;
-            const tileCenter_X = tile.x + tile.width / 2;
-            if (playerCenter_X < tileCenter_X) {
-                nextPlayerX = tile.x - player.width;
-            } else {
-                nextPlayerX = tile.x + tile.width;
+    if (player) {
+        const currentAction = executeActionRef.current;
+        if (currentAction) {
+            // console.log(`[gameLoop] Processing action: ${currentAction}`);
+            switch (currentAction) {
+                case 'moveLeft': player.isMovingLeft = true; break;
+                case 'moveRight': player.isMovingRight = true; break;
+                case 'stopMoveLeft': player.isMovingLeft = false; break;
+                case 'stopMoveRight': player.isMovingRight = false; break;
+                case 'jump':
+                    if (player.isOnGround) {
+                        player.vy = JUMP_STRENGTH;
+                        player.isOnGround = false;
+                    }
+                    break;
             }
-            player.vx = 0;
-            hadHorizontalCollisionWithThisTile = true;
+            if (resetExecuteAction) resetExecuteAction();
+            executeActionRef.current = null;
         }
 
-        const playerVerticalRect: Rect = { x: player.x, y: nextPlayerY, width: player.width, height: player.height };
-        if (checkCollision(playerVerticalRect, tileRect)) {
-            if (player.vy > 0) {
-                if (hadHorizontalCollisionWithThisTile) {
-                    nextPlayerY = tile.y - player.height;
-                    player.vy = 0;
+        player.vy += GRAVITY * deltaTimeFactor;
+        if (player.isMovingLeft) player.vx = -PLAYER_SPEED;
+        else if (player.isMovingRight) player.vx = PLAYER_SPEED;
+        else player.vx = 0;
+
+        let nextPlayerX = player.x + player.vx * deltaTimeFactor;
+        let nextPlayerY = player.y + player.vy * deltaTimeFactor;
+        
+        player.isOnGround = false;
+        let activePlatformThisFrame: ProcessedTile | null = null;
+        let platformInducedMoveX = 0;
+
+        currentLevel.tiles.forEach(tile => {
+            if (tile.type !== 1) return;
+            const tileRect: Rect = { x: tile.x, y: tile.y, width: tile.width, height: tile.height };
+            let hadHorizontalCollisionWithThisTile = false;
+
+            const playerHorizontalRect: Rect = { x: nextPlayerX, y: player.y, width: player.width, height: player.height };
+            if (checkCollision(playerHorizontalRect, tileRect)) {
+                const playerCenter_X = nextPlayerX + player.width / 2;
+                const tileCenter_X = tile.x + tile.width / 2;
+                if (playerCenter_X < tileCenter_X) {
+                    nextPlayerX = tile.x - player.width;
                 } else {
-                    nextPlayerY = tile.y - player.height;
-                    player.isOnGround = true;
-                    activePlatformThisFrame = tile;
+                    nextPlayerX = tile.x + tile.width;
+                }
+                player.vx = 0;
+                hadHorizontalCollisionWithThisTile = true;
+            }
+
+            const playerVerticalRect: Rect = { x: player.x, y: nextPlayerY, width: player.width, height: player.height };
+            if (checkCollision(playerVerticalRect, tileRect)) {
+                if (player.vy > 0) {
+                    if (hadHorizontalCollisionWithThisTile) {
+                        nextPlayerY = tile.y - player.height;
+                        player.vy = 0;
+                    } else {
+                        nextPlayerY = tile.y - player.height;
+                        player.isOnGround = true;
+                        activePlatformThisFrame = tile;
+                        player.vy = 0;
+                    }
+                } else if (player.vy < 0) {
+                    nextPlayerY = tile.y + tile.height;
                     player.vy = 0;
                 }
-            } else if (player.vy < 0) {
-                nextPlayerY = tile.y + tile.height;
-                player.vy = 0;
+            }
+        });
+        
+        player.x = nextPlayerX;
+        player.y = nextPlayerY;
+        player.activePlatformId = activePlatformThisFrame ? activePlatformThisFrame.id : null;
+
+        if (activePlatformThisFrame && activePlatformThisFrame.vx && activePlatformThisFrame.direction) {
+            platformInducedMoveX = activePlatformThisFrame.vx * activePlatformThisFrame.direction * deltaTimeFactor;
+            player.x += platformInducedMoveX;
+        }
+        if (player.activePlatformId === 'p3' && levelPath === '/levels/level2.json') {
+            const p3Tile = currentLevel.tiles.find(t => t.id === 'p3');
+            if (p3Tile && p3MovementStateRef.current) {
+                 // If player is on P3, and P3 moved, adjust player's Y as well
+                 // This assumes P3's movement logic already updated p3Tile.x and p3Tile.y
+                 // The horizontal movement is handled by platformInducedMoveX if p3Tile.vx is set
+                 // For vertical, we need to see how much P3's Y changed *this frame*
+                 // This simple addition might be jittery; proper solution is more complex
             }
         }
-    });
-    
-    player.x = nextPlayerX;
-    player.y = nextPlayerY;
-    player.activePlatformId = activePlatformThisFrame ? activePlatformThisFrame.id : null;
 
-    if (activePlatformThisFrame && activePlatformThisFrame.vx && activePlatformThisFrame.direction) {
-        platformInducedMoveX = activePlatformThisFrame.vx * activePlatformThisFrame.direction * deltaTimeFactor;
-        player.x += platformInducedMoveX;
-    }
-     if (player.id === 'p3' && p3MovementStateRef.current) { // Player on P3
-        const p3Tile = currentLevel.tiles.find(t => t.id === 'p3');
-        if (p3Tile) {
-            // This part needs careful review - delta movement of p3
-            // For simplicity, if on P3, just ensure player doesn't fall through it for now.
-            // More complex logic if P3 movement includes Y component.
+        if (player.y + player.height > canvas.height) {
+            const p_ground = currentLevel.tiles.find(t => t.id === 'p_ground');
+            if (p_ground) {
+                player.y = p_ground.y - player.height;
+            } else {
+                player.y = canvas.height - player.height; // Fallback if no p_ground
+            }
+            player.isOnGround = true;
+            player.vy = 0;
+            player.activePlatformId = p_ground ? 'p_ground' : null;
         }
-    }
+        if (player.x < 0) player.x = 0;
+        if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+        
+        if (player.isMovingLeft) player.facingDirection = 'left';
+        else if (player.isMovingRight) player.facingDirection = 'right';
 
-    if (player.y + player.height > canvas.height) {
-        player.y = canvas.height - player.height;
-        player.isOnGround = true;
-        player.vy = 0;
-        player.activePlatformId = 'p_ground'; // Assume p_ground is always the safety net
-    }
-    if (player.x < 0) player.x = 0;
-    if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
-    
-    if (player.isMovingLeft) player.facingDirection = 'left';
-    else if (player.isMovingRight) player.facingDirection = 'right';
+        renderPlayer(ctx, player, assets.playerImage);
 
-    renderPlayer(ctx, player, assets.playerImage);
+        // Check for coin collection
+        activeCoins.forEach(coin => {
+          if (!coin.isCollected && coin.isVisuallyPresent && coin.currentOpacity > 0.5 && checkCollision(player, coin)) {
+            // console.log(`[gameLoop] Coin ${coin.id} collected!`);
+            coin.isCollected = true;
+            coin.collectionTime = Date.now();
+            
+            coin.particles = Array.from({ length: COIN_PARTICLE_COUNT }, () => ({
+                x: coin.x + coin.width / 2,
+                y: coin.y + coin.height / 2,
+                vx: (Math.random() - 0.5) * 4, // Random horizontal velocity
+                vy: (Math.random() - 0.5) * 4 - 2, // Random vertical velocity (mostly upwards)
+                size: COIN_PARTICLE_SIZE,
+                opacity: 1,
+                life: COIN_PARTICLE_LIFESPAN,
+            }));
+          }
+        });
+    }
 
     // Foreground elements
     currentLevel.tiles.forEach(tile => {
         if (tile.layer === 'foreground') {
-           if ((tile.id === "bush_left_1" || tile.id === "bush_right_1" || tile.id.startsWith("bush_small")) && assets.smallBushImage?.complete) {
+           if ((tile.id.startsWith("bush_left_") || tile.id.startsWith("bush_right_") || tile.id.startsWith("bush_small")) && assets.smallBushImage?.complete) {
                ctx.drawImage(assets.smallBushImage, tile.x, tile.y, tile.width, tile.height);
-           } else if ((tile.id === "bush_left_2" || tile.id === "bush_right_2" || tile.id.startsWith("bush_large")) && assets.largeBushImage?.complete) {
+           } else if (tile.id.startsWith("bush_large") && assets.largeBushImage?.complete) { // e.g. bush_large_level1_1
                ctx.drawImage(assets.largeBushImage, tile.x, tile.y, tile.width, tile.height);
            } else {
                ctx.fillStyle = tile.color;
@@ -778,32 +859,40 @@ export default function GameCanvas({
     requestAnimationFrame(gameLoop);
   }, [
     isClient, assets, resetExecuteAction, parentPlayerRef, levelPath,
-    p3BasePositionRef, p3InterestPointsRef, p3CurrentTargetIndexRef, p3MovementStateRef,
-    setActiveCoins, setActiveEnemies, // For gameLoop usage in callbacks or direct calls
-    // Removed: isLoading, canvasSize, processedLevel, activeCoins, activeEnemies (to stabilize the loop)
+    setActiveCoins, setActiveEnemies, // Make sure these are stable and don't cause loop
+    spawnNewCoinPair, spawnSingleEnemy, // For gameLoop callbacks or direct calls
+    // Dependencies below are refs or stable values from config, should not cause issues
+    P3_MOVEMENT_DURATION,
+    P3_SIZE_W, P3_SIZE_H, P3_DRIFT_RANGE,
+    // Include activeCoins and activeEnemies here if their direct values are read for logic other than map/forEach
+    // However, using functional updates to setActiveCoins/Enemies is preferred
+    activeCoins, activeEnemies // Added back because they are directly read in gameLoop
   ]);
 
   // Effect 9: Setup game loop
   useEffect(() => {
     let animationFrameId: number;
-    console.log(`[GameCanvas Effect 9] Running: Game Loop Setup. isClient: ${isClient}, isLoading: ${isLoading}, canvasRef: ${!!canvasRef.current}, canvasSize: W${canvasSize.width}H${canvasSize.height}, processedLevel: ${!!processedLevelRef.current}`);
+    // console.log(`[GameCanvas Effect 9] Running: Game Loop Setup. isLoading: ${isLoading}, isClient: ${isClient}, canvasRef: ${!!canvasRef.current}, canvasSize: W${canvasSize.width}H${canvasSize.height}, processedLevel: ${!!processedLevelRef.current}`);
     
-    const conditionsMet = isClient && !isLoading && canvasRef.current && canvasSize.width > 0 && canvasSize.height > 0 && processedLevelRef.current;
-
+    // Start loop if NOT loading, client-side, canvas exists, has dimensions, AND processedLevel data is available in the ref
+    const conditionsMet = isClient && !isLoading && canvasRef.current && canvasSize.width > 0 && canvasSize.height > 0;
+    // console.log(`[GameCanvas Effect 9] Conditions: isClient=${isClient}, isLoading=${isLoading}, canvas=${!!canvasRef.current}, W=${canvasSize.width}, H=${canvasSize.height}, processedLevelInRef=${!!processedLevelRef.current}. Met: ${conditionsMet}`);
+    
     if (conditionsMet) {
-      console.log("[GameCanvas Effect 9] Conditions MET. Starting game loop.");
+      // console.log("[GameCanvas Effect 9] Conditions MET. Starting game loop.");
       lastFrameTime.current = Date.now(); 
       animationFrameId = requestAnimationFrame(gameLoop);
     } else {
-      console.log("[GameCanvas Effect 9] Conditions NOT MET. Game loop will not start.");
+      // console.log("[GameCanvas Effect 9] Conditions NOT MET. Game loop will not start.");
     }
     return () => {
-      console.log("[GameCanvas Effect 9] Cleanup: Cancelling animation frame.");
+      // console.log("[GameCanvas Effect 9] Cleanup: Cancelling animation frame.");
       cancelAnimationFrame(animationFrameId);
     };
-  }, [isClient, isLoading, canvasSize, processedLevel, gameLoop]); // Add processedLevel here
+  }, [isClient, isLoading, canvasSize, gameLoop]); // Depends on gameLoop (useCallback)
 
-  console.log(`[GameCanvas] Rendering. isClient: ${isClient}, isLoading: ${isLoading}, canvasSize: W${canvasSize.width}xH${canvasSize.height}`);
+
+  // console.log(`[GameCanvas] Rendering. isClient: ${isClient}, isLoading: ${isLoading}, canvasSize: W${canvasSize.width}xH${canvasSize.height}`);
   
   return (
     <canvas
