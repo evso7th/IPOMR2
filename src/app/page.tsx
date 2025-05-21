@@ -23,18 +23,15 @@ const DynamicTouchControls = dynamic(() => import('@/components/game/TouchContro
 
 
 export default function PlatformerPage() {
-  console.log("[PlatformerPage] Component body START");
   const playerRef = useRef<PlayerState | null>(null);
   const [executeAction, setExecuteAction] = useState<GameAction | null>(null);
   const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing'); 
 
   const handlePlayerAction = useCallback((action: GameAction) => {
-    console.log("[PlatformerPage] handlePlayerAction called with:", action);
     setExecuteAction(action);
   }, []);
 
   const resetExecuteAction = useCallback(() => {
-    console.log("[PlatformerPage] resetExecuteAction called, setting executeAction to null");
     setExecuteAction(null);
   }, []);
 
@@ -54,12 +51,11 @@ export default function PlatformerPage() {
   };
 
   const handleStartGame = () => {
-    console.log("[PlatformerPage] handleStartGame called");
     setGameState('playing');
+    // requestFullscreen(); // Enable if you want auto-fullscreen on game start
   };
 
   const handleExitToStart = () => {
-    console.log("[PlatformerPage] handleExitToStart called");
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(err => console.warn(`[PlatformerPage] Error exiting fullscreen: ${err.message}`));
     }
@@ -68,7 +64,6 @@ export default function PlatformerPage() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      console.log(`[PlatformerPage] KeyDown event: key='${event.key}' code='${event.code}'`);
       let actionToDispatch: GameAction | null = null;
       switch (event.key) {
         case 'ArrowLeft':
@@ -89,13 +84,11 @@ export default function PlatformerPage() {
           break;
       }
       if (actionToDispatch) {
-        console.log(`[PlatformerPage] Dispatching action from KeyDown: ${actionToDispatch}`);
         handlePlayerAction(actionToDispatch);
       }
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
-      console.log(`[PlatformerPage] KeyUp event: key='${event.key}' code='${event.code}'`);
       let actionToDispatch: GameAction | null = null;
       switch (event.key) {
         case 'ArrowLeft':
@@ -110,41 +103,35 @@ export default function PlatformerPage() {
           break;
       }
       if (actionToDispatch) {
-        console.log(`[PlatformerPage] Dispatching action from KeyUp: ${actionToDispatch}`);
         handlePlayerAction(actionToDispatch);
       }
     };
 
     if (gameState === 'playing') {
-      console.log('[PlatformerPage] Adding keyboard listeners because gameState is "playing"');
       window.addEventListener('keydown', handleKeyDown);
       window.addEventListener('keyup', handleKeyUp);
     } else {
-      console.log('[PlatformerPage] Removing keyboard listeners because gameState is not "playing"');
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     }
 
     return () => {
-      console.log('[PlatformerPage] Cleanup: Removing keyboard listeners');
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
   }, [gameState, handlePlayerAction]);
 
-  useEffect(() => {
-    if (gameState === 'playing' && typeof window !== 'undefined' && !document.fullscreenElement && window.innerWidth < 768) { 
-        // requestFullscreen(); // Temporarily disable auto-fullscreen for easier debugging
-    }
-  }, [gameState]);
+  // useEffect(() => {
+  //   if (gameState === 'playing' && typeof window !== 'undefined' && !document.fullscreenElement && window.innerWidth < 768) { 
+  //       // requestFullscreen(); // Temporarily disable auto-fullscreen for easier debugging
+  //   }
+  // }, [gameState]);
 
 
   if (gameState === 'startScreen') {
-    console.log("[PlatformerPage] Rendering StartScreen");
     return <StartScreen onStartGame={handleStartGame} />;
   }
 
-  console.log("[PlatformerPage] Rendering Game Interface. Current executeAction prop for GameCanvas:", executeAction);
   return (
     <div
       className="flex flex-col h-screen bg-background text-foreground overflow-hidden"
@@ -172,5 +159,3 @@ export default function PlatformerPage() {
     </div>
   );
 }
-
-    
