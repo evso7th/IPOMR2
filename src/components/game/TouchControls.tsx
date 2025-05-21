@@ -70,7 +70,7 @@ export default function TouchControls({ onAction }: TouchControlsProps) {
         variant="outline"
         size="lg"
         className="p-3 rounded-full aspect-square bg-[#ff6600] text-white hover:bg-[#ff6600]/90 active:bg-[#ff6600]/80 border-black/20 sm:ml-16"
-        onTouchStart={(e) => handleTouchStart('jump', e)}
+        // onTouchStart={(e) => handleTouchStart('jump', e)} // Removed to prevent double dispatch
         onMouseDown={() => handleMouseDown('jump')}
         aria-label="Jump"
       >
@@ -79,4 +79,3 @@ export default function TouchControls({ onAction }: TouchControlsProps) {
     </div>
   );
 }
-
