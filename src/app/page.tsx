@@ -2,7 +2,6 @@
 "use client";
 
 import React, { useRef, useState, useCallback, useEffect } from 'react';
-// import GameCanvas from '@/components/game/GameCanvas'; // Normal import commented out
 import type { PlayerState, GameAction } from '@/types/game';
 import GameHeader from '@/components/game/GameHeader';
 import StartScreen from '@/components/game/screens/StartScreen';
@@ -13,12 +12,17 @@ const DynamicGameCanvas = dynamic(() => import('@/components/game/GameCanvas'), 
   loading: () => <p className="w-full h-full flex items-center justify-center">Loading Game Canvas...</p>,
 });
 
+const DynamicTouchControls = dynamic(() => import('@/components/game/TouchControls'), {
+  ssr: false,
+  loading: () => null, // Or a more specific loading component if desired
+});
+
+
 export default function PlatformerPage() {
   console.log("[PlatformerPage] Component body START");
   const playerRef = useRef<PlayerState | null>(null);
   const [executeAction, setExecuteAction] = useState<GameAction | null>(null);
-  // const [gameState, setGameState] = useState<'startScreen' | 'playing'>('startScreen');
-  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing'); // Temporarily start directly in game
+  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing'); // Start in game
 
   const handlePlayerAction = useCallback((action: GameAction) => {
     console.log("[PlatformerPage] handlePlayerAction called with:", action);
@@ -93,7 +97,8 @@ export default function PlatformerPage() {
           />
         </div>
       </main>
-      <TouchControls onAction={handlePlayerAction} />
+      <DynamicTouchControls onAction={handlePlayerAction} />
     </div>
   );
 }
+
