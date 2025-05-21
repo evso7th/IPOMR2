@@ -7,7 +7,7 @@ export const renderCoins = (
   coins: CoinState[],
   coinImage: HTMLImageElement | null
 ): void => {
-  console.log(`[renderCoins] CALLED with ${coins.length} coins. First coin:`, coins[0]); 
+  // console.log(`[renderCoins] CALLED with ${coins.length} coins. First coin:`, coins[0]); 
   coins.forEach(coin => {
     // console.log(`[renderCoins] Processing coin ID: ${coin.id}, X:${coin.x}, Y:${coin.y}, Opacity:${coin.currentOpacity}, Collected:${coin.isCollected}, VisuallyPresent: ${coin.isVisuallyPresent}`);
 
@@ -22,6 +22,7 @@ export const renderCoins = (
     } else if (!coin.isCollected && coin.currentOpacity > 0 && coin.isVisuallyPresent) { 
       ctx.globalAlpha = coin.currentOpacity;
 
+      // Forcing scaleX = 1 for diagnostic rendering (no rotation effect)
       const scaleX = 1; 
       const currentDisplayWidth = coin.width * scaleX;
       const currentDisplayX = coin.x + (coin.width - currentDisplayWidth) / 2;
@@ -74,3 +75,4 @@ function drawFallbackCoin(ctx: CanvasRenderingContext2D, coin: CoinState) {
   ctx.fill();
 }
 
+    
