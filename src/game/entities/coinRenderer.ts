@@ -1,6 +1,6 @@
 
 import type { CoinState } from '@/types/game';
-import { COIN_COLOR, COIN_SHADOW_COLOR, COIN_SHADOW_BLUR, COIN_SHADOW_OFFSET_X, COIN_SHADOW_OFFSET_Y } from '@/config/gameConfig';
+import { COIN_COLOR, COIN_SHADOW_COLOR, COIN_SHADOW_BLUR, COIN_SHADOW_OFFSET_X, COIN_SHADOW_OFFSET_Y, COIN_ROTATION_SPEED_MAX } from '@/config/gameConfig';
 
 export const renderCoins = (
   ctx: CanvasRenderingContext2D,
@@ -67,6 +67,7 @@ export const renderCoins = (
 };
 
 function drawFallbackCoin(ctx: CanvasRenderingContext2D, coin: CoinState) {
+  // console.log(`[renderCoins drawFallbackCoin] Drawing fallback for coin ${coin.id} at X:${coin.x.toFixed(2)} Y:${coin.y.toFixed(2)} Opacity: ${coin.currentOpacity.toFixed(2)}`);
   ctx.fillStyle = COIN_COLOR; 
   ctx.beginPath();
   ctx.arc(
@@ -77,8 +78,5 @@ function drawFallbackCoin(ctx: CanvasRenderingContext2D, coin: CoinState) {
     Math.PI * 2
   );
   ctx.fill();
-  // For diagnostics:
-  // ctx.strokeStyle = 'yellow';
-  // ctx.lineWidth = 1;
-  // ctx.stroke(); 
 }
+
