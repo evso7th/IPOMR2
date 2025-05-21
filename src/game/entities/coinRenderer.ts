@@ -26,7 +26,8 @@ export const renderCoins = (
     } else if (!coin.isCollected && coin.currentOpacity > 0 && coin.isVisuallyPresent) { 
       ctx.globalAlpha = coin.currentOpacity;
 
-      const scaleX = coin.rotationAngle !== undefined && COIN_ROTATION_SPEED_MAX > 0 ? Math.abs(Math.cos(coin.rotationAngle)) : 1; // Only scale if rotation is active
+      // Ensure scaleX is 1 if rotation is disabled (max speed is 0)
+      const scaleX = coin.rotationAngle !== undefined && COIN_ROTATION_SPEED_MAX > 0 ? Math.abs(Math.cos(coin.rotationAngle)) : 1;
       const currentDisplayWidth = coin.width * scaleX;
       const currentDisplayX = coin.x + (coin.width - currentDisplayWidth) / 2;
 
