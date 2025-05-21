@@ -14,9 +14,9 @@ interface GameCanvasProps {
 
 export default function GameCanvas({
   levelPath,
-  playerRef: parentPlayerRef,
-  executeAction,
-  resetExecuteAction,
+  playerRef: parentPlayerRef, // Renamed for clarity, still not used in this simplified version
+  executeAction, // Available but not used yet
+  resetExecuteAction, // Available but not used yet
 }: GameCanvasProps) {
   const [isClient, setIsClient] = useState(false);
   // isLoading will be managed by more complex logic later
