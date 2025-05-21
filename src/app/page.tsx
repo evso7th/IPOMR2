@@ -18,7 +18,7 @@ const DynamicGameCanvas = dynamic(() => import('@/components/game/GameCanvas'), 
 
 const DynamicTouchControls = dynamic(() => import('@/components/game/TouchControls'), {
   ssr: false,
-  loading: () => null, // No specific loader for touch controls
+  loading: () => null, // No specific loader for touch controls, it will just appear
 });
 
 
@@ -55,7 +55,7 @@ export default function PlatformerPage() {
 
   const handleStartGame = () => {
     console.log("[PlatformerPage] handleStartGame called");
-    requestFullscreen();
+    // requestFullscreen(); // Request fullscreen when game starts
     setGameState('playing');
   };
 
@@ -77,17 +77,17 @@ export default function PlatformerPage() {
   // console.log("[PlatformerPage] Before return, gameState:", gameState);
 
   if (gameState === 'startScreen') {
-    // console.log("[PlatformerPage] Rendering StartScreen");
+    console.log("[PlatformerPage] Rendering StartScreen");
     return <StartScreen onStartGame={handleStartGame} />;
   }
 
-  // console.log("[PlatformerPage] Rendering Game Interface");
+  console.log("[PlatformerPage] Rendering Game Interface");
   return (
     <div
       className="flex flex-col h-screen bg-background text-foreground overflow-hidden"
     >
       <GameHeader onExitToStart={handleExitToStart} />
-      <main className="flex-1 w-full"> 
+      <main className="flex-1 w-full overflow-hidden flex flex-col"> 
         <div
           className="relative w-full h-full"
           style={{
