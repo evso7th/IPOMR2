@@ -7,7 +7,7 @@ import GameHeader from '@/components/game/GameHeader';
 import StartScreen from '@/components/game/screens/StartScreen';
 import dynamic from 'next/dynamic';
 
-// Dynamically import GameCanvas and TouchControls with SSR disabled
+// Dynamically import GameCanvas with SSR disabled
 const DynamicGameCanvas = dynamic(() => import('@/components/game/GameCanvas'), {
   ssr: false,
   loading: () => (
@@ -19,28 +19,28 @@ const DynamicGameCanvas = dynamic(() => import('@/components/game/GameCanvas'), 
 
 const DynamicTouchControls = dynamic(() => import('@/components/game/TouchControls'), {
   ssr: false,
-  loading: () => null, 
+  loading: () => null,
 });
 
 
 export default function PlatformerPage() {
   console.log("[PlatformerPage] Component body START");
-  const playerRef = useRef<PlayerState | null>(null); 
-  const [executeAction, setExecuteAction] = useState<GameAction | null>(null); 
-  const [currentLevelPath, setCurrentLevelPath] = useState('/levels/level1.json'); // Default to level1
-  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing'); // Start directly in playing mode for now
+  const playerRef = useRef<PlayerState | null>(null);
+  const [executeAction, setExecuteAction] = useState<GameAction | null>(null);
+  const [currentLevelPath, setCurrentLevelPath] = useState('/levels/level2.json'); 
+  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing'); 
 
   const handlePlayerAction = useCallback((action: GameAction) => {
-    console.log("[PlatformerPage] handlePlayerAction called with:", action);
     setExecuteAction(action);
   }, []);
 
   const resetExecuteAction = useCallback(() => {
-    console.log("[PlatformerPage] resetExecuteAction called");
     setExecuteAction(null);
   }, []);
 
-  const requestFullscreen = () => {
+  const handleStartGame = () => {
+    console.log("[PlatformerPage] handleStartGame called");
+    setGameState('playing');
     const element = document.documentElement;
     if (element.requestFullscreen) {
       element.requestFullscreen().catch(err => {
@@ -55,12 +55,8 @@ export default function PlatformerPage() {
     }
   };
 
-  const handleStartGame = () => {
-    setGameState('playing');
-    // requestFullscreen(); // User might enable this later
-  };
-
   const handleExitToStart = () => {
+    console.log("[PlatformerPage] handleExitToStart called");
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(err => console.warn(`[PlatformerPage] Error exiting fullscreen: ${err.message}`));
     }
@@ -68,9 +64,8 @@ export default function PlatformerPage() {
   };
 
   useEffect(() => {
-    console.log("[PlatformerPage] useEffect for keyboard listeners, gameState:", gameState);
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (gameState !== 'playing') return; 
+      if (gameState !== 'playing') return;
       let actionToDispatch: GameAction | null = null;
       switch (event.key) {
         case 'ArrowLeft':
@@ -86,18 +81,17 @@ export default function PlatformerPage() {
         case 'ArrowUp':
         case 'w':
         case 'W':
-        case ' ': 
+        case ' ':
           actionToDispatch = 'jump';
           break;
       }
       if (actionToDispatch) {
-        console.log("[PlatformerPage] KeyDown, dispatching action:", actionToDispatch);
         handlePlayerAction(actionToDispatch);
       }
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
-      if (gameState !== 'playing') return; 
+      if (gameState !== 'playing') return;
       let actionToDispatch: GameAction | null = null;
       switch (event.key) {
         case 'ArrowLeft':
@@ -112,14 +106,13 @@ export default function PlatformerPage() {
           break;
       }
       if (actionToDispatch) {
-        console.log("[PlatformerPage] KeyUp, dispatching action:", actionToDispatch);
         handlePlayerAction(actionToDispatch);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
-    
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
@@ -127,18 +120,19 @@ export default function PlatformerPage() {
   }, [gameState, handlePlayerAction]);
 
   if (gameState === 'startScreen') {
-    return <StartScreen onStartGame={handleStartGame} />;
+     console.log("[PlatformerPage] Rendering StartScreen");
+     return <StartScreen onStartGame={handleStartGame} />;
   }
 
   console.log("[PlatformerPage] Rendering game view. Current level path:", currentLevelPath);
   return (
     <div
-      className="flex flex-col h-screen bg-background text-foreground"
+      className="flex flex-col h-screen bg-background text-foreground overflow-hidden"
     >
       <GameHeader onExitToStart={handleExitToStart} />
-      <main className="flex-1 w-full flex flex-col"> 
+      <main className="flex-1 w-full overflow-hidden flex flex-col"> 
         <div
-          className="relative w-full h-full"
+          className="relative w-full h-full" 
           style={{
             backgroundImage: "url('/assets/images/level1_bkg.png')",
             backgroundRepeat: 'no-repeat',
@@ -147,11 +141,10 @@ export default function PlatformerPage() {
           data-ai-hint="sky clouds"
         >
           <DynamicGameCanvas
-            levelPath={currentLevelPath} 
-            // Temporarily remove other props for stability testing
-            // playerRef={playerRef}
-            // executeAction={executeAction}
-            // resetExecuteAction={resetExecuteAction}
+            levelPath={currentLevelPath}
+            playerRef={playerRef} 
+            executeAction={executeAction} 
+            resetExecuteAction={resetExecuteAction} 
           />
         </div>
       </main>
