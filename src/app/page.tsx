@@ -18,20 +18,25 @@ const DynamicGameCanvas = dynamic(() => import('@/components/game/GameCanvas'), 
 
 const DynamicTouchControls = dynamic(() => import('@/components/game/TouchControls'), {
   ssr: false,
-  loading: () => null,
+  loading: () => null, // No specific loader for touch controls
 });
 
 
 export default function PlatformerPage() {
+  console.log("[PlatformerPage] Component body START");
   const playerRef = useRef<PlayerState | null>(null);
   const [executeAction, setExecuteAction] = useState<GameAction | null>(null);
+  // Start with level 1 as level 2 might be causing fetch issues
+  const [currentLevelPath, setCurrentLevelPath] = useState('/levels/level1.json'); 
   const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing'); 
 
   const handlePlayerAction = useCallback((action: GameAction) => {
+    console.log("[PlatformerPage] handlePlayerAction called with:", action);
     setExecuteAction(action);
   }, []);
 
   const resetExecuteAction = useCallback(() => {
+    console.log("[PlatformerPage] resetExecuteAction called");
     setExecuteAction(null);
   }, []);
 
@@ -63,6 +68,7 @@ export default function PlatformerPage() {
   };
 
   useEffect(() => {
+    console.log("[PlatformerPage] useEffect for keyboard listeners, gameState:", gameState);
     const handleKeyDown = (event: KeyboardEvent) => {
       let actionToDispatch: GameAction | null = null;
       switch (event.key) {
@@ -84,6 +90,7 @@ export default function PlatformerPage() {
           break;
       }
       if (actionToDispatch) {
+        console.log("[PlatformerPage] KeyDown, dispatching action:", actionToDispatch);
         handlePlayerAction(actionToDispatch);
       }
     };
@@ -103,6 +110,7 @@ export default function PlatformerPage() {
           break;
       }
       if (actionToDispatch) {
+        console.log("[PlatformerPage] KeyUp, dispatching action:", actionToDispatch);
         handlePlayerAction(actionToDispatch);
       }
     };
@@ -121,17 +129,11 @@ export default function PlatformerPage() {
     };
   }, [gameState, handlePlayerAction]);
 
-  // useEffect(() => {
-  //   if (gameState === 'playing' && typeof window !== 'undefined' && !document.fullscreenElement && window.innerWidth < 768) { 
-  //       // requestFullscreen(); // Temporarily disable auto-fullscreen for easier debugging
-  //   }
-  // }, [gameState]);
-
-
   if (gameState === 'startScreen') {
     return <StartScreen onStartGame={handleStartGame} />;
   }
 
+  console.log("[PlatformerPage] Rendering game view. Current level path:", currentLevelPath);
   return (
     <div
       className="flex flex-col h-screen bg-background text-foreground overflow-hidden"
@@ -148,7 +150,7 @@ export default function PlatformerPage() {
           data-ai-hint="sky clouds"
         >
           <DynamicGameCanvas
-            levelPath="/levels/level2.json" 
+            levelPath={currentLevelPath} 
             playerRef={playerRef}
             executeAction={executeAction}
             resetExecuteAction={resetExecuteAction}
