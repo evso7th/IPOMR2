@@ -7,11 +7,12 @@ import GameHeader from '@/components/game/GameHeader';
 import StartScreen from '@/components/game/screens/StartScreen';
 import dynamic from 'next/dynamic';
 
+// Dynamically import GameCanvas and TouchControls with SSR disabled
 const DynamicGameCanvas = dynamic(() => import('@/components/game/GameCanvas'), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground">
-      <p>Loading Game Canvas...</p>
+      <p>Initializing Canvas...</p> {/* This is what the user sees */}
     </div>
   ),
 });
@@ -24,11 +25,10 @@ const DynamicTouchControls = dynamic(() => import('@/components/game/TouchContro
 
 export default function PlatformerPage() {
   console.log("[PlatformerPage] Component body START");
-  const playerRef = useRef<PlayerState | null>(null);
-  const [executeAction, setExecuteAction] = useState<GameAction | null>(null);
-  // Start with level 1 as level 2 might be causing fetch issues
+  const playerRef = useRef<PlayerState | null>(null); // GameCanvas currently won't use this
+  const [executeAction, setExecuteAction] = useState<GameAction | null>(null); // GameCanvas currently won't use this
   const [currentLevelPath, setCurrentLevelPath] = useState('/levels/level1.json'); 
-  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing'); 
+  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing'); // Start directly in playing mode
 
   const handlePlayerAction = useCallback((action: GameAction) => {
     console.log("[PlatformerPage] handlePlayerAction called with:", action);
@@ -57,7 +57,7 @@ export default function PlatformerPage() {
 
   const handleStartGame = () => {
     setGameState('playing');
-    // requestFullscreen(); // Enable if you want auto-fullscreen on game start
+    // requestFullscreen(); // User might enable this later
   };
 
   const handleExitToStart = () => {
@@ -70,6 +70,7 @@ export default function PlatformerPage() {
   useEffect(() => {
     console.log("[PlatformerPage] useEffect for keyboard listeners, gameState:", gameState);
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (gameState !== 'playing') return; // Only process keys if playing
       let actionToDispatch: GameAction | null = null;
       switch (event.key) {
         case 'ArrowLeft':
@@ -85,7 +86,7 @@ export default function PlatformerPage() {
         case 'ArrowUp':
         case 'w':
         case 'W':
-        case ' ': // Space bar for jump
+        case ' ': 
           actionToDispatch = 'jump';
           break;
       }
@@ -96,6 +97,7 @@ export default function PlatformerPage() {
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
+      if (gameState !== 'playing') return; // Only process keys if playing
       let actionToDispatch: GameAction | null = null;
       switch (event.key) {
         case 'ArrowLeft':
@@ -115,14 +117,9 @@ export default function PlatformerPage() {
       }
     };
 
-    if (gameState === 'playing') {
-      window.addEventListener('keydown', handleKeyDown);
-      window.addEventListener('keyup', handleKeyUp);
-    } else {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    }
-
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
@@ -151,9 +148,10 @@ export default function PlatformerPage() {
         >
           <DynamicGameCanvas
             levelPath={currentLevelPath} 
-            playerRef={playerRef}
-            executeAction={executeAction}
-            resetExecuteAction={resetExecuteAction}
+            // Temporarily remove other props for stability testing
+            // playerRef={playerRef}
+            // executeAction={executeAction}
+            // resetExecuteAction={resetExecuteAction}
           />
         </div>
       </main>
