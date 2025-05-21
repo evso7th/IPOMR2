@@ -1,9 +1,8 @@
 {
   "playerStart": {
     "platformId": "p2",
-    "horizontalAlign": "left",
-    "xOffsetPx": 10,
-    "yOffsetPx": 0 
+    "horizontalAlign": "center",
+    "yOffsetPx": 0
   },
   "tiles": [
     {
@@ -11,19 +10,20 @@
       "width": "100%",
       "height": 1,
       "type": 1,
-      "color": "hsl(var(--accent))",
+      "color": "rgba(0,0,0,0)",
       "positioning": {
         "anchor": "bottom-left",
         "xOffsetPx": 0,
         "yOffsetPx": 0
-      }
+      },
+      "data-ai-hint": "invisible ground"
     },
     {
       "id": "p1",
       "width": 120,
       "height": 32,
       "type": 1,
-      "color": "hsl(var(--secondary))",
+      "color": "hsl(var(--primary))",
       "vx": 0.9375,
       "direction": 1,
       "positioning": {
@@ -38,7 +38,7 @@
       "width": 120,
       "height": 32,
       "type": 1,
-      "color": "hsl(var(--secondary))",
+      "color": "hsl(var(--primary))",
       "vx": 0.9375,
       "direction": -1,
       "positioning": {
@@ -53,11 +53,11 @@
       "width": 100,
       "height": 80,
       "type": 0,
-      "color": "hsl(30, 50%, 70%)", 
+      "color": "hsl(30, 50%, 70%)",
       "layer": "background",
       "positioning": {
         "anchor": "bottom-center",
-        "xOffsetPx": 40, 
+        "xOffsetPx": 40,
         "yOffsetPx": 1
       },
       "data-ai-hint": "house building"
@@ -71,9 +71,9 @@
       "positioning": {
         "anchor": "bottom-center",
         "xOffsetPx": 40,
-        "yOffsetPx": 81 
+        "yOffsetPx": 81
       },
-      "data-ai-hint": "platform transparent"
+      "data-ai-hint": "platform roof transparent"
     },
     {
       "id": "tree1",
@@ -105,56 +105,56 @@
     },
     {
       "id": "bush_left_1",
-      "width": 40,
-      "height": 30,
+      "width": 25,
+      "height": 15,
       "type": 0,
-      "color": "hsl(120, 60%, 30%)",
+      "color": "hsl(120, 50%, 45%)",
       "layer": "foreground",
       "positioning": {
         "anchor": "bottom-left",
         "xOffsetPx": 20,
         "yOffsetPx": 1
       },
-      "data-ai-hint": "flowers small"
+      "data-ai-hint": "bush small flowers"
     },
     {
       "id": "bush_left_2",
-      "width": 50,
-      "height": 35,
+      "width": 40,
+      "height": 25,
       "type": 0,
-      "color": "hsl(120, 55%, 25%)",
+      "color": "hsl(120, 55%, 35%)",
       "layer": "foreground",
       "positioning": {
         "anchor": "bottom-left",
-        "xOffsetPx": 70,
+        "xOffsetPx": 50,
         "yOffsetPx": 1
       },
       "data-ai-hint": "bush large"
     },
     {
       "id": "bush_right_1",
-      "width": 40,
-      "height": 30,
+      "width": 25,
+      "height": 15,
       "type": 0,
-      "color": "hsl(120, 60%, 30%)",
+      "color": "hsl(120, 50%, 45%)",
       "layer": "foreground",
       "positioning": {
         "anchor": "bottom-right",
         "xOffsetPx": 20,
         "yOffsetPx": 1
       },
-      "data-ai-hint": "flowers small"
+      "data-ai-hint": "bush small flowers"
     },
     {
       "id": "bush_right_2",
-      "width": 50,
-      "height": 35,
+      "width": 40,
+      "height": 25,
       "type": 0,
-      "color": "hsl(120, 55%, 25%)",
+      "color": "hsl(120, 55%, 35%)",
       "layer": "foreground",
       "positioning": {
         "anchor": "bottom-right",
-        "xOffsetPx": 70,
+        "xOffsetPx": 50,
         "yOffsetPx": 1
       },
       "data-ai-hint": "bush large"
