@@ -1,7 +1,9 @@
+
 {
   "playerStart": {
     "platformId": "p2",
     "horizontalAlign": "center",
+    "xOffsetPx": 0,
     "yOffsetPx": 0
   },
   "tiles": [
@@ -73,7 +75,7 @@
         "xOffsetPx": 40,
         "yOffsetPx": 81
       },
-      "data-ai-hint": "platform roof transparent"
+      "data-ai-hint": "platform invisible"
     },
     {
       "id": "tree1",
@@ -108,21 +110,21 @@
       "width": 25,
       "height": 15,
       "type": 0,
-      "color": "hsl(120, 50%, 45%)",
+      "color": "hsl(120, 40%, 40%)",
       "layer": "foreground",
       "positioning": {
         "anchor": "bottom-left",
         "xOffsetPx": 20,
         "yOffsetPx": 1
       },
-      "data-ai-hint": "bush small flowers"
+      "data-ai-hint": "flowers small"
     },
     {
       "id": "bush_left_2",
-      "width": 40,
+      "width": 35,
       "height": 25,
       "type": 0,
-      "color": "hsl(120, 55%, 35%)",
+      "color": "hsl(120, 45%, 30%)",
       "layer": "foreground",
       "positioning": {
         "anchor": "bottom-left",
@@ -136,21 +138,21 @@
       "width": 25,
       "height": 15,
       "type": 0,
-      "color": "hsl(120, 50%, 45%)",
+      "color": "hsl(120, 40%, 40%)",
       "layer": "foreground",
       "positioning": {
         "anchor": "bottom-right",
         "xOffsetPx": 20,
         "yOffsetPx": 1
       },
-      "data-ai-hint": "bush small flowers"
+      "data-ai-hint": "flowers small"
     },
     {
       "id": "bush_right_2",
-      "width": 40,
+      "width": 35,
       "height": 25,
       "type": 0,
-      "color": "hsl(120, 55%, 35%)",
+      "color": "hsl(120, 45%, 30%)",
       "layer": "foreground",
       "positioning": {
         "anchor": "bottom-right",
