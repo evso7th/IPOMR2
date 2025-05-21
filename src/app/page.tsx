@@ -12,23 +12,23 @@ const DynamicGameCanvas = dynamic(() => import('@/components/game/GameCanvas'), 
   ssr: false,
   loading: () => (
     <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground">
-      <p>Initializing Canvas...</p> {/* This is what the user sees */}
+      <p>Initializing Canvas...</p>
     </div>
   ),
 });
 
 const DynamicTouchControls = dynamic(() => import('@/components/game/TouchControls'), {
   ssr: false,
-  loading: () => null, // No specific loader for touch controls
+  loading: () => null, 
 });
 
 
 export default function PlatformerPage() {
   console.log("[PlatformerPage] Component body START");
-  const playerRef = useRef<PlayerState | null>(null); // GameCanvas currently won't use this
-  const [executeAction, setExecuteAction] = useState<GameAction | null>(null); // GameCanvas currently won't use this
-  const [currentLevelPath, setCurrentLevelPath] = useState('/levels/level1.json'); 
-  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing'); // Start directly in playing mode
+  const playerRef = useRef<PlayerState | null>(null); 
+  const [executeAction, setExecuteAction] = useState<GameAction | null>(null); 
+  const [currentLevelPath, setCurrentLevelPath] = useState('/levels/level1.json'); // Default to level1
+  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing'); // Start directly in playing mode for now
 
   const handlePlayerAction = useCallback((action: GameAction) => {
     console.log("[PlatformerPage] handlePlayerAction called with:", action);
@@ -70,7 +70,7 @@ export default function PlatformerPage() {
   useEffect(() => {
     console.log("[PlatformerPage] useEffect for keyboard listeners, gameState:", gameState);
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (gameState !== 'playing') return; // Only process keys if playing
+      if (gameState !== 'playing') return; 
       let actionToDispatch: GameAction | null = null;
       switch (event.key) {
         case 'ArrowLeft':
@@ -97,7 +97,7 @@ export default function PlatformerPage() {
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
-      if (gameState !== 'playing') return; // Only process keys if playing
+      if (gameState !== 'playing') return; 
       let actionToDispatch: GameAction | null = null;
       switch (event.key) {
         case 'ArrowLeft':
@@ -133,10 +133,10 @@ export default function PlatformerPage() {
   console.log("[PlatformerPage] Rendering game view. Current level path:", currentLevelPath);
   return (
     <div
-      className="flex flex-col h-screen bg-background text-foreground overflow-hidden"
+      className="flex flex-col h-screen bg-background text-foreground"
     >
       <GameHeader onExitToStart={handleExitToStart} />
-      <main className="flex-1 w-full overflow-hidden flex flex-col"> 
+      <main className="flex-1 w-full flex flex-col"> 
         <div
           className="relative w-full h-full"
           style={{
