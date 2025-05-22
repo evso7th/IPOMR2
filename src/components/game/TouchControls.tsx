@@ -7,11 +7,12 @@ import { ArrowLeft, ArrowRight, ArrowUp } from 'lucide-react';
 
 interface TouchControlsProps {
   onAction: (action: GameAction) => void;
+  controlPanelBackgroundUrl?: string;
 }
 
-export default function TouchControls({ onAction }: TouchControlsProps) {
+export default function TouchControls({ onAction, controlPanelBackgroundUrl = "/assets/images/groundfloor.png" }: TouchControlsProps) {
   const handleTouchStart = (action: GameAction, e: React.TouchEvent) => {
-    e.preventDefault(); // Prevent screen scrolling
+    e.preventDefault(); 
     onAction(action);
   };
 
@@ -34,11 +35,11 @@ export default function TouchControls({ onAction }: TouchControlsProps) {
     <div 
       className="h-16 flex justify-around items-center px-4 sm:justify-center sm:gap-8 border-t border-border text-accent-foreground shrink-0"
       style={{ 
-        backgroundImage: "url('/assets/images/groundfloor.png')", 
+        backgroundImage: `url('${controlPanelBackgroundUrl}')`, 
         backgroundSize: 'cover', 
         backgroundPosition: 'center' 
       }}
-      data-ai-hint="ground texture"
+      data-ai-hint={controlPanelBackgroundUrl === "/assets/images/platform_ice2.png" ? "ice platform texture" : "ground texture"}
     >
       <div className="flex gap-4">
         <Button
@@ -70,7 +71,6 @@ export default function TouchControls({ onAction }: TouchControlsProps) {
         variant="outline"
         size="lg"
         className="p-3 rounded-full aspect-square bg-[#ff6600] text-white hover:bg-[#ff6600]/90 active:bg-[#ff6600]/80 border-black/20 sm:ml-16"
-        // onTouchStart={(e) => handleTouchStart('jump', e)} // Removed to prevent double dispatch
         onMouseDown={() => handleMouseDown('jump')}
         aria-label="Jump"
       >

@@ -19,26 +19,30 @@ const DynamicGameCanvas = dynamic(() => import('@/components/game/GameCanvas'), 
 
 const DynamicTouchControls = dynamic(() => import('@/components/game/TouchControls'), {
   ssr: false,
-  loading: () => null, // No specific loading UI for touch controls
+  loading: () => null,
 });
 
 
 export default function PlatformerPage() {
+  console.log("[PlatformerPage] Component body START");
   const playerRef = useRef<PlayerState | null>(null);
   const [executeAction, setExecuteAction] = useState<GameAction | null>(null);
-  const [currentLevelPath, setCurrentLevelPath] = useState('/levels/level3.json'); // Start with level 3
-  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('startScreen');
+  const [currentLevelPath, setCurrentLevelPath] = useState('/levels/level3.json');
+  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing'); // Start with playing for now
   const [gameStats, setGameStats] = useState<GameStats>({ collectedCoins: 0, totalCoinsOnLevel: TOTAL_COINS_ON_LEVEL });
 
   const handlePlayerAction = useCallback((action: GameAction) => {
+    // console.log(`[PlatformerPage] handlePlayerAction: ${action}`);
     setExecuteAction(action);
   }, []);
 
   const resetExecuteAction = useCallback(() => {
+    // console.log("[PlatformerPage] resetExecuteAction called");
     setExecuteAction(null);
   }, []);
 
   const handleStartGame = () => {
+    console.log("[PlatformerPage] handleStartGame called");
     setGameState('playing');
     const element = document.documentElement;
     if (element.requestFullscreen) {
@@ -55,14 +59,16 @@ export default function PlatformerPage() {
   };
 
   const handleExitToStart = () => {
+    console.log("[PlatformerPage] handleExitToStart called");
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(err => console.warn(`[PlatformerPage] Error exiting fullscreen: ${err.message}`));
     }
     setGameState('startScreen');
-    setCurrentLevelPath('/levels/level1.json'); // Reset to level 1 when exiting
+    setCurrentLevelPath('/levels/level1.json'); 
   };
 
   const handleGameStatsUpdate = useCallback((newStats: GameStats) => {
+    // console.log("[PlatformerPage] handleGameStatsUpdate:", newStats);
     setGameStats(prevStats => {
       if (prevStats.collectedCoins !== newStats.collectedCoins || prevStats.totalCoinsOnLevel !== newStats.totalCoinsOnLevel) {
         return newStats;
@@ -72,7 +78,9 @@ export default function PlatformerPage() {
   }, []);
 
   useEffect(() => {
+    // console.log("[PlatformerPage] Keyboard listeners effect. GameState:", gameState);
     const handleKeyDown = (event: KeyboardEvent) => {
+      // console.log(`[PlatformerPage] KeyDown: ${event.key}, GameState: ${gameState}`);
       if (gameState !== 'playing') return;
       let actionToDispatch: GameAction | null = null;
       switch (event.key) {
@@ -94,11 +102,13 @@ export default function PlatformerPage() {
           break;
       }
       if (actionToDispatch) {
+        // console.log(`[PlatformerPage] Dispatching action from KeyDown: ${actionToDispatch}`);
         handlePlayerAction(actionToDispatch);
       }
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
+      // console.log(`[PlatformerPage] KeyUp: ${event.key}, GameState: ${gameState}`);
       if (gameState !== 'playing') return;
       let actionToDispatch: GameAction | null = null;
       switch (event.key) {
@@ -114,6 +124,7 @@ export default function PlatformerPage() {
           break;
       }
       if (actionToDispatch) {
+        // console.log(`[PlatformerPage] Dispatching action from KeyUp: ${actionToDispatch}`);
         handlePlayerAction(actionToDispatch);
       }
     };
@@ -122,6 +133,7 @@ export default function PlatformerPage() {
     window.addEventListener('keyup', handleKeyUp);
 
     return () => {
+      // console.log("[PlatformerPage] Removing keyboard listeners");
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
@@ -131,13 +143,26 @@ export default function PlatformerPage() {
     const match = path.match(/level(\d+)\.json/);
     return match && match[1] ? parseInt(match[1], 10) : 1;
   };
-
+  
   const currentLevelNumber = parseLevelNumber(currentLevelPath);
+  
+  let controlPanelBackgroundUrl = "/assets/images/groundfloor.png";
+  let pageBackgroundUrl = "/assets/images/level1_bkg.png"; // Default background
+
+  if (currentLevelPath === '/levels/level3.json') {
+    controlPanelBackgroundUrl = "/assets/images/platform_ice2.png";
+    pageBackgroundUrl = "/assets/images/level2_bkg.png";
+  } else if (currentLevelPath === '/levels/level2.json') {
+    pageBackgroundUrl = "/assets/images/level1_bkg.png"; // Or specific for level 2 if different
+  }
+  // For level 1, default pageBackgroundUrl is already set.
 
   if (gameState === 'startScreen') {
+    console.log("[PlatformerPage] Rendering StartScreen");
     return <StartScreen onStartGame={handleStartGame} />;
   }
 
+  console.log("[PlatformerPage] Rendering game view. Current level path:", currentLevelPath);
   return (
     <div
       className="flex flex-col h-screen bg-background text-foreground overflow-hidden"
@@ -151,12 +176,12 @@ export default function PlatformerPage() {
         <div
           className="relative w-full h-full"
           style={{
-            backgroundImage: "url('/assets/images/level2_bkg.png')", // New background for level 3
+            backgroundImage: `url('${pageBackgroundUrl}')`, 
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center center', 
             backgroundSize: 'cover',
           }}
-          data-ai-hint="sky clouds"
+          data-ai-hint="sky clouds" // This hint might need to be dynamic if bkg changes
         >
           <DynamicGameCanvas
             levelPath={currentLevelPath}
@@ -167,7 +192,10 @@ export default function PlatformerPage() {
           />
         </div>
       </main>
-      <DynamicTouchControls onAction={handlePlayerAction} />
+      <DynamicTouchControls 
+        onAction={handlePlayerAction} 
+        controlPanelBackgroundUrl={controlPanelBackgroundUrl}
+      />
     </div>
   );
 }
