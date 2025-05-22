@@ -26,8 +26,8 @@ const DynamicTouchControls = dynamic(() => import('@/components/game/TouchContro
 export default function PlatformerPage() {
   const playerRef = useRef<PlayerState | null>(null);
   const [executeAction, setExecuteAction] = useState<GameAction | null>(null);
-  const [currentLevelPath, setCurrentLevelPath] = useState('/levels/level2.json');
-  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('startScreen'); // Changed back to 'startScreen'
+  const [currentLevelPath, setCurrentLevelPath] = useState('/levels/level1.json'); // Changed to level1.json
+  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('startScreen');
   const [gameStats, setGameStats] = useState<GameStats>({ collectedCoins: 0, totalCoinsOnLevel: TOTAL_COINS_ON_LEVEL });
 
   const handlePlayerAction = useCallback((action: GameAction) => {
@@ -40,6 +40,7 @@ export default function PlatformerPage() {
 
   const handleStartGame = () => {
     setGameState('playing');
+    // setCurrentLevelPath('/levels/level1.json'); // Ensure starting with level 1
     const element = document.documentElement;
     if (element.requestFullscreen) {
       element.requestFullscreen().catch(err => {
@@ -63,7 +64,6 @@ export default function PlatformerPage() {
 
   const handleGameStatsUpdate = useCallback((newStats: GameStats) => {
     setGameStats(prevStats => {
-      // Only update if there's an actual change to prevent unnecessary re-renders
       if (prevStats.collectedCoins !== newStats.collectedCoins || prevStats.totalCoinsOnLevel !== newStats.totalCoinsOnLevel) {
         return newStats;
       }
