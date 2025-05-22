@@ -2,11 +2,24 @@
 {
   "playerStart": {
     "platformId": "p2",
-    "horizontalAlign": "center",
-    "xOffsetPx": 0,
+    "horizontalAlign": "left",
+    "xOffsetPx": 10,
     "yOffsetPx": 0
   },
   "tiles": [
+    {
+      "id": "p_top_boundary",
+      "width": "100%",
+      "height": 1,
+      "type": 1,
+      "color": "rgba(0,0,0,0)",
+      "positioning": {
+        "anchor": "top-left",
+        "xOffsetPx": 0,
+        "yOffsetPx": 0
+      },
+      "data-ai-hint": "invisible boundary"
+    },
     {
       "id": "p_ground",
       "width": "100%",
@@ -33,7 +46,7 @@
         "xOffsetPx": 50,
         "yOffsetPx": 385
       },
-      "data-ai-hint": "platform grass"
+      "data-ai-hint": "platform grass floating"
     },
     {
       "id": "p2",
@@ -48,7 +61,7 @@
         "xOffsetPx": 50,
         "yOffsetPx": 135
       },
-      "data-ai-hint": "platform grass"
+      "data-ai-hint": "platform grass floating"
     },
     {
       "id": "house1",
@@ -75,7 +88,7 @@
         "xOffsetPx": 40,
         "yOffsetPx": 81
       },
-      "data-ai-hint": "platform invisible"
+      "data-ai-hint": "invisible platform"
     },
     {
       "id": "tree1",
@@ -89,7 +102,7 @@
         "xOffsetPx": -60,
         "yOffsetPx": 1
       },
-      "data-ai-hint": "tree green"
+      "data-ai-hint": "tree nature"
     },
     {
       "id": "tree2",
@@ -110,7 +123,7 @@
       "width": 25,
       "height": 15,
       "type": 0,
-      "color": "hsl(120, 40%, 40%)",
+      "color": "hsl(120, 50%, 45%)",
       "layer": "foreground",
       "positioning": {
         "anchor": "bottom-left",
@@ -121,10 +134,10 @@
     },
     {
       "id": "bush_left_2",
-      "width": 35,
+      "width": 40,
       "height": 25,
       "type": 0,
-      "color": "hsl(120, 45%, 30%)",
+      "color": "hsl(120, 45%, 40%)",
       "layer": "foreground",
       "positioning": {
         "anchor": "bottom-left",
@@ -138,7 +151,7 @@
       "width": 25,
       "height": 15,
       "type": 0,
-      "color": "hsl(120, 40%, 40%)",
+      "color": "hsl(120, 50%, 45%)",
       "layer": "foreground",
       "positioning": {
         "anchor": "bottom-right",
@@ -149,10 +162,10 @@
     },
     {
       "id": "bush_right_2",
-      "width": 35,
+      "width": 40,
       "height": 25,
       "type": 0,
-      "color": "hsl(120, 45%, 30%)",
+      "color": "hsl(120, 45%, 40%)",
       "layer": "foreground",
       "positioning": {
         "anchor": "bottom-right",
