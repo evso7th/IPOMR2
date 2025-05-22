@@ -6,7 +6,7 @@ import type { PlayerState, GameAction, GameStats } from '@/types/game';
 import GameHeader from '@/components/game/GameHeader';
 import StartScreen from '@/components/game/screens/StartScreen';
 import dynamic from 'next/dynamic';
-import { TOTAL_COINS_ON_LEVEL } from '@/config/gameConfig'; // Import for initial stats
+import { TOTAL_COINS_ON_LEVEL } from '@/config/gameConfig';
 
 const DynamicGameCanvas = dynamic(() => import('@/components/game/GameCanvas'), {
   ssr: false,
@@ -24,7 +24,7 @@ const DynamicTouchControls = dynamic(() => import('@/components/game/TouchContro
 
 
 export default function PlatformerPage() {
-  console.log("[PlatformerPage] Component body START");
+  // console.log("[PlatformerPage] Component body START");
   const playerRef = useRef<PlayerState | null>(null);
   const [executeAction, setExecuteAction] = useState<GameAction | null>(null);
   const [currentLevelPath, setCurrentLevelPath] = useState('/levels/level2.json'); 
@@ -32,17 +32,17 @@ export default function PlatformerPage() {
   const [gameStats, setGameStats] = useState<GameStats>({ collectedCoins: 0, totalCoinsOnLevel: TOTAL_COINS_ON_LEVEL });
 
   const handlePlayerAction = useCallback((action: GameAction) => {
-    console.log("[PlatformerPage] handlePlayerAction, action:", action);
+    // console.log("[PlatformerPage] handlePlayerAction, action:", action);
     setExecuteAction(action);
   }, []);
 
   const resetExecuteAction = useCallback(() => {
-    console.log("[PlatformerPage] resetExecuteAction called");
+    // console.log("[PlatformerPage] resetExecuteAction called");
     setExecuteAction(null);
   }, []);
 
   const handleStartGame = () => {
-    console.log("[PlatformerPage] handleStartGame called");
+    // console.log("[PlatformerPage] handleStartGame called");
     setGameState('playing');
     const element = document.documentElement;
     if (element.requestFullscreen) {
@@ -59,7 +59,7 @@ export default function PlatformerPage() {
   };
 
   const handleExitToStart = () => {
-    console.log("[PlatformerPage] handleExitToStart called");
+    // console.log("[PlatformerPage] handleExitToStart called");
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(err => console.warn(`[PlatformerPage] Error exiting fullscreen: ${err.message}`));
     }
@@ -135,11 +135,11 @@ export default function PlatformerPage() {
   }, [gameState, handlePlayerAction]);
 
   if (gameState === 'startScreen') {
-     console.log("[PlatformerPage] Rendering StartScreen");
-     return <StartScreen onStartGame={handleStartGame} />;
+    // console.log("[PlatformerPage] Rendering StartScreen");
+    return <StartScreen onStartGame={handleStartGame} />;
   }
 
-  console.log("[PlatformerPage] Rendering game view. Current level path:", currentLevelPath);
+  // console.log("[PlatformerPage] Rendering game view. Current level path:", currentLevelPath);
   return (
     <div
       className="flex flex-col h-screen bg-background text-foreground overflow-hidden"
@@ -151,7 +151,7 @@ export default function PlatformerPage() {
           style={{
             backgroundImage: "url('/assets/images/level1_bkg.png')",
             backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'top right',
+            backgroundPosition: 'top center', // Changed from 'top right'
           }}
           data-ai-hint="sky clouds"
         >
@@ -168,4 +168,3 @@ export default function PlatformerPage() {
     </div>
   );
 }
-
