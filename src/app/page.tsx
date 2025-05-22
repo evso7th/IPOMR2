@@ -2,12 +2,11 @@
 "use client";
 
 import React, { useRef, useState, useCallback, useEffect } from 'react';
-import type { PlayerState, GameAction } from '@/types/game';
+import type { PlayerState, GameAction, GameStats } from '@/types/game';
 import GameHeader from '@/components/game/GameHeader';
 import StartScreen from '@/components/game/screens/StartScreen';
 import dynamic from 'next/dynamic';
 
-// Dynamically import GameCanvas with SSR disabled
 const DynamicGameCanvas = dynamic(() => import('@/components/game/GameCanvas'), {
   ssr: false,
   loading: () => (
@@ -19,7 +18,7 @@ const DynamicGameCanvas = dynamic(() => import('@/components/game/GameCanvas'), 
 
 const DynamicTouchControls = dynamic(() => import('@/components/game/TouchControls'), {
   ssr: false,
-  loading: () => null,
+  loading: () => null, // No specific loader for touch controls
 });
 
 
@@ -29,6 +28,7 @@ export default function PlatformerPage() {
   const [executeAction, setExecuteAction] = useState<GameAction | null>(null);
   const [currentLevelPath, setCurrentLevelPath] = useState('/levels/level2.json'); 
   const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing'); 
+  const [gameStats, setGameStats] = useState<GameStats | null>(null);
 
   const handlePlayerAction = useCallback((action: GameAction) => {
     setExecuteAction(action);
@@ -62,6 +62,11 @@ export default function PlatformerPage() {
     }
     setGameState('startScreen');
   };
+
+  const handleGameStatsUpdate = useCallback((newStats: GameStats) => {
+    // console.log("[PlatformerPage] handleGameStatsUpdate:", newStats);
+    setGameStats(newStats);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -129,7 +134,7 @@ export default function PlatformerPage() {
     <div
       className="flex flex-col h-screen bg-background text-foreground overflow-hidden"
     >
-      <GameHeader onExitToStart={handleExitToStart} />
+      <GameHeader onExitToStart={handleExitToStart} stats={gameStats ?? undefined} />
       <main className="flex-1 w-full overflow-hidden flex flex-col"> 
         <div
           className="relative w-full h-full" 
@@ -144,7 +149,8 @@ export default function PlatformerPage() {
             levelPath={currentLevelPath}
             playerRef={playerRef} 
             executeAction={executeAction} 
-            resetExecuteAction={resetExecuteAction} 
+            resetExecuteAction={resetExecuteAction}
+            onGameStatsUpdate={handleGameStatsUpdate} 
           />
         </div>
       </main>

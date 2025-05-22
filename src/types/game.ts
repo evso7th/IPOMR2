@@ -12,6 +12,7 @@ export interface PlayerState {
   color: string;
   facingDirection: 'left' | 'right';
   image?: HTMLImageElement;
+  activePlatformId: string | null; // ID of the platform the player is currently on
 }
 
 export interface Particle {
@@ -77,7 +78,8 @@ export interface Tile {
   color: string;
   vx?: number;
   direction?: number;
-  layer?: 'background' | 'foreground'; // Added for layering
+  layer?: 'background' | 'foreground';
+  'data-ai-hint'?: string;
 }
 
 export interface RawTileData {
@@ -88,8 +90,9 @@ export interface RawTileData {
   color: string;
   vx?: number;
   direction?: number;
-  layer?: 'background' | 'foreground'; // Added for layering
+  layer?: 'background' | 'foreground';
   positioning: TilePositioning;
+  'data-ai-hint'?: string;
 }
 
 export interface RawPlayerStart {
@@ -116,4 +119,10 @@ export interface Rect {
   y: number;
   width: number;
   height: number;
+}
+
+export interface GameStats {
+  uncollectedInPair: number;
+  currentPairNum: number;
+  totalPairsNum: number;
 }

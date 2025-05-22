@@ -2,23 +2,24 @@
 "use client";
 
 import React from 'react';
+import type { GameStats } from '@/types/game';
 import { Medal, Gem, Coins, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface GameHeaderProps {
   onExitToStart?: () => void;
-  // В будущем можно передавать значения через props
-  // score: number;
-  // level: number;
-  // lives: number;
+  stats?: GameStats; // Make stats optional for initial rendering
 }
 
-export default function GameHeader({ onExitToStart }: GameHeaderProps) {
-  // Заглушки для значений
-  const score = 0;
-  const level = 1; // Should probably reflect current level
-  const lives = 3;
-  const maxLives = 7;
+export default function GameHeader({ onExitToStart, stats }: GameHeaderProps) {
+  const score = 0; // Placeholder
+  const level = 1; // Placeholder, should reflect current level path
+
+  const uncollectedInPair = stats?.uncollectedInPair ?? 0;
+  const currentPairDisplay = (stats?.currentPairNum ?? 0) + 1;
+  const totalPairsNum = stats?.totalPairsNum ?? 0;
+  const collectedThisPair = 2 - uncollectedInPair;
+
 
   return (
     <header className="h-16 bg-primary text-primary-foreground shadow-md flex items-center shrink-0">
@@ -46,9 +47,15 @@ export default function GameHeader({ onExitToStart }: GameHeaderProps) {
             <Gem className="w-4 h-4 sm:w-5 sm:h-5 mr-1" />
             <span className="text-sm sm:text-base">{score}</span>
           </div>
-          <div className="flex items-center" title="Lives/Collected">
+          <div className="flex items-center" title={`Coins: ${collectedThisPair} collected in current pair. Pair ${currentPairDisplay} of ${totalPairsNum}`}>
             <Coins className="w-4 h-4 sm:w-5 sm:h-5 mr-1 text-[hsl(var(--chart-4))]" />
-            <span className="text-sm sm:text-base">{lives} ({maxLives})</span>
+            {stats ? (
+              <span className="text-sm sm:text-base">
+                {collectedThisPair}/2 ({currentPairDisplay}/{totalPairsNum})
+              </span>
+            ) : (
+              <span className="text-sm sm:text-base">0/2 (1/?)</span>
+            )}
           </div>
         </div>
       </div>
