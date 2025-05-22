@@ -27,8 +27,8 @@ export default function PlatformerPage() {
   console.log("[PlatformerPage] Component body START");
   const playerRef = useRef<PlayerState | null>(null);
   const [executeAction, setExecuteAction] = useState<GameAction | null>(null);
-  const [currentLevelPath, setCurrentLevelPath] = useState('/levels/level3.json');
-  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('startScreen'); // Start with playing for now
+  const [currentLevelPath, setCurrentLevelPath] = useState('/levels/level3.json'); // Start with level 3
+  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing'); // Bypass start screen
   const [gameStats, setGameStats] = useState<GameStats>({ collectedCoins: 0, totalCoinsOnLevel: TOTAL_COINS_ON_LEVEL });
 
   const handlePlayerAction = useCallback((action: GameAction) => {
@@ -151,7 +151,7 @@ export default function PlatformerPage() {
 
   if (currentLevelPath === '/levels/level3.json') {
     controlPanelBackgroundUrl = "/assets/images/platform_ice2.png";
-    pageBackgroundUrl = "/assets/images/level2_bkg1.png"; // Changed this line
+    pageBackgroundUrl = "/assets/images/level2_bkg1.png";
   } else if (currentLevelPath === '/levels/level2.json') {
     pageBackgroundUrl = "/assets/images/level1_bkg.png"; 
   }
@@ -199,4 +199,3 @@ export default function PlatformerPage() {
     </div>
   );
 }
-
