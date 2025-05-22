@@ -5,7 +5,7 @@ import { COIN_COLOR, COIN_SHADOW_COLOR, COIN_SHADOW_BLUR, COIN_SHADOW_OFFSET_X, 
 export const renderCoins = (
   ctx: CanvasRenderingContext2D,
   coins: CoinState[],
-  coinImage: HTMLImageElement | null
+  coinImage: HTMLImageElement | null // coinImage will be effectively ignored for this temporary change
 ): void => {
   if (!coins || coins.length === 0) {
     return;
@@ -27,29 +27,23 @@ export const renderCoins = (
         ctx.shadowOffsetX = COIN_SHADOW_OFFSET_X;
         ctx.shadowOffsetY = COIN_SHADOW_OFFSET_Y;
         
-        // Rotation effect (squash and stretch)
+        // Calculate horizontal scale for rotation effect
         const scaleX = Math.abs(Math.cos(coin.rotationAngle));
-        const displayWidth = coin.width * scaleX;
-        const displayX = coin.x + (coin.width - displayWidth) / 2; // Keep centered
-
+        
         ctx.globalAlpha = coin.currentOpacity;
 
-        if (coinImage?.complete) {
-          ctx.beginPath();
-          ctx.arc(coin.x + coin.width / 2, coin.y + coin.height / 2, coin.width / 2, 0, Math.PI * 2, true);
-          ctx.closePath();
-          ctx.clip();
-          ctx.drawImage(coinImage, displayX, coin.y, displayWidth, coin.height);
-        } else {
-          // Fallback drawing (simple circle)
-          ctx.beginPath();
-          ctx.arc(coin.x + coin.width / 2, coin.y + coin.height / 2, coin.width / 2, 0, Math.PI * 2);
-          ctx.fillStyle = COIN_COLOR;
-          ctx.fill();
-          ctx.closePath();
-        }
+        // Translate to the coin's center, apply scale, then draw the circle
+        ctx.translate(coin.x + coin.width / 2, coin.y + coin.height / 2);
+        ctx.scale(scaleX, 1); // Apply horizontal scale for rotation (squash/stretch)
+        
+        ctx.beginPath();
+        // Draw a circle at the new origin (0,0) with radius based on original coin width
+        ctx.arc(0, 0, coin.width / 2, 0, Math.PI * 2, true); 
+        ctx.fillStyle = COIN_COLOR; // COIN_COLOR is 'gold'
+        ctx.fill();
+        ctx.closePath(); // Though not strictly necessary for a filled shape
     }
     
-    ctx.restore(); 
+    ctx.restore(); // Restore context to remove transformations (translate, scale) and shadow settings
   });
 };
