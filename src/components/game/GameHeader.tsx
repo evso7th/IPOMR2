@@ -13,10 +13,8 @@ interface GameHeaderProps {
 }
 
 export default function GameHeader({ onExitToStart, stats, currentLevelNumber }: GameHeaderProps) {
-  const score = 0; // Placeholder
-
   const collectedCoins = stats?.collectedCoins ?? 0;
-  const totalCoinsOnLevel = stats?.totalCoinsOnLevel ?? 0;
+  const totalCoinsOnLevel = stats?.totalCoinsOnLevel ?? 0; // This should now come from stats
   const level = currentLevelNumber ?? 1;
 
   return (
@@ -41,10 +39,7 @@ export default function GameHeader({ onExitToStart, stats, currentLevelNumber }:
             <Medal className="w-4 h-4 sm:w-5 sm:h-5 mr-1" />
             <span className="text-sm sm:text-base">Lvl: {level}</span>
           </div>
-          <div className="flex items-center" title="Score">
-            <Coins className="w-4 h-4 sm:w-5 sm:h-5 mr-1 text-[hsl(var(--chart-4))]" />
-            <span className="text-sm sm:text-base">{score}</span>
-          </div>
+          {/* Removed Score Display Block */}
           <div className="flex items-center" title={`Coins: ${collectedCoins}/${totalCoinsOnLevel}`}>
             <Coins className="w-4 h-4 sm:w-5 sm:h-5 mr-1 text-[hsl(var(--chart-4))]" />
             {stats ? (
