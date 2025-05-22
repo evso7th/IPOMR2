@@ -5,45 +5,40 @@ import { COIN_COLOR, COIN_SHADOW_COLOR, COIN_SHADOW_BLUR, COIN_SHADOW_OFFSET_X, 
 export const renderCoins = (
   ctx: CanvasRenderingContext2D,
   coins: CoinState[],
-  coinImage: HTMLImageElement | null // coinImage will be effectively ignored for this temporary change
+  coinImage: HTMLImageElement | null
 ): void => {
+  // console.log(`[renderCoins] CALLED with ${coins.length} coins. First coin: ${coins.length > 0 ? JSON.stringify(coins[0]) : 'No coins'}`);
   if (!coins || coins.length === 0) {
     return;
   }
   
   coins.forEach((coin) => {
+    // console.log(`[renderCoins] Processing coin: ID=${coin.id}, isCollected=${coin.isCollected}, opacity=${coin.currentOpacity.toFixed(2)}, present=${coin.isVisuallyPresent}, particles=${coin.particles.length}`);
     ctx.save(); 
 
     if (coin.particles && coin.particles.length > 0) {
+      // console.log(`[renderCoins] Coin ${coin.id} has ${coin.particles.length} particles. Drawing particles.`);
       coin.particles.forEach(particle => {
         ctx.globalAlpha = particle.opacity;
         ctx.fillStyle = COIN_COLOR; 
         ctx.fillRect(particle.x - particle.size / 2, particle.y - particle.size / 2, particle.size, particle.size);
       });
     } else if (!coin.isCollected && coin.currentOpacity > 0 && coin.isVisuallyPresent) { 
-        // Shadow
-        ctx.shadowColor = COIN_SHADOW_COLOR;
-        ctx.shadowBlur = COIN_SHADOW_BLUR;
-        ctx.shadowOffsetX = COIN_SHADOW_OFFSET_X;
-        ctx.shadowOffsetY = COIN_SHADOW_OFFSET_Y;
+        // console.log(`[renderCoins] Drawing coin ${coin.id} as yellow square. X:${coin.x.toFixed(0)}, Y:${coin.y.toFixed(0)}, Opacity: ${coin.currentOpacity.toFixed(2)}`);
         
-        // Calculate horizontal scale for rotation effect
-        const scaleX = Math.abs(Math.cos(coin.rotationAngle));
-        
+        // Simplified diagnostic drawing: Bright yellow square
         ctx.globalAlpha = coin.currentOpacity;
+        ctx.fillStyle = 'yellow'; // Bright yellow
+        ctx.fillRect(coin.x, coin.y, coin.width, coin.height);
+        ctx.strokeStyle = 'orange';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(coin.x, coin.y, coin.width, coin.height);
 
-        // Translate to the coin's center, apply scale, then draw the circle
-        ctx.translate(coin.x + coin.width / 2, coin.y + coin.height / 2);
-        ctx.scale(scaleX, 1); // Apply horizontal scale for rotation (squash/stretch)
-        
-        ctx.beginPath();
-        // Draw a circle at the new origin (0,0) with radius based on original coin width
-        ctx.arc(0, 0, coin.width / 2, 0, Math.PI * 2, true); 
-        ctx.fillStyle = COIN_COLOR; // COIN_COLOR is 'gold'
-        ctx.fill();
-        ctx.closePath(); // Though not strictly necessary for a filled shape
+    } else {
+      // console.log(`[renderCoins] Coin ${coin.id} NOT drawn. isCollected=${coin.isCollected}, opacity=${coin.currentOpacity.toFixed(2)}, present=${coin.isVisuallyPresent}`);
     }
     
-    ctx.restore(); // Restore context to remove transformations (translate, scale) and shadow settings
+    ctx.restore(); 
   });
 };
+
