@@ -15,8 +15,8 @@ export const COIN_COLOR = 'gold';
 export const COIN_VERTICAL_SPAWN_BOTTOM_OFFSET = 100; 
 export const COIN_SPAWN_TOP_MARGIN = 10; 
 export const COIN_FADE_IN_DURATION = 500; // ms
-export const COIN_SPAWN_STAGGER_DELAY = 0; // ms - Delay for the second coin in a pair
-export const NUMBER_OF_COIN_PAIRS = 5; // Total number of pairs to spawn sequentially
+export const COIN_SPAWN_STAGGER_DELAY = 0; // ms - All coins in the initial batch appear at once
+export const NUMBER_OF_COIN_PAIRS = 5; // Total number of pairs, but we spawn 10 coins at once for now
 
 // Coin Particle Configuration
 export const COIN_PARTICLE_COUNT = 15;
@@ -34,7 +34,7 @@ export const COIN_SHADOW_BLUR = 4; // pixels
 export const COIN_SHADOW_COLOR = 'rgba(0, 0, 0, 0.3)';
 
 
-// Enemy Configuration
+// Enemy Configuration (Enemies are currently disabled)
 export const ENEMY_RADIUS = 32; // pixels
 export const ENEMY_COLOR = 'red'; // color of the enemy
 export const ENEMY_SPEED_FACTOR = 0.5; // Factor of PLATFORM_SPEED
