@@ -6,6 +6,7 @@ import type { PlayerState, GameAction, GameStats } from '@/types/game';
 import GameHeader from '@/components/game/GameHeader';
 import StartScreen from '@/components/game/screens/StartScreen';
 import dynamic from 'next/dynamic';
+import { TOTAL_COINS_ON_LEVEL } from '@/config/gameConfig'; // Import for initial stats
 
 const DynamicGameCanvas = dynamic(() => import('@/components/game/GameCanvas'), {
   ssr: false,
@@ -26,15 +27,17 @@ export default function PlatformerPage() {
   console.log("[PlatformerPage] Component body START");
   const playerRef = useRef<PlayerState | null>(null);
   const [executeAction, setExecuteAction] = useState<GameAction | null>(null);
-  const [currentLevelPath, setCurrentLevelPath] = useState('/levels/level1.json'); 
+  const [currentLevelPath, setCurrentLevelPath] = useState('/levels/level2.json'); 
   const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing'); 
-  const [gameStats, setGameStats] = useState<GameStats>({ collectedCoins: 0, totalCoinsOnLevel: 0 });
+  const [gameStats, setGameStats] = useState<GameStats>({ collectedCoins: 0, totalCoinsOnLevel: TOTAL_COINS_ON_LEVEL });
 
   const handlePlayerAction = useCallback((action: GameAction) => {
+    console.log("[PlatformerPage] handlePlayerAction, action:", action);
     setExecuteAction(action);
   }, []);
 
   const resetExecuteAction = useCallback(() => {
+    console.log("[PlatformerPage] resetExecuteAction called");
     setExecuteAction(null);
   }, []);
 
@@ -64,7 +67,13 @@ export default function PlatformerPage() {
   };
 
   const handleGameStatsUpdate = useCallback((newStats: GameStats) => {
-    setGameStats(newStats);
+    // console.log("[PlatformerPage] handleGameStatsUpdate, newStats:", newStats);
+    setGameStats(prevStats => {
+      if (prevStats.collectedCoins !== newStats.collectedCoins || prevStats.totalCoinsOnLevel !== newStats.totalCoinsOnLevel) {
+        return newStats;
+      }
+      return prevStats;
+    });
   }, []);
 
   useEffect(() => {
@@ -90,6 +99,7 @@ export default function PlatformerPage() {
           break;
       }
       if (actionToDispatch) {
+        // console.log("[PlatformerPage] KeyDown, dispatching:", actionToDispatch);
         handlePlayerAction(actionToDispatch);
       }
     };
@@ -110,6 +120,7 @@ export default function PlatformerPage() {
           break;
       }
       if (actionToDispatch) {
+        // console.log("[PlatformerPage] KeyUp, dispatching:", actionToDispatch);
         handlePlayerAction(actionToDispatch);
       }
     };
@@ -157,3 +168,4 @@ export default function PlatformerPage() {
     </div>
   );
 }
+

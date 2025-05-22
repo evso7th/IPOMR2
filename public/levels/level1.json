@@ -1,25 +1,11 @@
-
 {
   "playerStart": {
-    "platformId": "p_ground",
-    "horizontalAlign": "left",
-    "xOffsetPx": 50,
+    "platformId": "floating_platform_left",
+    "horizontalAlign": "center",
+    "xOffsetPx": 0,
     "yOffsetPx": 0
   },
   "tiles": [
-    {
-      "id": "p_top_boundary",
-      "width": "100%",
-      "height": 1,
-      "type": 1,
-      "color": "#293855",
-      "positioning": {
-        "anchor": "top-left",
-        "xOffsetPx": 0,
-        "yOffsetPx": 0
-      },
-      "data-ai-hint": "invisible ceiling"
-    },
     {
       "id": "p_ground",
       "width": "100%",
@@ -34,11 +20,24 @@
       "data-ai-hint": "invisible ground"
     },
     {
+      "id": "p_top_boundary",
+      "width": "100%",
+      "height": 1,
+      "type": 1,
+      "color": "#293855",
+      "positioning": {
+        "anchor": "top-left",
+        "xOffsetPx": 0,
+        "yOffsetPx": 0
+      },
+      "data-ai-hint": "invisible ceiling"
+    },
+    {
       "id": "floating_platform_left",
       "width": 150,
       "height": 32,
       "type": 1,
-      "color": "hsl(var(--accent))",
+      "color": "hsl(var(--muted))",
       "vx": 0.9375,
       "direction": 1,
       "positioning": {
@@ -46,26 +45,26 @@
         "xOffsetPx": 50,
         "yOffsetPx": 300
       },
-      "data-ai-hint": "moving platform grass"
+      "data-ai-hint": "moving platform"
     },
     {
       "id": "floating_platform_right",
       "width": 150,
       "height": 32,
       "type": 1,
-      "color": "hsl(var(--accent))",
+      "color": "hsl(var(--muted))",
       "vx": 0.9375,
       "direction": -1,
       "positioning": {
         "anchor": "bottom-right",
         "xOffsetPx": 50,
-        "yOffsetPx": 200
+        "yOffsetPx": 120
       },
-      "data-ai-hint": "moving platform grass"
+      "data-ai-hint": "moving platform"
     },
     {
       "id": "tree1",
-      "width": 60,
+      "width": 40,
       "height": 120,
       "type": 0,
       "color": "hsl(30, 60%, 30%)",
@@ -73,37 +72,37 @@
       "positioning": {
         "anchor": "bottom-left",
         "xOffsetPx": 100,
-        "yOffsetPx": 1 
+        "yOffsetPx": 1
       },
-      "data-ai-hint": "tree nature tall"
+      "data-ai-hint": "tree nature"
     },
     {
-      "id": "bush_left_1", 
-      "width": 40,
-      "height": 30,
+      "id": "bush_left_1",
+      "width": 30,
+      "height": 20,
       "type": 0,
-      "color": "hsl(120, 60%, 50%)",
+      "color": "hsl(100, 50%, 40%)",
       "layer": "foreground",
       "positioning": {
         "anchor": "bottom-left",
         "xOffsetPx": 200,
         "yOffsetPx": 1
       },
-      "data-ai-hint": "bush small green"
+      "data-ai-hint": "flowers small"
     },
     {
-      "id": "bush_right_2", 
+      "id": "bush_right_2",
       "width": 50,
-      "height": 40,
+      "height": 35,
       "type": 0,
-      "color": "hsl(120, 50%, 40%)",
+      "color": "hsl(120, 60%, 30%)",
       "layer": "foreground",
       "positioning": {
         "anchor": "bottom-right",
         "xOffsetPx": 80,
         "yOffsetPx": 1
       },
-      "data-ai-hint": "bush large green"
+      "data-ai-hint": "bush large"
     }
   ]
 }
