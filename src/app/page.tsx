@@ -19,14 +19,14 @@ const DynamicGameCanvas = dynamic(() => import('@/components/game/GameCanvas'), 
 
 const DynamicTouchControls = dynamic(() => import('@/components/game/TouchControls'), {
   ssr: false,
-  loading: () => null,
+  loading: () => null, // No specific loading UI for touch controls
 });
 
 
 export default function PlatformerPage() {
   const playerRef = useRef<PlayerState | null>(null);
   const [executeAction, setExecuteAction] = useState<GameAction | null>(null);
-  const [currentLevelPath, setCurrentLevelPath] = useState('/levels/level1.json'); // Changed to level1.json
+  const [currentLevelPath, setCurrentLevelPath] = useState('/levels/level3.json'); // Start with level 3
   const [gameState, setGameState] = useState<'startScreen' | 'playing'>('startScreen');
   const [gameStats, setGameStats] = useState<GameStats>({ collectedCoins: 0, totalCoinsOnLevel: TOTAL_COINS_ON_LEVEL });
 
@@ -40,7 +40,6 @@ export default function PlatformerPage() {
 
   const handleStartGame = () => {
     setGameState('playing');
-    // setCurrentLevelPath('/levels/level1.json'); // Ensure starting with level 1
     const element = document.documentElement;
     if (element.requestFullscreen) {
       element.requestFullscreen().catch(err => {
@@ -60,6 +59,7 @@ export default function PlatformerPage() {
       document.exitFullscreen().catch(err => console.warn(`[PlatformerPage] Error exiting fullscreen: ${err.message}`));
     }
     setGameState('startScreen');
+    setCurrentLevelPath('/levels/level1.json'); // Reset to level 1 when exiting
   };
 
   const handleGameStatsUpdate = useCallback((newStats: GameStats) => {
@@ -151,7 +151,7 @@ export default function PlatformerPage() {
         <div
           className="relative w-full h-full"
           style={{
-            backgroundImage: "url('/assets/images/level1_bkg.png')",
+            backgroundImage: "url('/assets/images/level2_bkg.png')", // New background for level 3
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center center', 
             backgroundSize: 'cover',
