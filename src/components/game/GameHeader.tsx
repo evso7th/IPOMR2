@@ -3,23 +3,20 @@
 
 import React from 'react';
 import type { GameStats } from '@/types/game';
-import { Medal, Gem, Coins, Home } from 'lucide-react';
+import { Medal, Coins, Home } from 'lucide-react'; // Changed Gem to Coins
 import { Button } from '@/components/ui/button';
 
 interface GameHeaderProps {
   onExitToStart?: () => void;
-  stats?: GameStats; // Make stats optional for initial rendering
+  stats?: GameStats; 
 }
 
 export default function GameHeader({ onExitToStart, stats }: GameHeaderProps) {
   const score = 0; // Placeholder
   const level = 1; // Placeholder, should reflect current level path
 
-  const uncollectedInPair = stats?.uncollectedInPair ?? 0;
-  const currentPairDisplay = (stats?.currentPairNum ?? 0) + 1;
-  const totalPairsNum = stats?.totalPairsNum ?? 0;
-  const collectedThisPair = 2 - uncollectedInPair;
-
+  const collectedCoins = stats?.collectedCoins ?? 0;
+  const totalCoinsOnLevel = stats?.totalCoinsOnLevel ?? 0;
 
   return (
     <header className="h-16 bg-primary text-primary-foreground shadow-md flex items-center shrink-0">
@@ -44,17 +41,18 @@ export default function GameHeader({ onExitToStart, stats }: GameHeaderProps) {
             <span className="text-sm sm:text-base">Lvl: {level}</span>
           </div>
           <div className="flex items-center" title="Score">
-            <Gem className="w-4 h-4 sm:w-5 sm:h-5 mr-1" />
+             {/* Using Coins icon instead of Gem for score as well, or choose another one */}
+            <Coins className="w-4 h-4 sm:w-5 sm:h-5 mr-1" /> 
             <span className="text-sm sm:text-base">{score}</span>
           </div>
-          <div className="flex items-center" title={`Coins: ${collectedThisPair} collected in current pair. Pair ${currentPairDisplay} of ${totalPairsNum}`}>
+          <div className="flex items-center" title={`Coins: ${collectedCoins}/${totalCoinsOnLevel}`}>
             <Coins className="w-4 h-4 sm:w-5 sm:h-5 mr-1 text-[hsl(var(--chart-4))]" />
             {stats ? (
               <span className="text-sm sm:text-base">
-                {collectedThisPair}/2 ({currentPairDisplay}/{totalPairsNum})
+                {collectedCoins}/{totalCoinsOnLevel}
               </span>
             ) : (
-              <span className="text-sm sm:text-base">0/2 (1/?)</span>
+              <span className="text-sm sm:text-base">0/?</span>
             )}
           </div>
         </div>

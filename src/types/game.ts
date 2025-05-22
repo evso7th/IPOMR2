@@ -12,7 +12,7 @@ export interface PlayerState {
   color: string;
   facingDirection: 'left' | 'right';
   image?: HTMLImageElement;
-  activePlatformId: string | null; // ID of the platform the player is currently on
+  activePlatformId: string | null; 
 }
 
 export interface Particle {
@@ -22,7 +22,7 @@ export interface Particle {
   vy: number;
   size: number;
   opacity: number;
-  life: number; // remaining lifespan in ms
+  life: number; 
 }
 
 export interface CoinState {
@@ -50,8 +50,8 @@ export interface EnemyState {
   x: number;
   y: number;
   radius: number;
-  width: number; // For collision detection convenience (radius * 2)
-  height: number; // For collision detection convenience (radius * 2)
+  width: number; 
+  height: number; 
   vx: number;
   direction: number;
   color: string;
@@ -74,7 +74,7 @@ export interface Tile {
   y: number;
   width: number;
   height: number;
-  type: number; // 1 for collidable platform, 0 for decor, etc.
+  type: number; 
   color: string;
   vx?: number;
   direction?: number;
@@ -122,7 +122,6 @@ export interface Rect {
 }
 
 export interface GameStats {
-  uncollectedInPair: number;
-  currentPairNum: number;
-  totalPairsNum: number;
+  collectedCoins: number;
+  totalCoinsOnLevel: number;
 }

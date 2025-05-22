@@ -18,7 +18,7 @@ const DynamicGameCanvas = dynamic(() => import('@/components/game/GameCanvas'), 
 
 const DynamicTouchControls = dynamic(() => import('@/components/game/TouchControls'), {
   ssr: false,
-  loading: () => null, // No specific loader for touch controls
+  loading: () => null, 
 });
 
 
@@ -26,9 +26,9 @@ export default function PlatformerPage() {
   console.log("[PlatformerPage] Component body START");
   const playerRef = useRef<PlayerState | null>(null);
   const [executeAction, setExecuteAction] = useState<GameAction | null>(null);
-  const [currentLevelPath, setCurrentLevelPath] = useState('/levels/level2.json'); 
+  const [currentLevelPath, setCurrentLevelPath] = useState('/levels/level1.json'); 
   const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing'); 
-  const [gameStats, setGameStats] = useState<GameStats | null>(null);
+  const [gameStats, setGameStats] = useState<GameStats>({ collectedCoins: 0, totalCoinsOnLevel: 0 });
 
   const handlePlayerAction = useCallback((action: GameAction) => {
     setExecuteAction(action);
@@ -46,11 +46,11 @@ export default function PlatformerPage() {
       element.requestFullscreen().catch(err => {
         console.warn(`[PlatformerPage] Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
       });
-    } else if ((element as any).mozRequestFullScreen) { // Firefox
+    } else if ((element as any).mozRequestFullScreen) { 
       (element as any).mozRequestFullScreen();
-    } else if ((element as any).webkitRequestFullscreen) { // Chrome, Safari and Opera
+    } else if ((element as any).webkitRequestFullscreen) { 
       (element as any).webkitRequestFullscreen();
-    } else if ((element as any).msRequestFullscreen) { // IE/Edge
+    } else if ((element as any).msRequestFullscreen) { 
       (element as any).msRequestFullscreen();
     }
   };
@@ -64,7 +64,6 @@ export default function PlatformerPage() {
   };
 
   const handleGameStatsUpdate = useCallback((newStats: GameStats) => {
-    // console.log("[PlatformerPage] handleGameStatsUpdate:", newStats);
     setGameStats(newStats);
   }, []);
 
@@ -134,7 +133,7 @@ export default function PlatformerPage() {
     <div
       className="flex flex-col h-screen bg-background text-foreground overflow-hidden"
     >
-      <GameHeader onExitToStart={handleExitToStart} stats={gameStats ?? undefined} />
+      <GameHeader onExitToStart={handleExitToStart} stats={gameStats} />
       <main className="flex-1 w-full overflow-hidden flex flex-col"> 
         <div
           className="relative w-full h-full" 
