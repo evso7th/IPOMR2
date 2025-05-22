@@ -35,22 +35,22 @@
     },
     {
       "id": "floating_platform_left",
-      "width": 120,
+      "width": 150,
       "height": 32,
       "type": 1,
       "color": "hsl(var(--accent))",
-      "vx": 0.9375, 
+      "vx": 0.9375,
       "direction": 1,
       "positioning": {
         "anchor": "bottom-left",
         "xOffsetPx": 50,
-        "yOffsetPx": 300 
+        "yOffsetPx": 300
       },
       "data-ai-hint": "moving platform grass"
     },
     {
       "id": "floating_platform_right",
-      "width": 120,
+      "width": 150,
       "height": 32,
       "type": 1,
       "color": "hsl(var(--accent))",
@@ -59,9 +59,51 @@
       "positioning": {
         "anchor": "bottom-right",
         "xOffsetPx": 50,
-        "yOffsetPx": 150 
+        "yOffsetPx": 200
       },
       "data-ai-hint": "moving platform grass"
+    },
+    {
+      "id": "tree1",
+      "width": 60,
+      "height": 120,
+      "type": 0,
+      "color": "hsl(30, 60%, 30%)",
+      "layer": "background",
+      "positioning": {
+        "anchor": "bottom-left",
+        "xOffsetPx": 100,
+        "yOffsetPx": 1 
+      },
+      "data-ai-hint": "tree nature tall"
+    },
+    {
+      "id": "bush_left_1", 
+      "width": 40,
+      "height": 30,
+      "type": 0,
+      "color": "hsl(120, 60%, 50%)",
+      "layer": "foreground",
+      "positioning": {
+        "anchor": "bottom-left",
+        "xOffsetPx": 200,
+        "yOffsetPx": 1
+      },
+      "data-ai-hint": "bush small green"
+    },
+    {
+      "id": "bush_right_2", 
+      "width": 50,
+      "height": 40,
+      "type": 0,
+      "color": "hsl(120, 50%, 40%)",
+      "layer": "foreground",
+      "positioning": {
+        "anchor": "bottom-right",
+        "xOffsetPx": 80,
+        "yOffsetPx": 1
+      },
+      "data-ai-hint": "bush large green"
     }
   ]
 }
