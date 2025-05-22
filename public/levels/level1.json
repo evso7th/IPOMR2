@@ -3,7 +3,6 @@
   "playerStart": {
     "platformId": "p_ground",
     "horizontalAlign": "center",
-    "xOffsetPx": 0,
     "yOffsetPx": 0
   },
   "tiles": [
@@ -21,34 +20,34 @@
       "data-ai-hint": "invisible ground"
     },
     {
-      "id": "floating_platform_left",
+      "id": "platform_static_1",
       "width": 150,
       "height": 32,
       "type": 1,
       "color": "hsl(var(--accent))",
-      "vx": 1,
-      "direction": 1,
+      "vx": 0,
+      "direction": 0,
       "positioning": {
-        "anchor": "bottom-left",
-        "xOffsetPx": 50,
-        "yOffsetPx": 200 
+        "anchor": "bottom-center",
+        "xOffsetPx": -100,
+        "yOffsetPx": 150
       },
-      "data-ai-hint": "platform grass moving"
+      "data-ai-hint": "grass platform static"
     },
     {
-      "id": "floating_platform_right",
+      "id": "platform_static_2",
       "width": 150,
       "height": 32,
       "type": 1,
       "color": "hsl(var(--accent))",
-      "vx": 1,
-      "direction": -1,
+      "vx": 0,
+      "direction": 0,
       "positioning": {
-        "anchor": "bottom-right",
-        "xOffsetPx": 50,
-        "yOffsetPx": 100 
+        "anchor": "bottom-center",
+        "xOffsetPx": 100,
+        "yOffsetPx": 250
       },
-      "data-ai-hint": "platform grass moving"
+      "data-ai-hint": "grass platform static"
     }
   ]
 }
