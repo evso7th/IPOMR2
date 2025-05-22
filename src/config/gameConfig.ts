@@ -15,8 +15,9 @@ export const COIN_COLOR = 'gold';
 export const COIN_VERTICAL_SPAWN_BOTTOM_OFFSET = 100; 
 export const COIN_SPAWN_TOP_MARGIN = 10; 
 export const COIN_FADE_IN_DURATION = 500; 
-export const COIN_SPAWN_STAGGER_DELAY = 0; 
+export const COIN_SPAWN_STAGGER_DELAY = 0; // No longer used for staggering within a pair for one-by-one logic
 export const TOTAL_COINS_ON_LEVEL = 10; 
+// export const NUMBER_OF_COIN_PAIRS = 5; // Removed, replaced by TOTAL_COINS_ON_LEVEL
 
 // Coin Particle Configuration
 export const COIN_PARTICLE_COUNT = 15;
@@ -43,4 +44,4 @@ export const ENEMY_SPEED_FACTOR = 0.5;
 export const P3_SIZE_W = 64; 
 export const P3_SIZE_H = 32; 
 export const P3_DRIFT_RANGE = 20; 
-export const P3_MOVEMENT_DURATION = 3000; 
+export const P3_MOVEMENT_DURATION = 3000;
