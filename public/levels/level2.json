@@ -12,13 +12,13 @@
       "width": "100%",
       "height": 1,
       "type": 1,
-      "color": "rgba(0,0,0,0)",
+      "color": "#293855",
       "positioning": {
         "anchor": "top-left",
         "xOffsetPx": 0,
         "yOffsetPx": 0
       },
-      "data-ai-hint": "invisible boundary"
+      "data-ai-hint": "invisible ceiling"
     },
     {
       "id": "p_ground",
@@ -38,7 +38,7 @@
       "width": 120,
       "height": 32,
       "type": 1,
-      "color": "hsl(var(--primary))",
+      "color": "hsl(var(--accent))",
       "vx": 0.9375,
       "direction": 1,
       "positioning": {
@@ -46,7 +46,7 @@
         "xOffsetPx": 50,
         "yOffsetPx": 385
       },
-      "data-ai-hint": "platform grass floating"
+      "data-ai-hint": "platform grass"
     },
     {
       "id": "p2",
@@ -61,7 +61,7 @@
         "xOffsetPx": 50,
         "yOffsetPx": 135
       },
-      "data-ai-hint": "platform grass floating"
+      "data-ai-hint": "platform stone"
     },
     {
       "id": "house1",
@@ -88,7 +88,7 @@
         "xOffsetPx": 40,
         "yOffsetPx": 81
       },
-      "data-ai-hint": "invisible platform"
+      "data-ai-hint": "platform invisible"
     },
     {
       "id": "tree1",
@@ -123,7 +123,7 @@
       "width": 25,
       "height": 15,
       "type": 0,
-      "color": "hsl(120, 50%, 45%)",
+      "color": "hsl(120, 60%, 40%)",
       "layer": "foreground",
       "positioning": {
         "anchor": "bottom-left",
@@ -137,7 +137,7 @@
       "width": 40,
       "height": 25,
       "type": 0,
-      "color": "hsl(120, 45%, 40%)",
+      "color": "hsl(120, 50%, 30%)",
       "layer": "foreground",
       "positioning": {
         "anchor": "bottom-left",
@@ -151,7 +151,7 @@
       "width": 25,
       "height": 15,
       "type": 0,
-      "color": "hsl(120, 50%, 45%)",
+      "color": "hsl(120, 60%, 40%)",
       "layer": "foreground",
       "positioning": {
         "anchor": "bottom-right",
@@ -165,7 +165,7 @@
       "width": 40,
       "height": 25,
       "type": 0,
-      "color": "hsl(120, 45%, 40%)",
+      "color": "hsl(120, 50%, 30%)",
       "layer": "foreground",
       "positioning": {
         "anchor": "bottom-right",
