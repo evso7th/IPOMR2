@@ -47,3 +47,4 @@ export const P3_MOVEMENT_DURATION = 3000;
 
 // Ice Friction Configuration
 export const ICE_FRICTION = 0.95;
+
