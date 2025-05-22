@@ -1,10 +1,9 @@
 
-export const TILE_SIZE = 32; // pixels
 export const GRAVITY = 0.5; // pixels per frame^2
 export const PLAYER_SPEED = 5; // pixels per frame
 export const PLATFORM_SPEED = (PLAYER_SPEED * 0.75) / 4; // pixels per frame for moving platforms
 export const MAX_JUMP_HEIGHT = 200; // pixels
-export const JUMP_STRENGTH = -14.14; // Approx. -Math.sqrt(200 * 2 * 0.5)
+export const JUMP_STRENGTH = -14.14; // Approx. -Math.sqrt(200 * 2 * 0.5) // Max jump height 200px
 export const PLAYER_WIDTH = 42; // pixels
 export const PLAYER_HEIGHT = 75; // pixels
 
@@ -16,7 +15,7 @@ export const COIN_COLOR = 'gold';
 export const COIN_VERTICAL_SPAWN_BOTTOM_OFFSET = 100; 
 export const COIN_SPAWN_TOP_MARGIN = 10; 
 export const COIN_FADE_IN_DURATION = 500; // ms
-export const COIN_SPAWN_STAGGER_DELAY = 500; // ms - Stagger within a pair, or between pairs if spawning all at once
+export const COIN_SPAWN_STAGGER_DELAY = 0; // ms - Delay for the second coin in a pair
 export const NUMBER_OF_COIN_PAIRS = 5; // Total number of pairs to spawn sequentially
 
 // Coin Particle Configuration
