@@ -27,7 +27,7 @@ export default function PlatformerPage() {
   const playerRef = useRef<PlayerState | null>(null);
   const [executeAction, setExecuteAction] = useState<GameAction | null>(null);
   const [currentLevelPath, setCurrentLevelPath] = useState('/levels/level2.json');
-  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing');
+  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('startScreen'); // Changed back to 'startScreen'
   const [gameStats, setGameStats] = useState<GameStats>({ collectedCoins: 0, totalCoinsOnLevel: TOTAL_COINS_ON_LEVEL });
 
   const handlePlayerAction = useCallback((action: GameAction) => {
@@ -45,11 +45,11 @@ export default function PlatformerPage() {
       element.requestFullscreen().catch(err => {
         console.warn(`[PlatformerPage] Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
       });
-    } else if ((element as any).mozRequestFullScreen) {
+    } else if ((element as any).mozRequestFullScreen) { // Firefox
       (element as any).mozRequestFullScreen();
-    } else if ((element as any).webkitRequestFullscreen) {
+    } else if ((element as any).webkitRequestFullscreen) { // Chrome, Safari and Opera
       (element as any).webkitRequestFullscreen();
-    } else if ((element as any).msRequestFullscreen) {
+    } else if ((element as any).msRequestFullscreen) { // IE/Edge
       (element as any).msRequestFullscreen();
     }
   };
