@@ -2,10 +2,24 @@
 {
   "playerStart": {
     "platformId": "p_ground",
-    "horizontalAlign": "center",
+    "horizontalAlign": "left",
+    "xOffsetPx": 50,
     "yOffsetPx": 0
   },
   "tiles": [
+    {
+      "id": "p_top_boundary",
+      "width": "100%",
+      "height": 1,
+      "type": 1,
+      "color": "#293855",
+      "positioning": {
+        "anchor": "top-left",
+        "xOffsetPx": 0,
+        "yOffsetPx": 0
+      },
+      "data-ai-hint": "invisible ceiling"
+    },
     {
       "id": "p_ground",
       "width": "100%",
@@ -20,34 +34,34 @@
       "data-ai-hint": "invisible ground"
     },
     {
-      "id": "platform_static_1",
-      "width": 150,
+      "id": "floating_platform_left",
+      "width": 120,
       "height": 32,
       "type": 1,
       "color": "hsl(var(--accent))",
-      "vx": 0,
-      "direction": 0,
+      "vx": 0.9375, 
+      "direction": 1,
       "positioning": {
-        "anchor": "bottom-center",
-        "xOffsetPx": -100,
-        "yOffsetPx": 150
+        "anchor": "bottom-left",
+        "xOffsetPx": 50,
+        "yOffsetPx": 300 
       },
-      "data-ai-hint": "grass platform static"
+      "data-ai-hint": "moving platform grass"
     },
     {
-      "id": "platform_static_2",
-      "width": 150,
+      "id": "floating_platform_right",
+      "width": 120,
       "height": 32,
       "type": 1,
       "color": "hsl(var(--accent))",
-      "vx": 0,
-      "direction": 0,
+      "vx": 0.9375,
+      "direction": -1,
       "positioning": {
-        "anchor": "bottom-center",
-        "xOffsetPx": 100,
-        "yOffsetPx": 250
+        "anchor": "bottom-right",
+        "xOffsetPx": 50,
+        "yOffsetPx": 150 
       },
-      "data-ai-hint": "grass platform static"
+      "data-ai-hint": "moving platform grass"
     }
   ]
 }
