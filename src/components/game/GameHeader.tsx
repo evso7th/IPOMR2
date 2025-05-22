@@ -3,20 +3,21 @@
 
 import React from 'react';
 import type { GameStats } from '@/types/game';
-import { Medal, Coins, Home } from 'lucide-react'; // Changed Gem to Coins
+import { Medal, Coins, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface GameHeaderProps {
   onExitToStart?: () => void;
-  stats?: GameStats; 
+  stats?: GameStats;
+  currentLevelNumber?: number;
 }
 
-export default function GameHeader({ onExitToStart, stats }: GameHeaderProps) {
+export default function GameHeader({ onExitToStart, stats, currentLevelNumber }: GameHeaderProps) {
   const score = 0; // Placeholder
-  const level = 1; // Placeholder, should reflect current level path
 
   const collectedCoins = stats?.collectedCoins ?? 0;
   const totalCoinsOnLevel = stats?.totalCoinsOnLevel ?? 0;
+  const level = currentLevelNumber ?? 1;
 
   return (
     <header className="h-16 bg-primary text-primary-foreground shadow-md flex items-center shrink-0">
@@ -41,8 +42,7 @@ export default function GameHeader({ onExitToStart, stats }: GameHeaderProps) {
             <span className="text-sm sm:text-base">Lvl: {level}</span>
           </div>
           <div className="flex items-center" title="Score">
-             {/* Using Coins icon instead of Gem for score as well, or choose another one */}
-            <Coins className="w-4 h-4 sm:w-5 sm:h-5 mr-1" /> 
+            <Coins className="w-4 h-4 sm:w-5 sm:h-5 mr-1 text-[hsl(var(--chart-4))]" />
             <span className="text-sm sm:text-base">{score}</span>
           </div>
           <div className="flex items-center" title={`Coins: ${collectedCoins}/${totalCoinsOnLevel}`}>

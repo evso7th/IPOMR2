@@ -63,6 +63,7 @@ export default function PlatformerPage() {
 
   const handleGameStatsUpdate = useCallback((newStats: GameStats) => {
     setGameStats(prevStats => {
+      // Only update if there's an actual change to prevent unnecessary re-renders
       if (prevStats.collectedCoins !== newStats.collectedCoins || prevStats.totalCoinsOnLevel !== newStats.totalCoinsOnLevel) {
         return newStats;
       }
@@ -126,6 +127,13 @@ export default function PlatformerPage() {
     };
   }, [gameState, handlePlayerAction]);
 
+  const parseLevelNumber = (path: string): number => {
+    const match = path.match(/level(\d+)\.json/);
+    return match && match[1] ? parseInt(match[1], 10) : 1;
+  };
+
+  const currentLevelNumber = parseLevelNumber(currentLevelPath);
+
   if (gameState === 'startScreen') {
     return <StartScreen onStartGame={handleStartGame} />;
   }
@@ -134,15 +142,19 @@ export default function PlatformerPage() {
     <div
       className="flex flex-col h-screen bg-background text-foreground overflow-hidden"
     >
-      <GameHeader onExitToStart={handleExitToStart} stats={gameStats} />
+      <GameHeader 
+        onExitToStart={handleExitToStart} 
+        stats={gameStats}
+        currentLevelNumber={currentLevelNumber}
+      />
       <main className="flex-1 w-full overflow-hidden flex flex-col">
         <div
           className="relative w-full h-full"
           style={{
             backgroundImage: "url('/assets/images/level1_bkg.png')",
             backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'center center', // Changed to center center
-            backgroundSize: 'cover', // Added to cover the area
+            backgroundPosition: 'center center', 
+            backgroundSize: 'cover',
           }}
           data-ai-hint="sky clouds"
         >
