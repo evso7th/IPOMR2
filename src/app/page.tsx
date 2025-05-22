@@ -28,7 +28,7 @@ export default function PlatformerPage() {
   const playerRef = useRef<PlayerState | null>(null);
   const [executeAction, setExecuteAction] = useState<GameAction | null>(null);
   const [currentLevelPath, setCurrentLevelPath] = useState('/levels/level3.json');
-  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing'); // Start with playing for now
+  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('startScreen'); // Start with playing for now
   const [gameStats, setGameStats] = useState<GameStats>({ collectedCoins: 0, totalCoinsOnLevel: TOTAL_COINS_ON_LEVEL });
 
   const handlePlayerAction = useCallback((action: GameAction) => {
@@ -151,9 +151,9 @@ export default function PlatformerPage() {
 
   if (currentLevelPath === '/levels/level3.json') {
     controlPanelBackgroundUrl = "/assets/images/platform_ice2.png";
-    pageBackgroundUrl = "/assets/images/level2_bkg.png";
+    pageBackgroundUrl = "/assets/images/level2_bkg1.png"; // Changed this line
   } else if (currentLevelPath === '/levels/level2.json') {
-    pageBackgroundUrl = "/assets/images/level1_bkg.png"; // Or specific for level 2 if different
+    pageBackgroundUrl = "/assets/images/level1_bkg.png"; 
   }
   // For level 1, default pageBackgroundUrl is already set.
 
@@ -181,7 +181,7 @@ export default function PlatformerPage() {
             backgroundPosition: 'center center', 
             backgroundSize: 'cover',
           }}
-          data-ai-hint="sky clouds" // This hint might need to be dynamic if bkg changes
+          data-ai-hint="sky clouds" 
         >
           <DynamicGameCanvas
             levelPath={currentLevelPath}
@@ -199,3 +199,4 @@ export default function PlatformerPage() {
     </div>
   );
 }
+
