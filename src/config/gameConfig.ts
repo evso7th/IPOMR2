@@ -16,7 +16,8 @@ export const COIN_COLOR = 'gold';
 export const COIN_VERTICAL_SPAWN_BOTTOM_OFFSET = 100; 
 export const COIN_SPAWN_TOP_MARGIN = 10; 
 export const COIN_FADE_IN_DURATION = 500; // ms
-export const COIN_SPAWN_STAGGER_DELAY = 500; // ms 
+export const COIN_SPAWN_STAGGER_DELAY = 500; // ms - Stagger within a pair, or between pairs if spawning all at once
+export const NUMBER_OF_COIN_PAIRS = 5; // Total number of pairs to spawn sequentially
 
 // Coin Particle Configuration
 export const COIN_PARTICLE_COUNT = 15;
@@ -26,8 +27,8 @@ export const COIN_PARTICLE_SPEED_MULTIPLIER = 1.5;
 export const COIN_PARTICLE_GRAVITY_FACTOR = 0.2; 
 
 // Coin Rotation and Shadow Configuration
-export const COIN_ROTATION_SPEED_MIN = 0; // radians per frame - SET TO 0 FOR NO ROTATION
-export const COIN_ROTATION_SPEED_MAX = 0; // radians per frame - SET TO 0 FOR NO ROTATION
+export const COIN_ROTATION_SPEED_MIN = 0.02; // radians per frame
+export const COIN_ROTATION_SPEED_MAX = 0.05; // radians per frame
 export const COIN_SHADOW_OFFSET_X = 2; // pixels
 export const COIN_SHADOW_OFFSET_Y = 2; // pixels
 export const COIN_SHADOW_BLUR = 4; // pixels
@@ -44,3 +45,4 @@ export const P3_SIZE_W = 64; // Width of P3
 export const P3_SIZE_H = 32; // Height of P3
 export const P3_DRIFT_RANGE = 20; // Max drift in pixels from base position (X and Y)
 export const P3_MOVEMENT_DURATION = 3000; // ms to move to a new interest point
+
