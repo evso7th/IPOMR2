@@ -19,47 +19,42 @@ const DynamicGameCanvas = dynamic(() => import('@/components/game/GameCanvas'), 
 
 const DynamicTouchControls = dynamic(() => import('@/components/game/TouchControls'), {
   ssr: false,
-  loading: () => null, 
+  loading: () => null,
 });
 
 
 export default function PlatformerPage() {
-  // console.log("[PlatformerPage] Component body START");
   const playerRef = useRef<PlayerState | null>(null);
   const [executeAction, setExecuteAction] = useState<GameAction | null>(null);
-  const [currentLevelPath, setCurrentLevelPath] = useState('/levels/level2.json'); 
-  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing'); 
+  const [currentLevelPath, setCurrentLevelPath] = useState('/levels/level2.json');
+  const [gameState, setGameState] = useState<'startScreen' | 'playing'>('playing');
   const [gameStats, setGameStats] = useState<GameStats>({ collectedCoins: 0, totalCoinsOnLevel: TOTAL_COINS_ON_LEVEL });
 
   const handlePlayerAction = useCallback((action: GameAction) => {
-    // console.log("[PlatformerPage] handlePlayerAction, action:", action);
     setExecuteAction(action);
   }, []);
 
   const resetExecuteAction = useCallback(() => {
-    // console.log("[PlatformerPage] resetExecuteAction called");
     setExecuteAction(null);
   }, []);
 
   const handleStartGame = () => {
-    // console.log("[PlatformerPage] handleStartGame called");
     setGameState('playing');
     const element = document.documentElement;
     if (element.requestFullscreen) {
       element.requestFullscreen().catch(err => {
         console.warn(`[PlatformerPage] Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
       });
-    } else if ((element as any).mozRequestFullScreen) { 
+    } else if ((element as any).mozRequestFullScreen) {
       (element as any).mozRequestFullScreen();
-    } else if ((element as any).webkitRequestFullscreen) { 
+    } else if ((element as any).webkitRequestFullscreen) {
       (element as any).webkitRequestFullscreen();
-    } else if ((element as any).msRequestFullscreen) { 
+    } else if ((element as any).msRequestFullscreen) {
       (element as any).msRequestFullscreen();
     }
   };
 
   const handleExitToStart = () => {
-    // console.log("[PlatformerPage] handleExitToStart called");
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(err => console.warn(`[PlatformerPage] Error exiting fullscreen: ${err.message}`));
     }
@@ -67,7 +62,6 @@ export default function PlatformerPage() {
   };
 
   const handleGameStatsUpdate = useCallback((newStats: GameStats) => {
-    // console.log("[PlatformerPage] handleGameStatsUpdate, newStats:", newStats);
     setGameStats(prevStats => {
       if (prevStats.collectedCoins !== newStats.collectedCoins || prevStats.totalCoinsOnLevel !== newStats.totalCoinsOnLevel) {
         return newStats;
@@ -99,7 +93,6 @@ export default function PlatformerPage() {
           break;
       }
       if (actionToDispatch) {
-        // console.log("[PlatformerPage] KeyDown, dispatching:", actionToDispatch);
         handlePlayerAction(actionToDispatch);
       }
     };
@@ -120,7 +113,6 @@ export default function PlatformerPage() {
           break;
       }
       if (actionToDispatch) {
-        // console.log("[PlatformerPage] KeyUp, dispatching:", actionToDispatch);
         handlePlayerAction(actionToDispatch);
       }
     };
@@ -135,32 +127,31 @@ export default function PlatformerPage() {
   }, [gameState, handlePlayerAction]);
 
   if (gameState === 'startScreen') {
-    // console.log("[PlatformerPage] Rendering StartScreen");
     return <StartScreen onStartGame={handleStartGame} />;
   }
 
-  // console.log("[PlatformerPage] Rendering game view. Current level path:", currentLevelPath);
   return (
     <div
       className="flex flex-col h-screen bg-background text-foreground overflow-hidden"
     >
       <GameHeader onExitToStart={handleExitToStart} stats={gameStats} />
-      <main className="flex-1 w-full overflow-hidden flex flex-col"> 
+      <main className="flex-1 w-full overflow-hidden flex flex-col">
         <div
-          className="relative w-full h-full" 
+          className="relative w-full h-full"
           style={{
             backgroundImage: "url('/assets/images/level1_bkg.png')",
             backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'top center', // Changed from 'top right'
+            backgroundPosition: 'center center', // Changed to center center
+            backgroundSize: 'cover', // Added to cover the area
           }}
           data-ai-hint="sky clouds"
         >
           <DynamicGameCanvas
             levelPath={currentLevelPath}
-            playerRef={playerRef} 
-            executeAction={executeAction} 
+            playerRef={playerRef}
+            executeAction={executeAction}
             resetExecuteAction={resetExecuteAction}
-            onGameStatsUpdate={handleGameStatsUpdate} 
+            onGameStatsUpdate={handleGameStatsUpdate}
           />
         </div>
       </main>
